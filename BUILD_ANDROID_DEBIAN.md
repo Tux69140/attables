@@ -81,7 +81,7 @@ pnpm tauri android init
 
 Le projet Android est généré dans `src-tauri/gen/android/`.
 
-> `src-tauri/gen/android/app/build.gradle.kts` a été modifié à la main pour lire `keystore.properties` (signature release conditionnelle, voir section 5). Si vous relancez `tauri android init`, vérifiez que ce bloc `signingConfigs` est conservé.
+> `src-tauri/gen/android/app/build.gradle.kts` a été modifié à la main pour signer la release à partir des variables d’environnement `ATTABLES_KEYSTORE` / `ATTABLES_KEYSTORE_MDP` (voir section 5). Si vous relancez `tauri android init`, vérifiez que ce bloc `signingConfigs` est conservé.
 
 ### 3.2 Supprimer la permission réseau ajoutée par défaut
 
@@ -130,7 +130,7 @@ Fichier généré :
 
 ### Option B — APK Release signé (distribution directe / test production)
 
-1. Créez un keystore de signature (une seule fois, **en dehors du dépôt Git**). Format PKCS12 : le mot de passe du keystore et celui de la clé sont identiques.
+1. Créez la clé de signature (une seule fois, **en dehors du dépôt Git**). Format PKCS12 : le mot de passe du magasin et celui de la clé sont identiques ; l’alias doit être `attables`.
 
    ```bash
    mkdir -p -m 700 ~/.android-keys
@@ -139,49 +139,27 @@ Fichier généré :
    chmod 600 ~/.android-keys/attables-release.jks
    ```
 
-   **Sauvegardez le mot de passe ET le fichier `.jks` (en pièce jointe) dans votre gestionnaire de mots de passe.** Perdre l’un ou l’autre empêche de publier des mises à jour de l’APK signé par vous.
+   **Sauvegardez le mot de passe ET le fichier `.jks` (en pièce jointe) dans KeePassXC** (entrée « Attablés - clé de signature Android »). Perdre l’un ou l’autre empêche de publier des mises à jour signées par vous. L’empreinte SHA-256 du certificat (publique) est épinglée dans `src-tauri/empreinte-cle-android.txt`.
 
-2. Créez le fichier `src-tauri/gen/android/keystore.properties` (déjà ignoré par `.gitignore`, `chmod 600`) :
-
-   ```properties
-   password=VOTRE_MOT_DE_PASSE
-   keyAlias=attables
-   storeFile=/home/VOTRE_UTILISATEUR/.android-keys/attables-release.jks
-   ```
-
-   `app/build.gradle.kts` n’active la signature release que si ce fichier existe ; sinon l’APK release est produit non signé (cas du build F-Droid).
-
-3. Compilez l’APK Release :
+2. Fabriquez l’APK avec le script, qui demande le mot de passe :
 
    ```bash
-   pnpm tauri android build --apk
+   scripts/fabriquer-apk.sh
    ```
 
-   Aucun mot de passe n’est demandé : Gradle signe automatiquement avec les informations de `keystore.properties`. Si le fichier généré se termine par `-unsigned.apk`, c’est que `keystore.properties` est absent ou illisible.
+   Le script vérifie les versions (`package.json`, `tauri.conf.json`, `Cargo.toml`), ouvre la clé avec le mot de passe saisi et contrôle son empreinte **avant** de compiler, transmet le mot de passe à Gradle par l’environnement seulement (jamais dans un fichier, sans démon ni cache de configuration Gradle), compile pour arm64 + armv7, puis vérifie la signature de l’APK avec `apksigner`.
 
-Fichier généré :  
-`src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk`
+Fichier généré : `dist-android/attables-<version>.apk` (ignoré par Git).
 
-Vérifier la signature :
-
-```bash
-APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
-"$APKSIGNER" verify --print-certs \
-  src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
-```
-
-*(Astuce : ajoutez `--target aarch64` pour compiler plus vite uniquement pour téléphones ARM64.)*
+*(Sans le script, `pnpm tauri android build --apk` produit un APK release **non signé** `app-universal-release-unsigned.apk` : c’est le comportement attendu par F-Droid, mais cet APK ne s’installe pas sur un téléphone.)*
 
 ### Option C — Bundle `.aab` signé (Google Play Store)
 
-Avec le même `keystore.properties` configuré :
-
 ```bash
-pnpm tauri android build --aab
+scripts/fabriquer-apk.sh --aab
 ```
 
-Fichier généré :  
-`src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab`
+Fichier généré : `dist-android/attables-<version>.aab`.
 
 *(Voir [`PLAY_STORE.md`](./PLAY_STORE.md) pour la fiche et les déclarations Play Console.)*
 
@@ -192,7 +170,7 @@ Fichier généré :
 ### Par câble USB (débogage USB activé)
 
 ```bash
-adb install -r src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+adb install -r dist-android/attables-0.1.0.apk
 ```
 
 ### Sans câble
@@ -211,7 +189,7 @@ Avant de publier sur GitHub et de soumettre sur `fdroiddata` :
 git status
 ```
 
-Assurez-vous qu’il n’y a **aucun** fichier `.apk`, `.aab`, `.jks`, `.keystore` ni `keystore.properties` dans les fichiers suivis.
+Assurez-vous qu’il n’y a **aucun** fichier `.apk`, `.aab`, `.jks` ni `.keystore` dans les fichiers suivis.
 
 ### 7.2 Commiter et poser le tag `v0.1.0`
 

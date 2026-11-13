@@ -14,25 +14,24 @@ val tauriProperties = Properties().apply {
     }
 }
 
-// Signature release : lue depuis src-tauri/gen/android/keystore.properties (ignoré par Git).
-// Absent (ex. build F-Droid) → APK release non signé « -unsigned.apk ».
-val keystoreProperties = Properties().apply {
-    val propFile = rootProject.file("keystore.properties")
-    if (propFile.exists()) {
-        propFile.inputStream().use { load(it) }
-    }
-}
-val hasReleaseKeystore = !keystoreProperties.isEmpty
+// Signature release : la clé et son mot de passe ne viennent QUE de l'environnement,
+// posés par scripts/fabriquer-apk.sh — jamais sur une ligne de commande, jamais dans
+// un fichier. Alias fixe « attables », mot de passe de la clé = celui du magasin (PKCS12).
+// Sans ces variables, l'APK release sort non signé (« -unsigned.apk ») : c'est le cas
+// voulu du build F-Droid, qui signe avec sa propre clé.
+val attablesKeystore: String? = System.getenv("ATTABLES_KEYSTORE")?.takeIf { it.isNotBlank() }
+val attablesKeystoreMdp: String? = System.getenv("ATTABLES_KEYSTORE_MDP")?.takeIf { it.isNotEmpty() }
+val hasReleaseKeystore = attablesKeystore != null && attablesKeystoreMdp != null
 
 android {
     compileSdk = 37
     signingConfigs {
         if (hasReleaseKeystore) {
             create("release") {
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("password")
-                storeFile = file(keystoreProperties.getProperty("storeFile"))
-                storePassword = keystoreProperties.getProperty("password")
+                keyAlias = "attables"
+                keyPassword = attablesKeystoreMdp
+                storeFile = file(attablesKeystore!!)
+                storePassword = attablesKeystoreMdp
             }
         }
     }

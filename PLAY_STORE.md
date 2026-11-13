@@ -121,7 +121,7 @@ Dans **Contenu de l’application → Sécurité des données** :
 ### Ce qui reste à faire manuellement côté Play Console
 1. **Vérifier le profil Organisation (compte pro) :** vérifiez que la validation D-U-N-S et vos coordonnées professionnelles BioVibraLyon sont bien validées dans Google Play Console *(un compte Organisation vérifié n’est pas soumis à l’obligation des 12 testeurs pendant 14 jours avant la mise en production)*.
 2. **Héberger la politique de confidentialité :** publiez `public/privacy.html` en HTTPS (sur `biovibralyon.fr` ou via GitHub Pages) et collez cette URL dans *Contenu de l’application → Règles de confidentialité*.
-3. **Compiler le `.aab` signé et sauvegarder le keystore :** suivez [`BUILD_ANDROID_DEBIAN.md`](./BUILD_ANDROID_DEBIAN.md), conservez `~/attables-release.jks` et son mot de passe **en lieu sûr hors du dépôt**, puis activez **Play App Signing** (*Signature d’application par Google Play*) lors du premier envoi du `.aab`.
+3. **Compiler le `.aab` signé et sauvegarder le keystore :** suivez [`BUILD_ANDROID_DEBIAN.md`](./BUILD_ANDROID_DEBIAN.md), fabriquez-le avec `scripts/fabriquer-apk.sh --aab`, conservez `~/.android-keys/attables-release.jks` et son mot de passe dans KeePassXC (**jamais dans le dépôt**), puis activez **Play App Signing** (*Signature d’application par Google Play*) lors du premier envoi du `.aab`.
 4. **Ajouter 2 à 4 captures d’écran téléphone** (et éventuellement activer la langue **English (United States)** avec les textes prêts dans `fastlane/metadata/android/en-US/`).
 5. **Valider tous les questionnaires** (*Sécurité des données*, *Publicités*, *Accès*, *IARC*, *Public cible*, *Santé = Non*) puis soumettre en **Production** (ou en *Test interne* rapide sur votre appareil au préalable).
 

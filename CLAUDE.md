@@ -15,8 +15,9 @@ pnpm lint       # tsc --noEmit — seule vérification automatique (pas d'ESLint
 pnpm build      # build de production dans dist/ (frontendDist de Tauri)
 
 pnpm tauri android build --apk --debug   # APK de test
-pnpm tauri android build --apk           # APK release signé si src-tauri/gen/android/keystore.properties existe, sinon -unsigned
-pnpm tauri android build --aab           # bundle Play Store
+scripts/fabriquer-apk.sh                 # APK release signé (demande le mot de passe de la clé) → dist-android/
+scripts/fabriquer-apk.sh --aab           # bundle Play Store signé
+pnpm tauri android build --apk           # APK release NON signé (-unsigned), comme le build F-Droid
 ```
 
 Il n'existe aucune suite de tests. Valider une modification = `pnpm lint` + `pnpm build`, puis vérification manuelle dans le navigateur (`pnpm dev`).
@@ -54,4 +55,5 @@ Le guide complet Android/Debian (SDK/NDK, icônes, keystore, tag, `fdroid build`
 - Versions à garder synchronisées : `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, plus un changelog `fastlane/metadata/android/{fr-FR,en-US}/changelogs/<versionCode>.txt`.
 - Identifiant Android : `attables.biovibralyon.fr`.
 - Ne jamais commiter `*.apk`, `*.aab`, `*.jks`, `keystore.properties` (déjà dans `.gitignore`). F-Droid exige `Cargo.lock` et `pnpm-lock.yaml` commités (`--frozen-lockfile`).
-- `src-tauri/gen/android/app/build.gradle.kts` contient un bloc `signingConfigs` ajouté à la main (signature release seulement si `keystore.properties` existe) : à préserver si le projet Android est régénéré.
+- Signature : `src-tauri/gen/android/app/build.gradle.kts` contient un bloc `signingConfigs` ajouté à la main, qui lit la clé et son mot de passe **uniquement** dans les variables d'environnement `ATTABLES_KEYSTORE` / `ATTABLES_KEYSTORE_MDP`, posées par `scripts/fabriquer-apk.sh` (à préserver si le projet Android est régénéré). Ne jamais écrire le mot de passe dans un fichier. L'empreinte du certificat est épinglée dans `src-tauri/empreinte-cle-android.txt`.
+- Le script Gradle Rust de Tauri lance `pnpm tauri …` depuis `src-tauri/` : le script `"tauri": "tauri"` de `package.json` est indispensable.
