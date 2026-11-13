@@ -1,0 +1,100 @@
+@import "@fontsource/baumans/400.css";
+@import "@fontsource/source-sans-3/400.css";
+@import "@fontsource/source-sans-3/600.css";
+@import "@fontsource/source-sans-3/700.css";
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #F7F6F1;
+  --card: #FEFDFB;
+  --surface-elevated: #F1EEE7;
+  --surface-active: #E7E2D2;
+  --border: #D3D1CA;
+  --outline: #817D71;
+  --ink: #1A263C;
+  --ink-muted: #4D586C;
+  --primary: #007232;
+  --on-primary: #FFFFFF;
+  --success: #007232;
+  --success-bg: #E1F2E6;
+  --warning: #9C6400;
+  --warning-bg: #FBF0DA;
+  --error: #A82E27;
+  --error-bg: #F9E3E0;
+}
+
+.dark {
+  --bg: #0D1624;
+  --card: #162131;
+  --surface-elevated: #1F2C3F;
+  --surface-active: #273952;
+  --border: #414E60;
+  --outline: #7F8BA0;
+  --ink: #F4F2EA;
+  --ink-muted: #B4BFCE;
+  --primary: #6EC083;
+  --on-primary: #0D1624;
+  --success: #6EC083;
+  --success-bg: #163324;
+  --warning: #F2C36A;
+  --warning-bg: #332711;
+  --error: #F38E81;
+  --error-bg: #3A1D1D;
+}
+
+html,
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: "Source Sans 3", system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+}
+
+.font-display {
+  font-family: "Baumans", system-ui, sans-serif;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native Android safe area helpers */
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Custom subtle scrollbars for Android WebView / desktop preview */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
