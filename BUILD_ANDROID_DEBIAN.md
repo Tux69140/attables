@@ -157,8 +157,18 @@ Fichier généré :
    pnpm tauri android build --apk
    ```
 
+   Aucun mot de passe n’est demandé : Gradle signe automatiquement avec les informations de `keystore.properties`. Si le fichier généré se termine par `-unsigned.apk`, c’est que `keystore.properties` est absent ou illisible.
+
 Fichier généré :  
 `src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk`
+
+Vérifier la signature :
+
+```bash
+APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+"$APKSIGNER" verify --print-certs \
+  src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+```
 
 *(Astuce : ajoutez `--target aarch64` pour compiler plus vite uniquement pour téléphones ARM64.)*
 
