@@ -411,7 +411,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     À propos & Vie privée
                   </div>
                   <div className="text-[14px] text-[var(--ink-muted)] truncate">
-                    Version 0.1.0 · GPL v3.0 · BioVibraLyon
+                    Version 0.1.1 · GPL v3.0 · BioVibraLyon
                   </div>
                 </div>
               </div>
@@ -728,7 +728,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <div>
                 <h2 className="font-display text-[24px] text-[var(--ink)]">Attablés</h2>
                 <p className="text-[15px] font-semibold text-[var(--ink-muted)] tabular-nums">
-                  Version 0.1.0 · attables.biovibralyon.fr
+                  Version 0.1.1 · attables.biovibralyon.fr
                 </p>
               </div>
               <p className="text-[15px] text-[var(--ink)] leading-relaxed">

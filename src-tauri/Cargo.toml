@@ -1,6 +1,6 @@
 [package]
 name = "attables"
-version = "0.1.0"
+version = "0.1.1"
 description = "Carnet d'invitations personnel hors ligne : foyers, allergies alimentaires et mémoire anti-doublon des plats."
 authors = ["Stéphane MICHEL <stephane@biovibralyon.fr>"]
 license = "GPL-3.0-or-later"

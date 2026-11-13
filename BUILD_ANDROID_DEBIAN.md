@@ -170,7 +170,7 @@ Fichier généré : `dist-android/attables-<version>.aab`.
 ### Par câble USB (débogage USB activé)
 
 ```bash
-adb install -r dist-android/attables-0.1.0.apk
+adb install -r dist-android/attables-0.1.1.apk
 ```
 
 ### Sans câble
@@ -179,7 +179,7 @@ Transférez le fichier `.apk` sur votre téléphone puis ouvrez-le depuis le ges
 
 ---
 
-## 7. Contrôle final, tag GitHub `v0.1.0` & vérification F-Droid
+## 7. Contrôle final, tag GitHub `v0.1.1` & vérification F-Droid
 
 Avant de publier sur GitHub et de soumettre sur `fdroiddata` :
 
@@ -191,14 +191,14 @@ git status
 
 Assurez-vous qu’il n’y a **aucun** fichier `.apk`, `.aab`, `.jks` ni `.keystore` dans les fichiers suivis.
 
-### 7.2 Commiter et poser le tag `v0.1.0`
+### 7.2 Commiter et poser le tag `v0.1.1`
 
 ```bash
 pnpm lint
 pnpm build
 git add package.json pnpm-lock.yaml src-tauri/ fastlane/
-git commit -m "Prepare v0.1.0 Android & F-Droid release"
-git tag -a v0.1.0 -m "Version 0.1.0"
+git commit -m "Prepare v0.1.1 Android & F-Droid release"
+git tag -a v0.1.1 -m "Version 0.1.1"
 git push origin main --tags
 ```
 

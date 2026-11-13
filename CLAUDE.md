@@ -52,7 +52,7 @@ Le guide complet Android/Debian (SDK/NDK, icônes, keystore, tag, `fdroid build`
 
 ## Publication
 
-- Versions à garder synchronisées : `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, plus un changelog `fastlane/metadata/android/{fr-FR,en-US}/changelogs/<versionCode>.txt`.
+- Versions à garder synchronisées : `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, plus un changelog `fastlane/metadata/android/{fr-FR,en-US}/changelogs/<versionCode>.txt` et la mention « Version x.y.z » codée en dur dans `src/components/SettingsModal.tsx` (2 occurrences). `versionCode` est calculé par Tauri : majeure × 1 000 000 + mineure × 1 000 + correctif (0.1.1 → 1001).
 - Identifiant Android : `attables.biovibralyon.fr`.
 - Ne jamais commiter `*.apk`, `*.aab`, `*.jks`, `keystore.properties` (déjà dans `.gitignore`). F-Droid exige `Cargo.lock` et `pnpm-lock.yaml` commités (`--frozen-lockfile`).
 - Signature : `src-tauri/gen/android/app/build.gradle.kts` contient un bloc `signingConfigs` ajouté à la main, qui lit la clé et son mot de passe **uniquement** dans les variables d'environnement `ATTABLES_KEYSTORE` / `ATTABLES_KEYSTORE_MDP`, posées par `scripts/fabriquer-apk.sh` (à préserver si le projet Android est régénéré). Ne jamais écrire le mot de passe dans un fichier. L'empreinte du certificat est épinglée dans `src-tauri/empreinte-cle-android.txt`.

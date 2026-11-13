@@ -1,7 +1,7 @@
 {
   "name": "attables",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Carnet d'invitations personnel hors ligne : foyers, allergies alimentaires et mémoire anti-doublon des plats.",
   "license": "GPL-3.0-or-later",
   "author": "Stéphane MICHEL <stephane@biovibralyon.fr>",

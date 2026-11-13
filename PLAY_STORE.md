@@ -8,7 +8,7 @@ Ce document rassemble les paramètres techniques, les déclarations obligatoires
 
 - **Nom de l’application :** `Attablés`
 - **Identifiant Android (`applicationId` / `identifier`) :** `attables.biovibralyon.fr`
-- **Version initiale :** `0.1.0` (`versionCode: 1`)
+- **Version initiale :** `0.1.1` (`versionCode: 1001`, calculé par Tauri : majeure × 1 000 000 + mineure × 1 000 + correctif)
 - **Format de publication Google Play :** Android App Bundle (`.aab` signé)
 - **Dépôt open source (GNU GPL v3.0) :** <https://github.com/Tux69140/attables>
 - **Développeur / Contact :** Stéphane MICHEL — BioVibraLyon (`stephane@biovibralyon.fr`)

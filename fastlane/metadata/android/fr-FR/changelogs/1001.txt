@@ -1,4 +1,4 @@
-Version initiale 0.1.0 :
+Version initiale 0.1.1 :
 • Gestion des invitations Prévues et Réalisées (chez soi ou chez un proche) et réinvitation rapide d'un groupe.
 • Annuaire par foyers et par convives avec distinction stricte entre allergies et préférences.
 • Détection anti-doublon des plats avec prescription temporelle réglable et appréciations sur les repas réalisés.

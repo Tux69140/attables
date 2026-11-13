@@ -1,4 +1,4 @@
-Initial release 0.1.0:
+Initial release 0.1.1:
 • Planned and Realised invitations (at home or away) with one-tap group re-invitation.
 • Households and guest directory with strict separation between allergies and preferences.
 • Anti-duplicate dish detection with configurable time window and meal/dish ratings.

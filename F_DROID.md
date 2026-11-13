@@ -16,16 +16,16 @@ Ce document récapitule les éléments déjà en place dans le dépôt et les é
 
 ---
 
-## 2. Préparation locale sous Debian avant le tag `v0.1.0`
+## 2. Préparation locale sous Debian avant le tag `v0.1.1`
 
-F-Droid recompile l’application **entièrement depuis les sources** à partir d’un tag Git annoté (`v0.1.0`).  
-Toutes les commandes pas à pas (génération de `pnpm-lock.yaml`, `Cargo.lock`, icônes, `tauri android init`, suppression de la permission `INTERNET`, ajout des captures `phoneScreenshots/`, vérification `git status` et pose du tag `v0.1.0`) sont centralisées dans [`BUILD_ANDROID_DEBIAN.md`](./BUILD_ANDROID_DEBIAN.md) (sections **2 à 7**).
+F-Droid recompile l’application **entièrement depuis les sources** à partir d’un tag Git annoté (`v0.1.1`).  
+Toutes les commandes pas à pas (génération de `pnpm-lock.yaml`, `Cargo.lock`, icônes, `tauri android init`, suppression de la permission `INTERNET`, ajout des captures `phoneScreenshots/`, vérification `git status` et pose du tag `v0.1.1`) sont centralisées dans [`BUILD_ANDROID_DEBIAN.md`](./BUILD_ANDROID_DEBIAN.md) (sections **2 à 7**).
 
 ---
 
 ## 3. Recette `fdroiddata` (`metadata/attables.biovibralyon.fr.yml`)
 
-Lors de votre Merge Request sur <https://gitlab.com/fdroid/fdroiddata>, créez le fichier `metadata/attables.biovibralyon.fr.yml` sur ce modèle (ajustez `commit: v0.1.0`, `ndk:` selon la version installée sur votre machine de test, et les architectures ciblées) :
+Lors de votre Merge Request sur <https://gitlab.com/fdroid/fdroiddata>, créez le fichier `metadata/attables.biovibralyon.fr.yml` sur ce modèle (ajustez `commit:`, `versionName` et `versionCode` — Tauri calcule `versionCode = majeure × 1 000 000 + mineure × 1 000 + correctif`, soit `1001` pour `0.1.1` —, `ndk:` selon la version installée sur votre machine de test, et les architectures ciblées) :
 
 ```yaml
 Categories:
@@ -44,9 +44,9 @@ RepoType: git
 Repo: https://github.com/Tux69140/attables.git
 
 Builds:
-  - versionName: '0.1.0'
-    versionCode: 1
-    commit: v0.1.0
+  - versionName: '0.1.1'
+    versionCode: 1001
+    commit: v0.1.1
     subdir: src-tauri/gen/android
     sudo:
       - apt-get update
@@ -68,8 +68,8 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: '0.1.0'
-CurrentVersionCode: 1
+CurrentVersion: '0.1.1'
+CurrentVersionCode: 1001
 ```
 
 > **Note importante pour la recette F-Droid :**
