@@ -19,7 +19,7 @@ Ce document récapitule les éléments déjà en place dans le dépôt et les é
 ## 2. Préparation locale sous Debian avant le tag `v0.1.0`
 
 F-Droid recompile l’application **entièrement depuis les sources** à partir d’un tag Git annoté (`v0.1.0`).  
-Toutes les commandes pas à pas (génération de `package-lock.json`, `Cargo.lock`, icônes, `tauri android init`, suppression de la permission `INTERNET`, ajout des captures `phoneScreenshots/`, vérification `git status` et pose du tag `v0.1.0`) sont centralisées dans [`BUILD_ANDROID_DEBIAN.md`](./BUILD_ANDROID_DEBIAN.md) (sections **2 à 7**).
+Toutes les commandes pas à pas (génération de `pnpm-lock.yaml`, `Cargo.lock`, icônes, `tauri android init`, suppression de la permission `INTERNET`, ajout des captures `phoneScreenshots/`, vérification `git status` et pose du tag `v0.1.0`) sont centralisées dans [`BUILD_ANDROID_DEBIAN.md`](./BUILD_ANDROID_DEBIAN.md) (sections **2 à 7**).
 
 ---
 
@@ -51,6 +51,7 @@ Builds:
     sudo:
       - apt-get update
       - apt-get install -y nodejs npm curl build-essential pkg-config libssl-dev
+      - npm install -g pnpm
       - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
       - /root/.cargo/bin/rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
     output: app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
@@ -59,8 +60,8 @@ Builds:
     prebuild:
       - export PATH="$HOME/.cargo/bin:$PATH"
       - pushd ../../..
-      - npm ci --ignore-scripts
-      - npm run build
+      - pnpm install --frozen-lockfile --ignore-scripts
+      - pnpm build
       - popd
     build:
       - export PATH="$HOME/.cargo/bin:$PATH"

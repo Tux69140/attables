@@ -43,6 +43,7 @@ Vérifiez que les outils répondent et installez les cibles Rust Android si ce n
 
 ```bash
 node -v        # >= 20 recommandé
+pnpm -v
 rustc --version
 java -version
 adb --version
@@ -56,11 +57,11 @@ rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-and
 Le dossier `src-tauri/` est déjà préconfiguré (`identifier: "attables.biovibralyon.fr"`, licence `GPL-3.0-or-later`). À la racine du projet :
 
 ```bash
-# 1. Installer les paquets Node et générer package-lock.json
-npm install
+# 1. Installer les paquets Node et générer pnpm-lock.yaml
+pnpm install
 
 # 2. Installer Tauri CLI v2 en dépendance de développement
-npm install -D @tauri-apps/cli@^2
+pnpm add -D @tauri-apps/cli@^2
 
 # 3. Générer Cargo.lock pour garantir un build Rust reproductible (requis par F-Droid)
 (cd src-tauri && cargo generate-lockfile)
@@ -73,8 +74,8 @@ npm install -D @tauri-apps/cli@^2
 ### 3.1 Générer les icônes et le projet Gradle Android
 
 ```bash
-npx tauri icon store-assets/icon-512x512.png
-npx tauri android init
+pnpm tauri icon store-assets/icon-512x512.png
+pnpm tauri android init
 ```
 
 Le projet Android est généré dans `src-tauri/gen/android/`.
@@ -118,7 +119,7 @@ rm -f fastlane/metadata/android/fr-FR/images/phoneScreenshots/.gitkeep \
 ### Option A — APK Debug (test rapide sur téléphone)
 
 ```bash
-npx tauri android build --apk --debug
+pnpm tauri android build --apk --debug
 ```
 
 Fichier généré :  
@@ -143,7 +144,7 @@ Fichier généré :
 3. Compilez l’APK Release :
 
    ```bash
-   npx tauri android build --apk
+   pnpm tauri android build --apk
    ```
 
 Fichier généré :  
@@ -156,7 +157,7 @@ Fichier généré :
 Avec le même `keystore.properties` configuré :
 
 ```bash
-npx tauri android build --aab
+pnpm tauri android build --aab
 ```
 
 Fichier généré :  
@@ -195,9 +196,9 @@ Assurez-vous qu’il n’y a **aucun** fichier `.apk`, `.aab`, `.jks`, `.keystor
 ### 7.2 Commiter et poser le tag `v0.1.0`
 
 ```bash
-npm run lint
-npm run build
-git add package.json package-lock.json src-tauri/ fastlane/
+pnpm lint
+pnpm build
+git add package.json pnpm-lock.yaml src-tauri/ fastlane/
 git commit -m "Prepare v0.1.0 Android & F-Droid release"
 git tag -a v0.1.0 -m "Version 0.1.0"
 git push origin main --tags

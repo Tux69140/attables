@@ -26,13 +26,13 @@
 
 ## Développement local
 
-Prérequis : Node.js ≥ 20 et npm.
+Prérequis : Node.js ≥ 20 et pnpm.
 
 ```bash
-npm install
-npm run dev       # Serveur de développement sur http://localhost:3000
-npm run lint      # Vérification TypeScript (tsc --noEmit)
-npm run build     # Build de production dans dist/
+pnpm install
+pnpm dev          # Serveur de développement sur http://localhost:3000
+pnpm lint         # Vérification TypeScript (tsc --noEmit)
+pnpm build        # Build de production dans dist/
 ```
 
 ---
