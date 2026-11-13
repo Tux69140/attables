@@ -6,6 +6,28 @@ Ce document centralise **toutes les tâches et commandes à exécuter sur votre 
 
 ---
 
+## 0. Cloner ou mettre à jour le dépôt depuis GitHub
+
+### Premier téléchargement sur votre machine Debian
+
+```bash
+# HTTPS :
+git clone https://github.com/Tux69140/attables.git
+cd attables
+
+# Ou via SSH (si votre clé SSH GitHub est configurée) :
+# git clone git@github.com:Tux69140/attables.git && cd attables
+```
+
+### Mises à jour ultérieures
+
+```bash
+cd attables
+git pull origin main
+```
+
+---
+
 ## 1. Vérifier l’environnement Debian (Node, Rust, JDK, SDK/NDK)
 
 Assurez-vous que ces variables sont exportées dans votre shell (`~/.bashrc` ou `~/.zshrc`) :
