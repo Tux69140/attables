@@ -21,3 +21,9 @@ src-tauri/gen/android/app/build/
 src-tauri/gen/android/.gradle/
 src-tauri/gen/android/local.properties
 src-tauri/gen/android/build/
+
+# APK / AAB signés produits par scripts/fabriquer-apk.sh
+dist-android/
+
+# Schémas générés par Tauri
+src-tauri/gen/schemas/
