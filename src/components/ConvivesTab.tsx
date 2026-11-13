@@ -366,7 +366,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
       {/* Floating Action Buttons (auto-hide on scroll down, reappear on slight scroll up) */}
       <div
         aria-hidden={!chromeVisible}
-        className={`fixed bottom-[82px] left-0 right-0 z-30 pointer-events-none flex justify-center px-4 transition-all duration-200 ease-out ${
+        className={`fixed bottom-above-nav left-0 right-0 z-30 pointer-events-none flex justify-center px-safe transition-all duration-200 ease-out ${
           chromeVisible ? 'translate-y-0 opacity-100' : 'translate-y-[160px] opacity-0'
         }`}
       >

@@ -160,7 +160,7 @@ export const UndoBanner: React.FC<{
   bottomOffsetClass?: string;
   onUndo: () => void;
   onDismiss: () => void;
-}> = ({ message, bottomOffsetClass = 'bottom-20', onUndo, onDismiss }) => {
+}> = ({ message, bottomOffsetClass = 'bottom-above-bar', onUndo, onDismiss }) => {
   if (!message) return null;
 
   return (

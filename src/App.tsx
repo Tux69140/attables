@@ -355,7 +355,7 @@ export default function App() {
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-4 h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
+        <div className="max-w-[1080px] mx-auto px-safe h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
           <div className="w-[44px]" aria-hidden="true" />
           <button
             type="button"
@@ -377,7 +377,7 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-[1080px] mx-auto px-4 pt-[72px]">
+      <main className="flex-1 w-full max-w-[1080px] mx-auto px-safe pt-below-header pb-inset">
         {activeTab === 'invitations' ? (
           <InvitationsTab
             invitations={data.invitations}
@@ -413,7 +413,7 @@ export default function App() {
           chromeVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto grid grid-cols-2 h-16">
+        <div className="max-w-[1080px] mx-auto px-inset grid grid-cols-2 h-16">
           <button
             type="button"
             onClick={() => setActiveTab('invitations')}
@@ -447,7 +447,7 @@ export default function App() {
       {/* Temporary Undo Banner positioned cleanly above floating CTAs */}
       <UndoBanner
         message={undoState?.message ?? null}
-        bottomOffsetClass={chromeVisible ? 'bottom-[144px]' : 'bottom-5'}
+        bottomOffsetClass={chromeVisible ? 'bottom-above-fab' : 'bottom-safe-gap'}
         onUndo={handleUndo}
         onDismiss={dismissUndo}
       />

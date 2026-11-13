@@ -285,7 +285,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-4 h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
+        <div className="max-w-[1080px] mx-auto px-safe h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
           <button
             type="button"
             onClick={handleBack}
@@ -308,7 +308,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1080px] mx-auto px-4 pt-[72px] pb-14 flex flex-col gap-5">
+      <main className="flex-1 w-full max-w-[1080px] mx-auto px-safe pt-below-header pb-safe-content flex flex-col gap-5">
         {/* ROOT: Android Settings Menu Hub */}
         {section === 'root' && (
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden divide-y divide-[var(--border)]">

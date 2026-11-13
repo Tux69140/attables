@@ -368,7 +368,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-4 h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
+        <div className="max-w-[1080px] mx-auto px-safe h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
           <button
             type="button"
             onClick={onCancel}
@@ -400,7 +400,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-[1080px] mx-auto px-4 pt-[72px] pb-32 flex flex-col gap-5">
+      <main className="flex-1 w-full max-w-[1080px] mx-auto px-safe pt-below-header pb-below-bar flex flex-col gap-5">
         {isFrozen ? (
           /* FROZEN REALISED SUMMARY (Date, Titre, Hôte, Convives read-only; notes & verdicts editable) */
           <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-3.5">
@@ -1370,7 +1370,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
         }`}
       >
         {isRealisee ? (
-          <div className="max-w-[1080px] mx-auto px-4 py-3 flex items-center gap-2.5">
+          <div className="max-w-[1080px] mx-auto px-safe py-3 flex items-center gap-2.5">
             {existing && onReinvite && (
               <button
                 type="button"
@@ -1391,7 +1391,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             </button>
           </div>
         ) : (
-          <div className="max-w-[1080px] mx-auto px-4 py-3 flex items-center gap-2.5">
+          <div className="max-w-[1080px] mx-auto px-safe py-3 flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => handleSubmit('prevue')}

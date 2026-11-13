@@ -74,6 +74,59 @@ body {
   padding-top: env(safe-area-inset-top);
 }
 
+/*
+ * Android affiche la WebView sous les barres système (edge-to-edge) : l'en-tête
+ * (3.5rem + .pt-safe) et la barre d'onglets (4rem + .pb-safe) grandissent de la
+ * hauteur de ces barres. Tout ce qui se positionne par rapport à eux doit donc
+ * ajouter les mêmes marges env(safe-area-inset-*). Marges nulles (navigateur) :
+ * on retrouve exactement les anciennes valeurs (72px, 82px, 144px, 80px…).
+ */
+.px-safe {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.px-inset {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.pt-below-header {
+  padding-top: calc(4.5rem + env(safe-area-inset-top));
+}
+
+.pb-inset {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pb-safe-content {
+  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+}
+
+.pb-below-bar {
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+}
+
+/* Bouton flottant : 10px au-dessus de la barre d'onglets (4rem + .pb-safe). */
+.bottom-above-nav {
+  bottom: calc(4.625rem + max(0.5rem, env(safe-area-inset-bottom)));
+}
+
+/* Bandeau « Annuler » au-dessus du bouton flottant. */
+.bottom-above-fab {
+  bottom: calc(8.5rem + max(0.5rem, env(safe-area-inset-bottom)));
+}
+
+/* Bandeau « Annuler » au-dessus de la barre d'actions de l'éditeur. */
+.bottom-above-bar {
+  bottom: calc(4.5rem + max(0.5rem, env(safe-area-inset-bottom)));
+}
+
+/* Bandeau « Annuler » quand les barres sont masquées par le défilement. */
+.bottom-safe-gap {
+  bottom: calc(1.25rem + env(safe-area-inset-bottom));
+}
+
 /* Custom subtle scrollbars for Android WebView / desktop preview */
 ::-webkit-scrollbar {
   width: 6px;
