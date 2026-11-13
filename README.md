@@ -26,7 +26,7 @@
 
 ## Développement local
 
-Prérequis : Node.js ≥ 20 et pnpm.
+Prérequis : Node.js ≥ 20 et pnpm (version épinglée dans `package.json` → `packageManager`).
 
 ```bash
 pnpm install

@@ -51,23 +51,18 @@ Builds:
     sudo:
       - apt-get update
       - apt-get install -y nodejs npm curl build-essential pkg-config libssl-dev
-      - npm install -g pnpm
+      - npm install -g pnpm@10.33.4
       - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
       - /root/.cargo/bin/rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
     output: app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
     srclibs:
       - none
-    prebuild:
-      - export PATH="$HOME/.cargo/bin:$PATH"
-      - pushd ../../..
-      - pnpm install --frozen-lockfile --ignore-scripts
-      - pnpm build
-      - popd
     build:
       - export PATH="$HOME/.cargo/bin:$PATH"
       - export NDK_HOME="$ANDROID_NDK"
-      - pushd ../..
-      - cargo tauri android build --apk --target aarch64 armv7
+      - pushd ../../..
+      - pnpm install --frozen-lockfile --ignore-scripts
+      - pnpm tauri android build --apk --target aarch64 armv7
       - popd
     ndk: r27c
 
@@ -78,6 +73,9 @@ CurrentVersionCode: 1
 ```
 
 > **Note importante pour la recette F-Droid :**
+> - Le projet utilise **pnpm** (version épinglée dans `package.json` → `packageManager`, à garder synchronisée avec la ligne `npm install -g pnpm@…`). `pnpm install --frozen-lockfile` échoue si `pnpm-lock.yaml` n’est pas commité ou pas à jour.
+> - L’installation des dépendances Node se fait dans `build:` et non dans `prebuild:` : le scanner F-Droid s’exécute entre les deux, et `node_modules/` contient des binaires précompilés (esbuild, CLI Tauri) qu’il signalerait.
+> - `pnpm tauri android build` (lancé depuis la racine) exécute lui-même `pnpm build` via `beforeBuildCommand` de `tauri.conf.json`. Sans `keystore.properties`, Gradle produit l’APK `-unsigned` attendu par `output:` ; F-Droid le signe avec sa propre clé.
 > - Vérifiez auprès de `fdroiddata` si `nodejs` ≥ 20 doit être installé via NodeSource ou `nvm` dans `sudo:` selon l’image Debian de l’environnement `fdroidserver` au moment de la soumission.
 > - Si vous préférez utiliser Gradle directement après compilation des bibliothèques Rust (`cargo tauri android build --apk` vs `cargo ndk` + `./gradlew assembleUniversalRelease`), testez d’abord localement avec `fdroidserver` :
 >   ```bash

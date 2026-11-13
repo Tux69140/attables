@@ -58,9 +58,10 @@ Le dossier `src-tauri/` est déjà préconfiguré (`identifier: "attables.biovib
 
 ```bash
 # 1. Installer les paquets Node et générer pnpm-lock.yaml
+#    (version de pnpm épinglée dans package.json → packageManager)
 pnpm install
 
-# 2. Installer Tauri CLI v2 en dépendance de développement
+# 2. Installer Tauri CLI v2 en dépendance de développement (déjà présent dans package.json)
 pnpm add -D @tauri-apps/cli@^2
 
 # 3. Générer Cargo.lock pour garantir un build Rust reproductible (requis par F-Droid)
@@ -79,6 +80,8 @@ pnpm tauri android init
 ```
 
 Le projet Android est généré dans `src-tauri/gen/android/`.
+
+> `src-tauri/gen/android/app/build.gradle.kts` a été modifié à la main pour lire `keystore.properties` (signature release conditionnelle, voir section 5). Si vous relancez `tauri android init`, vérifiez que ce bloc `signingConfigs` est conservé.
 
 ### 3.2 Supprimer la permission réseau ajoutée par défaut
 
@@ -127,19 +130,26 @@ Fichier généré :
 
 ### Option B — APK Release signé (distribution directe / test production)
 
-1. Créez un keystore de signature (une seule fois, **en dehors du dépôt Git**) :
+1. Créez un keystore de signature (une seule fois, **en dehors du dépôt Git**). Format PKCS12 : le mot de passe du keystore et celui de la clé sont identiques.
 
    ```bash
-   keytool -genkey -v -keystore ~/attables-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias attables
+   mkdir -p -m 700 ~/.android-keys
+   keytool -genkeypair -v -storetype PKCS12 -keystore ~/.android-keys/attables-release.jks \
+     -keyalg RSA -keysize 4096 -validity 10000 -alias attables
+   chmod 600 ~/.android-keys/attables-release.jks
    ```
 
-2. Créez le fichier `src-tauri/gen/android/keystore.properties` (déjà ignoré par `.gitignore`) :
+   **Sauvegardez le mot de passe ET le fichier `.jks` (en pièce jointe) dans votre gestionnaire de mots de passe.** Perdre l’un ou l’autre empêche de publier des mises à jour de l’APK signé par vous.
+
+2. Créez le fichier `src-tauri/gen/android/keystore.properties` (déjà ignoré par `.gitignore`, `chmod 600`) :
 
    ```properties
    password=VOTRE_MOT_DE_PASSE
    keyAlias=attables
-   storeFile=/home/VOTRE_UTILISATEUR/attables-release.jks
+   storeFile=/home/VOTRE_UTILISATEUR/.android-keys/attables-release.jks
    ```
+
+   `app/build.gradle.kts` n’active la signature release que si ce fichier existe ; sinon l’APK release est produit non signé (cas du build F-Droid).
 
 3. Compilez l’APK Release :
 
