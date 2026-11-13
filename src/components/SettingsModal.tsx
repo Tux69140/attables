@@ -83,6 +83,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSampleConfirm, setShowSampleConfirm] = useState(false);
+  const [showLicenseDetails, setShowLicenseDetails] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -410,7 +411,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     À propos & Vie privée
                   </div>
                   <div className="text-[14px] text-[var(--ink-muted)] truncate">
-                    Version 0.1.0 · 100 % sur votre appareil
+                    Version 0.1.0 · GPL v3.0 · BioVibraLyon
                   </div>
                 </div>
               </div>
@@ -727,7 +728,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <div>
                 <h2 className="font-display text-[24px] text-[var(--ink)]">Attablés</h2>
                 <p className="text-[15px] font-semibold text-[var(--ink-muted)] tabular-nums">
-                  Version 0.1.0
+                  Version 0.1.0 · attables.biovibralyon.fr
                 </p>
               </div>
               <p className="text-[15px] text-[var(--ink)] leading-relaxed">
@@ -735,6 +736,78 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 allergies et préférences alimentaires, et mémoire anti-doublon des plats
                 servis.
               </p>
+            </section>
+
+            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-3">
+              <h2 className="font-display text-[19px] text-[var(--ink)]">
+                Conception & Licence open source
+              </h2>
+              <div className="flex flex-col gap-2 text-[14px] text-[var(--ink-muted)] leading-relaxed">
+                <p>
+                  <strong className="text-[var(--ink)]">Concepteur :</strong> Stéphane
+                  MICHEL — BioVibraLyon
+                </p>
+                <p>
+                  <strong className="text-[var(--ink)]">Contact :</strong>{' '}
+                  <a
+                    href="mailto:stephane@biovibralyon.fr"
+                    className="text-[var(--primary)] font-semibold underline underline-offset-2"
+                  >
+                    stephane@biovibralyon.fr
+                  </a>
+                </p>
+                <p>
+                  <strong className="text-[var(--ink)]">Code source (GitHub) :</strong>{' '}
+                  <span className="break-all select-all text-[var(--ink)]">
+                    https://github.com/Tux69140/attables
+                  </span>
+                </p>
+                <p>
+                  <strong className="text-[var(--ink)]">Licence :</strong> GNU General
+                  Public License v3.0 (<span className="font-semibold">GPL-3.0-or-later</span>).
+                  Les œuvres modifiées ou dérivées redistribuées doivent rester open source
+                  sous cette même licence et conserver la mention de l’auteur.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowLicenseDetails((v) => !v)}
+                aria-expanded={showLicenseDetails}
+                className="min-h-[44px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--ink)] text-[14px] font-semibold text-left flex items-center justify-between gap-2"
+              >
+                <span>
+                  {showLicenseDetails
+                    ? 'Masquer les clauses principales GPL v3.0'
+                    : 'Lire les clauses principales GPL v3.0'}
+                </span>
+                <IconChevronRight
+                  size={17}
+                  className={`text-[var(--ink-muted)] transition-transform ${
+                    showLicenseDetails ? 'rotate-90' : ''
+                  }`}
+                />
+              </button>
+
+              {showLicenseDetails && (
+                <div className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[13px] text-[var(--ink-muted)] leading-relaxed flex flex-col gap-2">
+                  <p className="font-semibold text-[var(--ink)]">
+                    Copyright © 2026 Stéphane MICHEL — BioVibraLyon (stephane@biovibralyon.fr)
+                  </p>
+                  <p>
+                    Ce programme est un logiciel libre : vous pouvez le redistribuer et/ou
+                    le modifier selon les termes de la Licence Publique Générale GNU (GNU
+                    GPL) publiée par la Free Software Foundation, version 3 ou toute version
+                    ultérieure.
+                  </p>
+                  <p>
+                    Toute redistribution (originale ou modifiée) doit conserver la présente
+                    mention de droit d’auteur, rester sous licence GNU GPL v3.0, et donner
+                    accès au code source complet correspondant. Ce programme est distribué
+                    sans aucune garantie.
+                  </p>
+                </div>
+              )}
             </section>
 
             <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-3.5">

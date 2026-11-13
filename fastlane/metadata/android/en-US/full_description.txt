@@ -1,0 +1,25 @@
+Attablés is a 100% offline, account-free personal dinner and invitation journal designed to help you host friends and family thoughtfully without culinary missteps.
+
+PLAN GATHERINGS AT A GLANCE
+• Track Planned and Realised meals, whether hosted at your home or someone else's.
+• Group guests by household to select an entire family in one tap.
+• Look back anytime at who attended and what dishes were served.
+
+NEVER MISS AN ALLERGY
+• Clearly separate strict allergies (peanuts, shellfish, gluten...) from mild preferences or diets.
+• View all combined dietary constraints for your current guest list in real time.
+• Keep a permanent strict-allergy reminder banner right above the menu editor.
+
+ANTI-DUPLICATE DISH MEMORY & RATINGS
+• Stop accidentally serving the same dish twice to the same guests.
+• Configurable time window (6 months by default): strong alert for recently served dishes, gentle "can return" hint for older ones.
+• Rate realised meals and individual dishes (Favorite, Good, Avoid) to keep winners and skip misses.
+
+OPTIONAL ANONYMIZED MARKDOWN EXPORT
+• Copy a structured Markdown summary of constraints and dish history in one tap.
+• Anonymized by default: no guest or host names are included, only headcount, dietary restrictions, and dish history.
+
+100% LOCAL & OPEN SOURCE
+• Works completely offline with zero ads, zero trackers, and zero telemetry.
+• Local backup and restore via standard .json files.
+• Free software licensed under GNU GPL v3.0+ (Stéphane MICHEL — BioVibraLyon).

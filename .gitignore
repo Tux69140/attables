@@ -5,4 +5,19 @@ coverage/
 .DS_Store
 *.log
 .env*
-!.env.example
+.aistudio/
+bun.lock
+public/assets/
+
+# Tauri / Android build artifacts & signing secrets (never commit for F-Droid)
+*.apk
+*.aab
+*.apks
+*.jks
+*.keystore
+keystore.properties
+src-tauri/target/
+src-tauri/gen/android/app/build/
+src-tauri/gen/android/.gradle/
+src-tauri/gen/android/local.properties
+src-tauri/gen/android/build/

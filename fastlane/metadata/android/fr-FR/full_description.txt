@@ -1,0 +1,26 @@
+Attablés est votre carnet d’invitations personnel, 100 % hors ligne et sans compte, pour recevoir vos proches sereinement et éviter les faux pas culinaires.
+
+PRÉPAREZ VOS REPAS EN UN COUP D’ŒIL
+• Notez vos invitations Prévues et Réalisées (chez vous ou chez un proche).
+• Regroupez vos invités par foyer pour cocher toute une famille en un seul geste.
+• Retrouvez instantanément qui était présent et ce qui a été servi.
+
+ZÉRO OUBLI D’ALLERGIE
+• Distinguez les allergies strictes (arachides, crustacés, gluten…) des simples préférences ou régimes.
+• Visualisez toutes les contraintes réunies de la tablée en temps réel.
+• Gardez un rappel permanent des allergies strictes juste au-dessus de la saisie du menu.
+
+MÉMOIRE ANTI-DOUBLON & APPRÉCIATIONS
+• Ne resservez plus involontairement le même plat aux mêmes invités.
+• Prescription temporelle réglable (6 mois par défaut) : alerte forte si un plat a été servi récemment, mention douce « peut revenir » lorsqu’il est plus ancien.
+• Notez vos retours sur les repas réalisés (Coup de cœur, Bien, À éviter) pour garder le meilleur et écarter les ratés.
+
+EXPORT IA ANONYMISÉ EN OPTION
+• Générez d’un clic un résumé structuré au format Markdown à coller dans l’outil de votre choix.
+• Anonymisé par défaut : aucun prénom ni nom d’hôte n’est inclus, uniquement le nombre de convives, les contraintes et l’historique des plats.
+
+100 % SUR VOTRE APPAREIL
+• Fonctionne entièrement hors ligne, sans publicité ni traceur.
+• Aucune permission réseau requise, aucune donnée collectée.
+• Export et restauration locale via fichier .json.
+• Logiciel libre sous licence GNU GPL v3.0 (Stéphane MICHEL — BioVibraLyon).

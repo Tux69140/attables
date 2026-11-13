@@ -1,3 +1,8 @@
+/**
+ * Attablés — Carnet d'invitations personnel hors ligne
+ * Copyright (C) 2026 Stéphane MICHEL <stephane@biovibralyon.fr>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ConvivesTab } from './components/ConvivesTab';
 import { IconCalendar, IconGear, IconUsers } from './components/Icons';

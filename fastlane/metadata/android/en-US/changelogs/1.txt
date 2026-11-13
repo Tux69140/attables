@@ -1,0 +1,6 @@
+Initial release 0.1.0:
+• Planned and Realised invitations (at home or away) with one-tap group re-invitation.
+• Households and guest directory with strict separation between allergies and preferences.
+• Anti-duplicate dish detection with configurable time window and meal/dish ratings.
+• Anonymized Markdown prompt export, local JSON backup/restore, and light/dark themes.
+• 100% offline operation under GNU GPL v3.0+.

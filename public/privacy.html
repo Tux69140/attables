@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Politique de confidentialité — Attablés</title>
+    <meta
+      name="description"
+      content="Politique de confidentialité de l'application hors ligne Attablés : aucune collecte, données 100 % locales sur votre appareil."
+    />
+    <style>
+      :root {
+        --bg: #f7f6f1;
+        --card: #fefdfb;
+        --border: #d3d1ca;
+        --ink: #1a263c;
+        --ink-muted: #4d586c;
+        --primary: #007232;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d1624;
+          --card: #162131;
+          --border: #414e60;
+          --ink: #f4f2ea;
+          --ink-muted: #b4bfce;
+          --primary: #6ec083;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 24px 16px 48px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.6;
+        font-size: 16px;
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 28px 24px;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 28px;
+        line-height: 1.2;
+      }
+      .meta {
+        margin: 0 0 24px;
+        color: var(--ink-muted);
+        font-size: 14px;
+      }
+      h2 {
+        margin: 24px 0 8px;
+        font-size: 19px;
+      }
+      p {
+        margin: 0 0 12px;
+        color: var(--ink-muted);
+      }
+      strong {
+        color: var(--ink);
+      }
+      a {
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 10px;
+        background: rgba(0, 114, 50, 0.12);
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="badge">100 % hors ligne · Zéro collecte</div>
+      <h1>Politique de confidentialité — Attablés</h1>
+      <p class="meta">
+        Application Android : <code>attables.biovibralyon.fr</code> · Mise à jour : 13 novembre 2026<br />
+        Éditeur : <strong>Stéphane MICHEL — BioVibraLyon</strong> —
+        <a href="#" class="email-link" data-user="stephane" data-domain="biovibralyon.fr">stephane [at] biovibralyon.fr</a>
+      </p>
+
+      <h2>1. Aucune collecte de données</h2>
+      <p>
+        <strong>Attablés</strong> est une application libre, gratuite et entièrement hors ligne.
+        Vos convives, foyers, contraintes alimentaires, appréciations, notes et menus ne quittent
+        jamais votre appareil et ne sont envoyés à aucun serveur. L’application ne contient ni
+        publicité, ni compte utilisateur, ni outil de mesure d’audience ou de télémétrie.
+      </p>
+
+      <h2>2. Export vers une IA externe</h2>
+      <p>
+        Lorsque vous appuyez sur <strong>« Copier pour une IA »</strong>, un résumé texte est généré
+        localement. Par défaut, ce résumé est anonymisé et ne contient pas les noms de vos invités.
+        L’application ne communique directement avec aucun service d’IA : si vous choisissez de
+        coller ce résumé dans un outil tiers, il devient soumis aux conditions de ce service.
+      </p>
+
+      <h2>3. Sauvegardes (.json) et suppression locale</h2>
+      <p>
+        La fonction d’export crée un fichier <code>.json</code> local contenant vos données en clair
+        (conservez-le dans un endroit sûr). Vous pouvez effacer toutes vos données à tout moment
+        depuis <strong>Réglages → Sauvegarde &amp; Données → Vider toutes les données</strong>, ou
+        en désinstallant l’application.
+      </p>
+
+      <h2>4. Contact &amp; Droit sur vos échanges</h2>
+      <p>
+        L’éditeur ne détient aucune donnée issue de l’application. Si vous écrivez volontairement à
+        <a href="#" class="email-link" data-user="stephane" data-domain="biovibralyon.fr">stephane [at] biovibralyon.fr</a>,
+        votre message n’est utilisé que pour vous répondre (sous 1 mois maximum) et peut être effacé
+        sur simple demande. En cas de désaccord, vous pouvez saisir la
+        <a href="https://www.cnil.fr/">CNIL</a>.
+      </p>
+
+      <h2>5. Code source &amp; Licence</h2>
+      <p>
+        <strong>Attablés</strong> est un logiciel libre sous licence
+        <strong>GNU GPL v3.0</strong>.<br />
+        Dépôt GitHub :
+        <a href="https://github.com/Tux69140/attables">https://github.com/Tux69140/attables</a>
+      </p>
+    </main>
+    <script>
+      document.querySelectorAll('.email-link').forEach((a) => {
+        const u = a.dataset.user;
+        const d = a.dataset.domain;
+        a.href = 'mailto:' + u + '@' + d;
+        a.textContent = u + ' [at] ' + d;
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+[package]
+name = "attables"
+version = "0.1.0"
+description = "Carnet d'invitations personnel hors ligne : foyers, allergies alimentaires et mémoire anti-doublon des plats."
+authors = ["Stéphane MICHEL <stephane@biovibralyon.fr>"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/Tux69140/attables"
+edition = "2021"
+
+[lib]
+name = "attables_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

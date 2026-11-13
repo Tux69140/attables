@@ -1,0 +1,6 @@
+Version initiale 0.1.0 :
+• Gestion des invitations Prévues et Réalisées (chez soi ou chez un proche) et réinvitation rapide d'un groupe.
+• Annuaire par foyers et par convives avec distinction stricte entre allergies et préférences.
+• Détection anti-doublon des plats avec prescription temporelle réglable et appréciations sur les repas réalisés.
+• Export Markdown anonymisé par défaut, sauvegarde/restauration JSON locale et thème clair/sombre.
+• Fonctionnement 100 % hors ligne sous licence libre GNU GPL v3.0.
