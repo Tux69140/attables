@@ -21,10 +21,23 @@ export function creerPileRetour(historique: HistoriqueMinimal) {
   let compteur = 0;
   // Nombre de popstate provoqués par nos propres `back()`, encore à venir.
   let retoursIgnores = 0;
+  // Couches ouvertes pendant qu'un de nos `back()` est en cours : leur entrée attend qu'il
+  // soit fait, sinon ce recul tomberait sur elle et désalignerait l'historique.
+  let enAttente: string[] = [];
+
+  const pousser = (id: string) => {
+    const etat = historique.state && typeof historique.state === 'object' ? historique.state : {};
+    historique.pushState({ ...etat, attablesLayerId: id }, '');
+  };
 
   function surPopState(): void {
     if (retoursIgnores > 0) {
       retoursIgnores -= 1;
+      if (retoursIgnores === 0) {
+        const ids = enAttente;
+        enAttente = [];
+        ids.forEach(pousser);
+      }
       return;
     }
     pile.pop()?.onBack();
@@ -33,8 +46,8 @@ export function creerPileRetour(historique: HistoriqueMinimal) {
   function empiler(onBack: () => void): string {
     const id = `attables-back-${++compteur}`;
     pile.push({ id, onBack });
-    const etat = historique.state && typeof historique.state === 'object' ? historique.state : {};
-    historique.pushState({ ...etat, attablesLayerId: id }, '');
+    if (retoursIgnores > 0) enAttente.push(id);
+    else pousser(id);
     return id;
   }
 
@@ -42,6 +55,10 @@ export function creerPileRetour(historique: HistoriqueMinimal) {
     const i = pile.findIndex((c) => c.id === id);
     if (i === -1) return; // déjà retirée par le bouton Retour
     pile.splice(i, 1);
+    if (enAttente.includes(id)) {
+      enAttente = enAttente.filter((x) => x !== id); // jamais entrée dans l'historique
+      return;
+    }
     const etat = historique.state as { attablesLayerId?: string } | null;
     if (etat?.attablesLayerId === id) {
       retoursIgnores += 1;

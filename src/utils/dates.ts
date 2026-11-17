@@ -49,3 +49,19 @@ export function formatDateCourte(dateIso: string): string {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) return dateIso;
   return formatCourt.format(new Date(jourUtc(dateIso)));
 }
+
+const formatJM = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+/** « 18 oct. », ou « 14 avr. 2025 » quand l'année n'est pas celle d'aujourd'hui. */
+export function formatJourMois(dateIso: string, aujourdHui: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) return dateIso;
+  const jm = formatJM.format(new Date(jourUtc(dateIso)));
+  return dateIso.slice(0, 4) === aujourdHui.slice(0, 4) ? jm : `${jm} ${dateIso.slice(0, 4)}`;
+}
+
+/** Mois restant avant de pouvoir resservir un plat servi le `dateIso` (au moins 1). */
+export function moisAvantRetour(dateIso: string, prescriptionMois: number, aujourdHui: string): number {
+  const [y, m, d] = dateIso.split('-').map(Number);
+  const fin = Date.UTC(y, m - 1 + prescriptionMois, d);
+  return Math.max(1, Math.round((fin - jourUtc(aujourdHui)) / (86_400_000 * 30.44)));
+}

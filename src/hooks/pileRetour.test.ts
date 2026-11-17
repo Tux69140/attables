@@ -68,3 +68,43 @@ test('le bouton Retour ferme la couche du dessus seulement', async () => {
   await h.attendre();
   assert.deepEqual(fermetures, ['feuille']);
 });
+
+test('fermer une feuille et en ouvrir une autre dans le même geste', async () => {
+  const h = fauxHistorique();
+  const pile = creerPileRetour(h.historique);
+  h.brancher(pile.surPopState);
+  const fermetures: string[] = [];
+  pile.empiler(() => fermetures.push('onglet'));
+  const feuille = pile.empiler(() => fermetures.push('feuille'));
+
+  pile.retirer(feuille);
+  pile.empiler(() => fermetures.push('fiche')); // même rendu React
+  await h.attendre();
+  assert.deepEqual(fermetures, []);
+
+  h.historique.back(); // un seul Retour ferme la fiche
+  await h.attendre();
+  assert.deepEqual(fermetures, ['fiche']);
+  h.historique.back(); // le suivant, l'onglet
+  await h.attendre();
+  assert.deepEqual(fermetures, ['fiche', 'onglet']);
+});
+
+test('l’historique reste aligné après un changement de feuille fermé par l’interface', async () => {
+  const h = fauxHistorique();
+  const pile = creerPileRetour(h.historique);
+  h.brancher(pile.surPopState);
+  const fermetures: string[] = [];
+  pile.empiler(() => fermetures.push('onglet'));
+  const feuille = pile.empiler(() => fermetures.push('feuille'));
+  pile.retirer(feuille);
+  const fiche = pile.empiler(() => fermetures.push('fiche'));
+  await h.attendre();
+
+  pile.retirer(fiche); // bouton « Fermer » de la fiche
+  await h.attendre();
+  h.historique.back();
+  await h.attendre();
+  assert.deepEqual(fermetures, ['onglet']);
+  assert.equal(h.historique.state, null, 'aucune entrée orpheline');
+});

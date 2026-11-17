@@ -9,9 +9,11 @@ import { Accueil } from './components/Accueil';
 import { BandeauExemples } from './components/BandeauExemples';
 import { ConvivesTab } from './components/ConvivesTab';
 import { FeuilleAjouter, type EtatAjout } from './components/FeuilleAjouter';
-import { IconCalendar, IconGear, IconSearch, IconUsers } from './components/Icons';
+import { IconGear, IconSearch } from './components/Icons';
 import { InvitationEditor } from './components/InvitationEditor';
 import { InvitationsTab } from './components/InvitationsTab';
+import { PlatsTab } from './components/PlatsTab';
+import { Icone } from './components/Icone';
 import { SettingsScreen } from './components/SettingsModal';
 import { UndoBanner } from './components/SharedUI';
 import { useAndroidBack } from './hooks/useAndroidBack';
@@ -25,19 +27,22 @@ import {
 } from './services/storage';
 import { getTodayIso } from './utils/dishes';
 import { retirerContrainte } from './utils/allergenes';
+import { enregistrerFiche } from './utils/plats';
 import { effacerExemples, resteDesExemples } from './utils/exemples';
 import { etatParcours, resumeProches } from './utils/parcours';
 import {
   AppData,
   ContrainteTag,
   Convive,
+  CourseKey,
   Foyer,
   Invitation,
+  PlatFiche,
   ThemeMode,
   UndoActionState,
 } from './types/models';
 
-type MainTab = 'invitations' | 'convives';
+type MainTab = 'invitations' | 'convives' | 'plats';
 
 export default function App() {
   const [data, setData] = useState<AppData>(() => loadAppData());
@@ -69,7 +74,7 @@ export default function App() {
   }, [activeTab, settingsOpen]);
 
   useAndroidBack(
-    activeTab === 'convives' && !editorTarget && !settingsOpen,
+    activeTab !== 'invitations' && !editorTarget && !settingsOpen,
     () => setActiveTab('invitations')
   );
 
@@ -309,6 +314,25 @@ export default function App() {
     showUndo('Exemples rechargés', snapshot);
   };
 
+  // Fiches de plat (onglet Plats)
+  const handleEnregistrerFiche = (v: { libelle: string; services: CourseKey[]; allergenes: string[] }) => {
+    setData((prev) => ({ ...prev, plats: enregistrerFiche(prev.plats, v, `plat-${Date.now()}`) }));
+  };
+
+  const handleRemplacerFiche = (fiche: PlatFiche) => {
+    setData((prev) => ({ ...prev, plats: prev.plats.map((p) => (p.id === fiche.id ? fiche : p)) }));
+  };
+
+  const handleSupprimerFiche = (id: string) => {
+    const snapshot = data;
+    setData((prev) => ({ ...prev, plats: prev.plats.filter((p) => p.id !== id) }));
+    showUndo('Plat supprimé', snapshot);
+  };
+
+  const handlePreparerAvecPlat = (libelle: string, course: CourseKey) => {
+    setEditorTarget({ mode: 'new', draft: { menu: { [course]: libelle } } });
+  };
+
   const handleEffacerExemples = () => {
     const snapshot = data;
     setData(effacerExemples(data));
@@ -499,6 +523,19 @@ export default function App() {
             ligneParcoursFermee={ligneParcoursFermee}
             onFermerLigneParcours={() => setLigneParcoursFermee(true)}
           />
+        ) : activeTab === 'plats' ? (
+          <PlatsTab
+            invitations={data.invitations}
+            plats={data.plats}
+            contraintes={data.contraintes}
+            convivesById={convivesById}
+            contraintesById={contraintesById}
+            prescriptionMois={data.settings.prescriptionMois}
+            onEnregistrerFiche={handleEnregistrerFiche}
+            onRemplacerFiche={handleRemplacerFiche}
+            onSupprimerFiche={handleSupprimerFiche}
+            onPreparerAvecPlat={handlePreparerAvecPlat}
+          />
         ) : (
           <ConvivesTab
             foyers={data.foyers}
@@ -527,46 +564,33 @@ export default function App() {
           chromeVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-inset grid grid-cols-2 h-16">
-          <button
-            type="button"
-            onClick={() => setActiveTab('invitations')}
-            aria-current={activeTab === 'invitations' ? 'page' : undefined}
-            className={`min-h-[44px] flex flex-col items-center justify-center gap-1 transition-colors ${
-              activeTab === 'invitations'
-                ? 'text-[var(--primary-ink)] font-bold'
-                : 'text-[var(--ink-muted)] font-semibold'
-            }`}
-          >
-            <span
-              className={`w-14 h-7 rounded-full flex items-center justify-center transition-colors ${
-                activeTab === 'invitations' ? 'bg-[var(--indic)]' : ''
+        <div className="max-w-[1080px] mx-auto px-inset grid grid-cols-3 h-16">
+          {(
+            [
+              { id: 'invitations', label: 'Invitations', icone: 'calendar-days' },
+              { id: 'convives', label: 'Convives', icone: 'users-round' },
+              { id: 'plats', label: 'Plats', icone: 'hand-platter' },
+            ] as const
+          ).map(({ id, label, icone }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setActiveTab(id)}
+              aria-current={activeTab === id ? 'page' : undefined}
+              className={`min-h-[44px] flex flex-col items-center justify-center gap-1 transition-colors ${
+                activeTab === id ? 'text-[var(--primary-ink)] font-bold' : 'text-[var(--ink-muted)] font-semibold'
               }`}
             >
-              <IconCalendar size={22} />
-            </span>
-            <span className="text-[13px] leading-none">Invitations</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('convives')}
-            aria-current={activeTab === 'convives' ? 'page' : undefined}
-            className={`min-h-[44px] flex flex-col items-center justify-center gap-1 transition-colors ${
-              activeTab === 'convives'
-                ? 'text-[var(--primary-ink)] font-bold'
-                : 'text-[var(--ink-muted)] font-semibold'
-            }`}
-          >
-            <span
-              className={`w-14 h-7 rounded-full flex items-center justify-center transition-colors ${
-                activeTab === 'convives' ? 'bg-[var(--indic)]' : ''
-              }`}
-            >
-              <IconUsers size={22} />
-            </span>
-            <span className="text-[13px] leading-none">Convives</span>
-          </button>
+              <span
+                className={`w-14 h-7 rounded-full flex items-center justify-center transition-colors ${
+                  activeTab === id ? 'bg-[var(--indic)]' : ''
+                }`}
+              >
+                <Icone nom={icone} size={22} />
+              </span>
+              <span className="text-[13px] leading-none">{label}</span>
+            </button>
+          ))}
         </div>
       </nav>
 
