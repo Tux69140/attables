@@ -25,6 +25,7 @@ import {
   IconShield,
   IconTrash,
   IconUpload,
+  IconUtensils,
 } from './Icons';
 import { Puces } from './Controles';
 import { ConfirmModal } from './SharedUI';
@@ -63,6 +64,7 @@ interface SettingsScreenProps {
   onResetSampleData: () => void;
   resteDesExemples: boolean;
   onEffacerExemples: () => void;
+  onRevoirPresentation: () => void;
   onClose: () => void;
 }
 
@@ -77,6 +79,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onResetSampleData,
   resteDesExemples,
   onEffacerExemples,
+  onRevoirPresentation,
   onClose,
 }) => {
   const [section, setSection] = useState<SettingsSection>('root');
@@ -427,6 +430,23 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <div className="text-[14px] text-[var(--ink-muted)] truncate">
                     Version 0.2.1 · GPL v3.0 · BioVibraLyon
                   </div>
+                </div>
+              </div>
+              <IconChevronRight size={19} className="text-[var(--ink-muted)] shrink-0" />
+            </button>
+
+            <button
+              type="button"
+              onClick={onRevoirPresentation}
+              className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-11 h-11 rounded-xl bg-[var(--indic)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
+                  <IconUtensils size={22} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[16px] font-semibold text-[var(--ink)]">Revoir la présentation</div>
+                  <div className="text-[14px] text-[var(--ink-muted)] truncate">Comment marche Attablés, en trois écrans</div>
                 </div>
               </div>
               <IconChevronRight size={19} className="text-[var(--ink-muted)] shrink-0" />

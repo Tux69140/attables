@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from 'react';
+import type { EtatParcours } from '../utils/parcours';
+import { LigneDerniereEtape, ParcoursGuide } from './ParcoursGuide';
 import {
   COURSE_KEYS,
   COURSE_LABELS,
@@ -32,6 +34,12 @@ interface InvitationsTabProps {
   onOpenNew: () => void;
   onOpenEdit: (invitation: Invitation) => void;
   onMarkRealisee: (invitationId: string) => void;
+  /** Parcours guidé du premier usage (déduit des données). */
+  parcours: EtatParcours;
+  resumeProches: string;
+  onAjouterProche: () => void;
+  ligneParcoursFermee: boolean;
+  onFermerLigneParcours: () => void;
 }
 
 export const InvitationsTab: React.FC<InvitationsTabProps> = ({
@@ -42,6 +50,11 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   onOpenNew,
   onOpenEdit,
   onMarkRealisee,
+  parcours,
+  resumeProches,
+  onAjouterProche,
+  ligneParcoursFermee,
+  onFermerLigneParcours,
 }) => {
   const [hostFilter, setHostFilter] = useState<HostFilter>('toutes');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('toutes');
@@ -225,8 +238,26 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
     );
   };
 
+  // Aucune invitation : seulement le guide (rien à filtrer ni à chercher).
+  if (parcours.affichage === 'complet') {
+    return (
+      <div className="flex flex-col gap-4 pb-28">
+        <ParcoursGuide
+          etat={parcours}
+          resume={resumeProches}
+          onAjouterProche={onAjouterProche}
+          onPreparerInvitation={onOpenNew}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 pb-28">
+      {parcours.affichage === 'ligne' && !ligneParcoursFermee && (
+        <LigneDerniereEtape onFermer={onFermerLigneParcours} />
+      )}
+
       {/* Filter & Search controls */}
       <div className="flex flex-col gap-3">
         <div
@@ -362,7 +393,8 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
         </section>
       )}
 
-      {/* Floating Green CTA */}
+      {/* Bouton flottant : dès qu'une invitation existe (avant, le guide porte le bouton) */}
+      {invitations.length > 0 && (
       <div
         aria-hidden={!chromeVisible}
         className={`fixed bottom-above-nav left-0 right-0 z-30 pointer-events-none flex justify-center px-safe chrome-mouvement ${
@@ -383,6 +415,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -5,6 +5,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { signalerThemeAuxBarres } from './services/barresSysteme';
+import { Accueil } from './components/Accueil';
 import { BandeauExemples } from './components/BandeauExemples';
 import { ConvivesTab } from './components/ConvivesTab';
 import { FeuilleAjouter, type EtatAjout } from './components/FeuilleAjouter';
@@ -25,6 +26,7 @@ import {
 import { getTodayIso } from './utils/dishes';
 import { retirerContrainte } from './utils/allergenes';
 import { effacerExemples, resteDesExemples } from './utils/exemples';
+import { etatParcours, resumeProches } from './utils/parcours';
 import {
   AppData,
   ContrainteTag,
@@ -50,6 +52,9 @@ export default function App() {
 
   const [undoState, setUndoState] = useState<UndoActionState | null>(null);
   const [ajout, setAjout] = useState<EtatAjout>(null);
+  // « Revoir la présentation » (Réglages) ; rappel « Dernière étape » masqué pour la session.
+  const [revoirAccueil, setRevoirAccueil] = useState(false);
+  const [ligneParcoursFermee, setLigneParcoursFermee] = useState(false);
   const undoTimerRef = useRef<number | null>(null);
   const chromeVisible = useAutoHideChrome(
     `${activeTab}-${Boolean(editorTarget)}-${settingsOpen}`
@@ -330,6 +335,36 @@ export default function App() {
     />
   );
 
+  // Présentation : nouvelle installation, ou revue depuis les Réglages
+  if (!data.settings.accueilVu || revoirAccueil) {
+    const marquerVu = (prev: AppData): AppData => ({ ...prev, settings: { ...prev.settings, accueilVu: true } });
+    return (
+      <Accueil
+        carnetVide={
+          data.foyers.length === 0 &&
+          data.convives.length === 0 &&
+          data.invitations.length === 0 &&
+          data.plats.length === 0
+        }
+        onCommencer={() => {
+          setData(marquerVu);
+          setRevoirAccueil(false);
+          setActiveTab('invitations');
+        }}
+        onVisiter={() => {
+          setData((prev) => marquerVu({ ...createSampleData(), settings: prev.settings }));
+          setBandeauMasque(false);
+          setRevoirAccueil(false);
+          setActiveTab('invitations');
+        }}
+        onFermer={() => {
+          setData(marquerVu);
+          setRevoirAccueil(false);
+        }}
+      />
+    );
+  }
+
   // Full-screen Editor view
   if (editorTarget) {
     return (
@@ -373,6 +408,10 @@ export default function App() {
           onResetSampleData={handleResetSampleData}
           resteDesExemples={resteDesExemples(data)}
           onEffacerExemples={handleEffacerExemples}
+          onRevoirPresentation={() => {
+            setSettingsOpen(false);
+            setRevoirAccueil(true);
+          }}
           onClose={() => setSettingsOpen(false)}
         />
         <UndoBanner
@@ -418,7 +457,7 @@ export default function App() {
         {resteDesExemples(data) && !bandeauMasque && (
           <BandeauExemples
             demo={MODE_DEMO}
-            onEffacer={handleEffacerExemples}
+            onCommencer={handleEffacerExemples}
             onMasquer={() => setBandeauMasque(true)}
           />
         )}
@@ -431,6 +470,11 @@ export default function App() {
             onOpenNew={() => setEditorTarget({ mode: 'new' })}
             onOpenEdit={(invitation) => setEditorTarget({ mode: 'edit', invitation })}
             onMarkRealisee={handleMarkRealisee}
+            parcours={etatParcours(data)}
+            resumeProches={resumeProches(data)}
+            onAjouterProche={ouvrirAjout}
+            ligneParcoursFermee={ligneParcoursFermee}
+            onFermerLigneParcours={() => setLigneParcoursFermee(true)}
           />
         ) : (
           <ConvivesTab
