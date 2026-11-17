@@ -31,7 +31,7 @@ const contenu = `/**
  *
  * FICHIER GÉNÉRÉ par \`pnpm icones\` depuis src/icones/svg/ — ne pas modifier à la main.
  * Icônes Lucide © Lucide Contributors, licence ISC (voir LICENCE-lucide.txt) ;
- * arachide, céleri, moutarde, sésame, FODMAP et assemblée : dessins Attablés, GPL-3.0-or-later.
+ * arachide, céleri, moutarde, sésame, ail, chocolat et assemblée : dessins Attablés, GPL-3.0-or-later.
  */
 import type { ElementSvg } from './nettoyer';
 

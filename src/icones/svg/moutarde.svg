@@ -1,0 +1,9 @@
+<!-- Dessin Attablés — Copyright (C) 2026 Stéphane MICHEL — SPDX-License-Identifier: GPL-3.0-or-later -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="7" y="7" width="10" height="3.5" rx="1" />
+  <path d="M8 10.5C4.5 12.5 4.5 18.5 7 20.7A2.5 2.5 0 0 0 8.8 21.5h6.4a2.5 2.5 0 0 0 1.8-.8C19.5 18.5 19.5 12.5 16 10.5" />
+  <path d="M10 14.25a3 3 0 0 0 0 3.5" />
+  <path d="M14 14.25a3 3 0 0 1 0 3.5" />
+  <path d="M12.5 7 15.4 4.1" />
+  <circle cx="16.2" cy="3.3" r="1.2" />
+</svg>

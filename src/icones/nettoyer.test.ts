@@ -18,6 +18,10 @@ const REQUISES = [
   'soup', 'wine', 'leaf', 'sun', 'star', 'user-round', 'martini', 'salad', 'cheese', 'cake-slice',
   'wheat', 'shrimp', 'egg', 'fish', 'milk', 'bean', 'nut', 'shell', 'flask-conical', 'flower-2',
   'ham', 'beef', 'wheat-off', 'milk-off', 'nut-off',
+  'arachide', 'celeri', 'moutarde', 'sesame', 'ail', 'chocolat', 'assemblee',
+  // pictogrammes au choix pour les contraintes personnelles
+  'carrot', 'apple', 'cherry', 'citrus', 'banana', 'grape', 'leafy-green', 'sprout', 'flame',
+  'candy', 'coffee', 'drumstick', 'croissant', 'cookie', 'hop', 'tag',
 ];
 
 test('nettoyerSvg garde la géométrie', () => {
