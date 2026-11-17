@@ -4,7 +4,7 @@
  */
 /* Le pied de site aux couleurs d'Attablés : marine, comme « Nuit marine » de l'appli, dans les deux thèmes. */
 .pied {
-  --pied-fond: #162131; --pied-bas: #0D1624; --pied-texte: #F4F2EA; --pied-doux: #B4BFCE; --pied-accent: #6EC083;
+  --pied-fond: #162131; --pied-bas: #0D1624; --pied-texte: #F4F2EA; --pied-doux: #B4BFCE; --pied-accent: #F2B93B;
   --pied-titre: Baumans, system-ui, sans-serif; --pied-corps: "Source Sans 3", system-ui, sans-serif;
   --pied-largeur: min(1120px, 100% - 32px);
 }

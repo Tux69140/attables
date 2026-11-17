@@ -16,8 +16,8 @@
     inset 0 0 0 1px #4a4a4a,
     inset 0 0 0 2px #0a0a0a,
     0 0 0 1px #0a0a0a,
-    0 2px 4px rgba(26, 38, 60, 0.16),
-    0 24px 48px -22px rgba(26, 38, 60, 0.5);
+    0 2px 4px rgba(43, 36, 32, 0.16),
+    0 24px 48px -22px rgba(43, 36, 32, 0.5);
 }
 .capture { display: block; width: 100%; height: auto; border-radius: 27px; background: var(--bg); }
 .etape-texte { max-width: 36ch; }
@@ -115,7 +115,7 @@
 }
 .carrousel-point::after { content: none; }
 .carrousel-point:hover::before { background: var(--outline); }
-.carrousel-point[aria-current="step"]::before { width: 30px; background: rgba(179, 54, 42, 0.28); }
+.carrousel-point[aria-current="step"]::before { width: 30px; background: rgba(240, 180, 41, 0.45); }
 /* Le point actif se remplit au fil de l'étape. */
 .carrousel-point[aria-current="step"]::after {
   content: "";
@@ -150,7 +150,7 @@
   .en-prime-suite {
     display: flex; align-items: center; min-height: 44px; margin: 0 -8px -8px auto; padding: 0 12px;
     border: 0; border-radius: 10px; background: none; cursor: pointer;
-    font: inherit; font-weight: 700; color: var(--primary); text-decoration: underline; text-underline-offset: 3px;
+    font: inherit; font-weight: 700; color: var(--primary-ink); text-decoration: underline; text-underline-offset: 3px;
   }
   #comment .carrousel.est-actif .cerise { --cerise-taille: 42px; --cerise-droite: 28px; --cerise-hauteur: 0.6; }
   #comment .carrousel.est-actif .en-prime:not(.est-deplie)::before { display: none; }
@@ -211,10 +211,10 @@
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
   .carrousel.est-actif .etape:not(.est-active) { opacity: 1; visibility: visible; transition: background-color 0.3s ease, border-color 0.3s ease; }
-  .carrousel.est-actif .etape:not(.est-active):hover { background: rgba(254, 253, 251, 0.6); border-color: var(--border); }
+  .carrousel.est-actif .etape:not(.est-active):hover { background: rgba(255, 255, 255, 0.6); border-color: var(--border); }
   .carrousel.est-actif .etape.est-active {
     background: var(--card); border-color: var(--border);
-    box-shadow: 0 14px 30px -18px rgba(26, 38, 60, 0.35);
+    box-shadow: 0 14px 30px -18px rgba(43, 36, 32, 0.35);
   }
   .carrousel.est-actif .etape-texte {
     max-width: none; margin: 0; overflow: hidden;

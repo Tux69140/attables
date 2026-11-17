@@ -22,6 +22,8 @@ const REQUISES = [
   // pictogrammes au choix pour les contraintes personnelles
   'carrot', 'apple', 'cherry', 'citrus', 'banana', 'grape', 'leafy-green', 'sprout', 'flame',
   'candy', 'coffee', 'drumstick', 'croissant', 'cookie', 'hop', 'tag',
+  // site de présentation
+  'wifi-off', 'lock-open', 'external-link', 'chevron-left', 'pause', 'play',
 ];
 
 test('nettoyerSvg garde la géométrie', () => {

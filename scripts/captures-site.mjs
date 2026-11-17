@@ -74,8 +74,12 @@ try {
     }
   }
 
+  // Premier lancement : présentation, porte « exemples », puis bandeau masqué.
   await page.goto(url);
-  await page.getByRole('button', { name: 'Masquer ce bandeau' }).click();
+  await page.getByRole('button', { name: 'Passer' }).click();
+  await pause(600);
+  await page.getByRole('button', { name: /Visiter avec des exemples/ }).click();
+  await page.getByRole('button', { name: 'Masquer', exact: true }).click();
 
   await page.getByRole('navigation', { name: 'Navigation principale' }).getByText('Convives').click();
   await capturer('convives');
@@ -83,7 +87,7 @@ try {
   await capturer('memoire');
   await page.getByRole('button', { name: /fermer/i }).first().click().catch(() => {});
   await page.reload();
-  await page.getByRole('button', { name: 'Masquer ce bandeau' }).click();
+  await page.getByRole('button', { name: 'Masquer', exact: true }).click();
   await page.getByText('Dîner d’automne').first().click();
   await pause(800);
   await page.mouse.move(200, 500);

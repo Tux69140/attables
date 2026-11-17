@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { pluginNotes } from './outils/plugin-notes.ts';
 import { pluginApk } from './outils/apk.ts';
+import { pluginIcones } from './outils/plugin-icones.ts';
 
 const ici = (chemin: string) => fileURLToPath(new URL(chemin, import.meta.url));
 const { version } = JSON.parse(readFileSync(ici('../package.json'), 'utf8')) as { version: string };
@@ -15,6 +16,7 @@ const { version } = JSON.parse(readFileSync(ici('../package.json'), 'utf8')) as 
 export default defineConfig({
   root: ici('.'),
   plugins: [
+    pluginIcones(),
     pluginNotes(ici('../fastlane/metadata/android/fr-FR/changelogs')),
     pluginApk({ version, dossierApk: ici('../dist-android'), fichierEmpreinte: ici('../src-tauri/empreinte-cle-android.txt') }),
   ],
