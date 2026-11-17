@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { signalerThemeAuxBarres } from './services/barresSysteme';
 import { BandeauExemples } from './components/BandeauExemples';
 import { ConvivesTab } from './components/ConvivesTab';
+import { FeuilleAjouter, type EtatAjout } from './components/FeuilleAjouter';
 import { IconCalendar, IconGear, IconUsers } from './components/Icons';
 import { InvitationEditor } from './components/InvitationEditor';
 import { InvitationsTab } from './components/InvitationsTab';
@@ -48,6 +49,7 @@ export default function App() {
   >(null);
 
   const [undoState, setUndoState] = useState<UndoActionState | null>(null);
+  const [ajout, setAjout] = useState<EtatAjout>(null);
   const undoTimerRef = useRef<number | null>(null);
   const chromeVisible = useAutoHideChrome(
     `${activeTab}-${Boolean(editorTarget)}-${settingsOpen}`
@@ -304,6 +306,30 @@ export default function App() {
     showUndo('Exemples effacés', snapshot);
   };
 
+  // Parcours « Ajouter… » : choix, puis foyer (enchaîné sur son premier membre) ou personne.
+  const ouvrirAjout = () => setAjout({ etape: 'choix' });
+  const demanderNouveauConvive = (apres: (c: Convive) => void) => setAjout({ etape: 'convive', apres });
+
+  const feuilleAjouter = (
+    <FeuilleAjouter
+      ajout={ajout}
+      foyers={data.foyers}
+      contraintes={data.contraintes}
+      onEtape={setAjout}
+      onEnregistrerFoyer={(foyer) => {
+        handleSaveFoyer(foyer);
+        setAjout({ etape: 'convive', foyerId: foyer.id });
+      }}
+      onEnregistrerConvive={(convive) => {
+        handleSaveConvive(convive);
+        const apres = ajout?.etape === 'convive' ? ajout.apres : undefined;
+        setAjout(null);
+        apres?.(convive);
+      }}
+      onFermer={() => setAjout(null)}
+    />
+  );
+
   // Full-screen Editor view
   if (editorTarget) {
     return (
@@ -322,6 +348,7 @@ export default function App() {
           onDelete={handleDeleteInvitation}
           onCancel={() => setEditorTarget(null)}
         />
+        {feuilleAjouter}
         <UndoBanner
           message={undoState?.message ?? null}
           onUndo={handleUndo}
@@ -419,9 +446,11 @@ export default function App() {
             onDeleteFoyer={handleDeleteFoyer}
             onSaveConvive={handleSaveConvive}
             onDeleteConvive={handleDeleteConvive}
+            onAjouter={ouvrirAjout}
           />
         )}
       </main>
+      {feuilleAjouter}
 
       {/* Android Bottom Navigation Bar */}
       <nav

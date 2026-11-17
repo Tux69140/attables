@@ -1,33 +1,15 @@
 import { useEffect, useRef } from 'react';
+import { creerPileRetour } from './pileRetour';
 
-interface BackEntry {
-  id: string;
-  onBack: () => void;
-}
+let pile: ReturnType<typeof creerPileRetour> | undefined;
 
-const backStack: BackEntry[] = [];
-const ignoredPopIds = new Set<string>();
-let listenerAttached = false;
-let idCounter = 0;
-
-function handlePopState() {
-  const top = backStack[backStack.length - 1];
-  if (!top) return;
-
-  // Check if this popstate came from our own programmatic history.back()
-  if (ignoredPopIds.has(top.id)) {
-    ignoredPopIds.delete(top.id);
-    return;
+function pileDuNavigateur() {
+  if (!pile) {
+    const p = creerPileRetour(window.history);
+    window.addEventListener('popstate', p.surPopState);
+    pile = p;
   }
-
-  backStack.pop();
-  top.onBack();
-}
-
-function ensureListener() {
-  if (listenerAttached || typeof window === 'undefined') return;
-  window.addEventListener('popstate', handlePopState);
-  listenerAttached = true;
+  return pile;
 }
 
 /**
@@ -40,31 +22,8 @@ export function useAndroidBack(active: boolean, onBack: () => void) {
 
   useEffect(() => {
     if (!active || typeof window === 'undefined') return;
-
-    ensureListener();
-
-    const layerId = `attables-back-${++idCounter}`;
-    const entry: BackEntry = {
-      id: layerId,
-      onBack: () => onBackRef.current(),
-    };
-
-    backStack.push(entry);
-    window.history.pushState(
-      { ...(window.history.state || {}), attablesLayerId: layerId },
-      ''
-    );
-
-    return () => {
-      const idx = backStack.findIndex((item) => item.id === layerId);
-      if (idx !== -1) {
-        // Closed programmatically via UI button, not via popstate
-        backStack.splice(idx, 1);
-        if (window.history.state?.attablesLayerId === layerId) {
-          ignoredPopIds.add(layerId);
-          window.history.back();
-        }
-      }
-    };
+    const p = pileDuNavigateur();
+    const id = p.empiler(() => onBackRef.current());
+    return () => p.retirer(id);
   }, [active]);
 }

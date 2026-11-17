@@ -3,11 +3,7 @@ import {
   COURSE_LABELS,
   ContrainteTag,
   Convive,
-  FOYER_COLORS,
-  FOYER_PICTOS,
   Foyer,
-  FoyerColorId,
-  FoyerPictoId,
   Invitation,
   VERDICT_LABELS,
 } from '../types/models';
@@ -17,10 +13,8 @@ import {
   normalizeForCompare,
 } from '../utils/dishes';
 import {
-  FoyerPictoIcon,
   IconAlert,
   IconBan,
-  IconCheck,
   IconChevronRight,
   IconEdit,
   IconHeart,
@@ -30,6 +24,8 @@ import {
   IconTrash,
   IconUsers,
 } from './Icons';
+import { FeuilleConvive } from './FeuilleConvive';
+import { FeuilleFoyer } from './FeuilleFoyer';
 import { BottomSheet, ConfirmModal, FoyerTile } from './SharedUI';
 
 interface ConvivesTabProps {
@@ -45,6 +41,8 @@ interface ConvivesTabProps {
   onDeleteFoyer: (foyerId: string) => void;
   onSaveConvive: (convive: Convive) => void;
   onDeleteConvive: (conviveId: string) => void;
+  /** Ouvre la feuille « Ajouter… » (personne ou foyer), tenue par App. */
+  onAjouter: () => void;
 }
 
 export const ConvivesTab: React.FC<ConvivesTabProps> = ({
@@ -60,23 +58,13 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   onDeleteFoyer,
   onSaveConvive,
   onDeleteConvive,
+  onAjouter,
 }) => {
   const [search, setSearch] = useState('');
 
-  // Foyer form state
-  const [foyerSheetOpen, setFoyerSheetOpen] = useState(false);
-  const [editingFoyer, setEditingFoyer] = useState<Foyer | null>(null);
-  const [foyerNom, setFoyerNom] = useState('');
-  const [foyerCouleur, setFoyerCouleur] = useState<FoyerColorId>('corail');
-  const [foyerPicto, setFoyerPicto] = useState<FoyerPictoId>('maison');
-
-  // Convive form state
-  const [conviveSheetOpen, setConviveSheetOpen] = useState(false);
-  const [editingConvive, setEditingConvive] = useState<Convive | null>(null);
-  const [conviveNom, setConviveNom] = useState('');
-  const [conviveFoyerId, setConviveFoyerId] = useState<string>('');
-  const [conviveTags, setConviveTags] = useState<string[]>([]);
-  const [conviveLibre, setConviveLibre] = useState('');
+  // Feuilles de modification (convive, foyer) et d'ajout d'un membre à un foyer
+  const [feuilleConvive, setFeuilleConvive] = useState<null | { convive?: Convive; foyerId?: string }>(null);
+  const [feuilleFoyer, setFeuilleFoyer] = useState<Foyer | null>(null);
 
   // Guest profile sheet
   const [viewedConvive, setViewedConvive] = useState<Convive | null>(null);
@@ -85,73 +73,14 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   const [confirmDeleteConvive, setConfirmDeleteConvive] = useState<Convive | null>(null);
   const [confirmDeleteFoyer, setConfirmDeleteFoyer] = useState<Foyer | null>(null);
 
-  const openNewFoyer = () => {
-    setEditingFoyer(null);
-    setFoyerNom('');
-    setFoyerCouleur('corail');
-    setFoyerPicto('maison');
-    setFoyerSheetOpen(true);
-  };
+  const openNewConvive = (foyerId?: string) => setFeuilleConvive({ foyerId });
+  const openEditConvive = (convive: Convive) => setFeuilleConvive({ convive });
+  const openEditFoyer = (foyer: Foyer) => setFeuilleFoyer(foyer);
 
-  const openEditFoyer = (foyer: Foyer) => {
-    setEditingFoyer(foyer);
-    setFoyerNom(foyer.nom);
-    setFoyerCouleur(foyer.couleur);
-    setFoyerPicto(foyer.picto);
-    setFoyerSheetOpen(true);
-  };
-
-  const handleSaveFoyerSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!foyerNom.trim()) return;
-    onSaveFoyer({
-      id: editingFoyer?.id ?? `foyer-${Date.now()}`,
-      nom: foyerNom.trim(),
-      couleur: foyerCouleur,
-      picto: foyerPicto,
-    });
-    setFoyerSheetOpen(false);
-  };
-
-  const openNewConvive = (preselectedFoyerId?: string) => {
-    setEditingConvive(null);
-    setConviveNom('');
-    setConviveFoyerId(preselectedFoyerId ?? '');
-    setConviveTags([]);
-    setConviveLibre('');
-    setConviveSheetOpen(true);
-  };
-
-  const openEditConvive = (convive: Convive) => {
-    setEditingConvive(convive);
-    setConviveNom(convive.nomAffiche);
-    setConviveFoyerId(convive.foyerId ?? '');
-    setConviveTags([...convive.contraintesIds]);
-    setConviveLibre(convive.contrainteLibre);
-    setConviveSheetOpen(true);
-  };
-
-  const handleSaveConviveSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!conviveNom.trim()) return;
-    const saved: Convive = {
-      id: editingConvive?.id ?? `conv-${Date.now()}`,
-      nomAffiche: conviveNom.trim(),
-      foyerId: conviveFoyerId || undefined,
-      contraintesIds: conviveTags,
-      contrainteLibre: conviveLibre.trim(),
-    };
+  const enregistrerConvive = (saved: Convive) => {
     onSaveConvive(saved);
-    if (viewedConvive?.id === saved.id) {
-      setViewedConvive(saved);
-    }
-    setConviveSheetOpen(false);
-  };
-
-  const toggleTagInForm = (tagId: string) => {
-    setConviveTags((prev) =>
-      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
-    );
+    if (viewedConvive?.id === saved.id) setViewedConvive(saved);
+    setFeuilleConvive(null);
   };
 
   const queryNorm = normalizeForCompare(search);
@@ -374,128 +303,26 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
           <button
             type="button"
             tabIndex={chromeVisible ? 0 : -1}
-            onClick={openNewFoyer}
+            onClick={onAjouter}
             className={`${
               chromeVisible ? 'pointer-events-auto' : 'pointer-events-none'
-            } min-h-[50px] px-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] text-[var(--ink)] font-semibold text-[14px] shadow-lg flex items-center gap-1.5 whitespace-nowrap active:scale-[0.97] transition-transform`}
+            } min-h-[50px] px-5 rounded-2xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] shadow-lg flex items-center gap-2 whitespace-nowrap active:scale-[0.97] transition-transform`}
           >
             <IconPlus size={18} />
-            <span>Foyer</span>
-          </button>
-          <button
-            type="button"
-            tabIndex={chromeVisible ? 0 : -1}
-            onClick={() => openNewConvive()}
-            className={`${
-              chromeVisible ? 'pointer-events-auto' : 'pointer-events-none'
-            } min-h-[50px] px-4 rounded-2xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[14px] shadow-lg flex items-center gap-1.5 whitespace-nowrap active:scale-[0.97] transition-transform`}
-          >
-            <IconPlus size={18} />
-            <span>Nouveau convive</span>
+            <span>Ajouter</span>
           </button>
         </div>
       </div>
 
-      {/* Sheet: Create / Edit Foyer */}
-      <BottomSheet
-        open={foyerSheetOpen}
-        title={editingFoyer ? 'Modifier le foyer' : 'Nouveau foyer'}
-        zClass="z-[55]"
-        onClose={() => setFoyerSheetOpen(false)}
-      >
-        <form onSubmit={handleSaveFoyerSubmit} className="flex flex-col gap-4">
-          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--border)]">
-            <FoyerTile color={foyerCouleur} picto={foyerPicto} sizePx={44} />
-            <div className="text-[16px] font-semibold text-[var(--ink)] truncate">
-              {foyerNom.trim() || 'Aperçu du pavé'}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="foyer-nom"
-              className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-1"
-            >
-              Nom du foyer
-            </label>
-            <input
-              id="foyer-nom"
-              type="text"
-              required
-              value={foyerNom}
-              onChange={(e) => setFoyerNom(e.target.value)}
-              placeholder="Ex. Famille Martin, Paul & Julie…"
-              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
-            />
-          </div>
-
-          <div>
-            <span className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-2">
-              Couleur du pavé
-            </span>
-            <div className="grid grid-cols-4 gap-2.5">
-              {FOYER_COLORS.map((c) => {
-                const selected = foyerCouleur === c.id;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setFoyerCouleur(c.id)}
-                    aria-label={c.label}
-                    aria-pressed={selected}
-                    className={`min-h-[46px] rounded-xl flex items-center justify-center border-2 transition-transform active:scale-95 ${
-                      selected ? 'border-[var(--ink)] scale-[1.03]' : 'border-transparent'
-                    }`}
-                    style={{ backgroundColor: c.hex, color: '#1A263C' }}
-                  >
-                    {selected ? (
-                      <IconCheck size={20} />
-                    ) : (
-                      <span className="text-[13px] font-semibold">{c.label}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <span className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-2">
-              Pictogramme
-            </span>
-            <div className="grid grid-cols-4 gap-2">
-              {FOYER_PICTOS.map((p) => {
-                const selected = foyerPicto === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setFoyerPicto(p.id)}
-                    aria-pressed={selected}
-                    className={`min-h-[54px] px-2 py-1.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition-colors ${
-                      selected
-                        ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--card)]'
-                        : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink-muted)]'
-                    }`}
-                  >
-                    <FoyerPictoIcon picto={p.id} size={20} />
-                    <span className="text-[13px] font-medium truncate max-w-full">
-                      {p.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="min-h-[48px] w-full rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] mt-1 active:scale-[0.98] transition-transform"
-          >
-            {editingFoyer ? 'Enregistrer les modifications' : 'Créer le foyer'}
-          </button>
-        </form>
-      </BottomSheet>
+      <FeuilleFoyer
+        ouverte={feuilleFoyer !== null}
+        foyer={feuilleFoyer ?? undefined}
+        onEnregistrer={(f) => {
+          onSaveFoyer(f);
+          setFeuilleFoyer(null);
+        }}
+        onFermer={() => setFeuilleFoyer(null)}
+      />
 
       {/* Sheet: Full Guest Profile & History */}
       <BottomSheet
@@ -666,110 +493,16 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         )}
       </BottomSheet>
 
-      {/* Sheet: Create / Edit Convive (stacked above Guest Profile when opened from it) */}
-      <BottomSheet
-        open={conviveSheetOpen}
-        title={editingConvive ? 'Modifier le convive' : 'Nouveau convive'}
-        zClass="z-[55]"
-        onClose={() => setConviveSheetOpen(false)}
-      >
-        <form onSubmit={handleSaveConviveSubmit} className="flex flex-col gap-4">
-          <div>
-            <label
-              htmlFor="convive-nom"
-              className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-1"
-            >
-              Nom affiché
-            </label>
-            <input
-              id="convive-nom"
-              type="text"
-              required
-              value={conviveNom}
-              onChange={(e) => setConviveNom(e.target.value)}
-              placeholder="Prénom, nom ou pseudo…"
-              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="convive-foyer"
-              className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-1"
-            >
-              Foyer (optionnel)
-            </label>
-            <select
-              id="convive-foyer"
-              value={conviveFoyerId}
-              onChange={(e) => setConviveFoyerId(e.target.value)}
-              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
-            >
-              <option value="">Sans foyer</option>
-              {foyers.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-[14px] font-semibold text-[var(--ink-muted)]">
-              Contraintes alimentaires
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {contraintes.map((tag) => {
-                const selected = conviveTags.includes(tag.id);
-                const isStrict = tag.niveau === 'strict';
-                return (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => toggleTagInForm(tag.id)}
-                    aria-pressed={selected}
-                    className={`min-h-[44px] px-3.5 rounded-xl border text-[14px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
-                      selected
-                        ? isStrict
-                          ? 'bg-[var(--error-bg)] border-[var(--error)] text-[var(--error)]'
-                          : 'bg-[var(--pref-bg)] border-[var(--pref)] text-[var(--pref)]'
-                        : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink)]'
-                    }`}
-                  >
-                    {isStrict && <IconAlert size={15} />}
-                    {selected && !isStrict && <IconCheck size={15} />}
-                    <span>{tag.libelle}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="convive-libre"
-              className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-1"
-            >
-              Note libre (goûts, précisions…)
-            </label>
-            <textarea
-              id="convive-libre"
-              rows={2}
-              value={conviveLibre}
-              onChange={(e) => setConviveLibre(e.target.value)}
-              placeholder="Ex. N’aime pas la coriandre, tolère le fromage de chèvre…"
-              className="w-full p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="min-h-[48px] w-full rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] mt-1 active:scale-[0.98] transition-transform"
-          >
-            {editingConvive ? 'Enregistrer les modifications' : 'Ajouter le convive'}
-          </button>
-        </form>
-      </BottomSheet>
+      {/* Au-dessus de la fiche du convive quand on l'ouvre depuis elle */}
+      <FeuilleConvive
+        ouverte={feuilleConvive !== null}
+        convive={feuilleConvive?.convive}
+        foyerIdInitial={feuilleConvive?.foyerId}
+        foyers={foyers}
+        contraintes={contraintes}
+        onEnregistrer={enregistrerConvive}
+        onFermer={() => setFeuilleConvive(null)}
+      />
 
       {/* Confirm Delete Convive */}
       <ConfirmModal
