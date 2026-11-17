@@ -28,7 +28,11 @@ import {
   IconUtensils,
 } from './Icons';
 import { Puces } from './Controles';
-import { ConfirmModal } from './SharedUI';
+import type { NomIcone } from '../icones/donnees';
+import { ALLERGENES, iconeContrainte } from '../utils/allergenes';
+import { ChoixAllergenes, ChoixPictogramme } from './ChoixAllergenes';
+import { Icone } from './Icone';
+import { BottomSheet, ConfirmModal } from './SharedUI';
 
 type SettingsSection =
   | 'root'
@@ -88,8 +92,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [newTagLabel, setNewTagLabel] = useState('');
   const [newTagNiveau, setNewTagNiveau] = useState<ContrainteNiveau>('strict');
 
-  const [editingTagId, setEditingTagId] = useState<string | null>(null);
-  const [editingTagLabel, setEditingTagLabel] = useState('');
+  const [tagEnEdition, setTagEnEdition] = useState<ContrainteTag | null>(null);
 
   const [tagToDelete, setTagToDelete] = useState<ContrainteTag | null>(null);
   const [pendingRestore, setPendingRestore] = useState<AppData | null>(null);
@@ -134,14 +137,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       allergenes: [],
     });
     setNewTagLabel('');
-  };
-
-  const handleSaveEditedTag = (tag: ContrainteTag) => {
-    const trimmed = editingTagLabel.trim();
-    if (trimmed) {
-      onSaveTag({ ...tag, libelle: trimmed });
-    }
-    setEditingTagId(null);
   };
 
   const toggleTagNiveau = (tag: ContrainteTag) => {
@@ -213,50 +208,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       : 'Sombre (Nuit marine)';
 
   const renderTagRow = (tag: ContrainteTag) => {
-    const isEditing = editingTagId === tag.id;
     const isStrict = tag.niveau === 'strict';
     return (
-      <div
-        key={tag.id}
-        className="px-4 py-3 flex items-center justify-between gap-2 bg-[var(--card)]"
-      >
-        <div className="min-w-0 flex-1 flex flex-col gap-1">
-          {isEditing ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={editingTagLabel}
-                onChange={(e) => setEditingTagLabel(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSaveEditedTag(tag);
-                  }
-                }}
-                autoFocus
-                className="flex-1 min-h-[44px] px-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--primary)] text-[15px] text-[var(--ink)]"
-              />
-              <button
-                type="button"
-                onClick={() => handleSaveEditedTag(tag)}
-                aria-label="Valider le libellé"
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-[var(--primary)] text-[var(--on-primary)]"
-              >
-                <IconCheck size={18} />
-              </button>
-            </div>
-          ) : (
+      <div key={tag.id} className="pl-4 pr-2 py-3 flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1 flex items-start gap-3">
+          <span className="w-9 h-9 rounded-xl bg-[var(--surface-elevated)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
+            <Icone nom={iconeContrainte(tag)} size={20} />
+          </span>
+          <div className="min-w-0 flex flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[15px] font-semibold text-[var(--ink)]">
-                {tag.libelle}
-              </span>
+              <span className="text-[15px] font-semibold text-[var(--ink)]">{tag.libelle}</span>
               <button
                 type="button"
                 onClick={() => toggleTagNiveau(tag)}
                 className={`min-h-[34px] px-2.5 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
-                  isStrict
-                    ? 'bg-[var(--error-bg)] text-[var(--error)]'
-                    : 'bg-[var(--pref-bg)] text-[var(--pref)]'
+                  isStrict ? 'bg-[var(--error-bg)] text-[var(--error)]' : 'bg-[var(--pref-bg)] text-[var(--pref)]'
                 }`}
                 title="Appuyer pour basculer Allergie stricte / Préférence"
               >
@@ -264,32 +230,41 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <span>{isStrict ? 'Allergie stricte' : 'Préférence'}</span>
               </button>
             </div>
-          )}
-        </div>
-
-        {!isEditing && (
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                setEditingTagId(tag.id);
-                setEditingTagLabel(tag.libelle);
-              }}
-              aria-label={`Renommer ${tag.libelle}`}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink-muted)] hover:bg-[var(--surface-elevated)]"
-            >
-              <IconEdit size={17} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setTagToDelete(tag)}
-              aria-label={`Supprimer ${tag.libelle}`}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--error)] hover:bg-[var(--error-bg)]"
-            >
-              <IconTrash size={17} />
-            </button>
+            <span className="text-[13px] text-[var(--ink-muted)] flex flex-wrap items-center gap-1.5">
+              {tag.allergenes.length === 0 ? (
+                'Contrainte personnelle'
+              ) : (
+                tag.allergenes.map((id) => {
+                  const a = ALLERGENES.find((x) => x.id === id);
+                  return a ? (
+                    <span key={id} className="inline-flex items-center gap-1">
+                      <Icone nom={a.icone} size={14} />
+                      {a.libelle}
+                    </span>
+                  ) : null;
+                })
+              )}
+            </span>
           </div>
-        )}
+        </div>
+        <div className="flex items-center shrink-0">
+          <button
+            type="button"
+            onClick={() => setTagEnEdition(tag)}
+            aria-label={`Modifier ${tag.libelle}`}
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink-muted)] hover:bg-[var(--surface-elevated)]"
+          >
+            <IconEdit size={17} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setTagToDelete(tag)}
+            aria-label={`Supprimer ${tag.libelle}`}
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--error)] hover:bg-[var(--error-bg)]"
+          >
+            <IconTrash size={17} />
+          </button>
+        </div>
       </div>
     );
   };
@@ -328,7 +303,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <main className="flex-1 w-full max-w-[1080px] mx-auto px-safe pt-below-header pb-safe-content flex flex-col gap-5">
         {/* ROOT: Android Settings Menu Hub */}
         {section === 'root' && (
-          <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden divide-y divide-[var(--border)]">
+          <div className="carte overflow-hidden divide-y divide-[var(--border)]">
             <button
               type="button"
               onClick={() => navigateToSection('apparence')}
@@ -457,7 +432,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {/* SUB-SCREEN: Mémoire des plats */}
         {section === 'memoire' && (
           <div className="flex flex-col gap-4">
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-3">
+            <section className="carte p-4 flex flex-col gap-3">
               <h2 className="font-display text-[19px] text-[var(--ink)]">
                 Délai de prescription des plats
               </h2>
@@ -541,7 +516,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {section === 'contraintes' && (
           <div className="flex flex-col gap-5">
             {/* Add new tag card */}
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-3">
+            <section className="carte p-4 flex flex-col gap-3">
               <h2 className="font-display text-[18px] text-[var(--ink)]">
                 Ajouter un tag
               </h2>
@@ -605,7 +580,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     {strictTags.length}
                   </span>
                 </div>
-                <div className="border border-[var(--border)] rounded-2xl overflow-hidden divide-y divide-[var(--border)]">
+                <div className="carte overflow-hidden divide-y divide-[var(--border)]">
                   {strictTags.map(renderTagRow)}
                 </div>
               </section>
@@ -621,7 +596,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     {prefTags.length}
                   </span>
                 </div>
-                <div className="border border-[var(--border)] rounded-2xl overflow-hidden divide-y divide-[var(--border)]">
+                <div className="carte overflow-hidden divide-y divide-[var(--border)]">
                   {prefTags.map(renderTagRow)}
                 </div>
               </section>
@@ -632,7 +607,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {/* SUB-SCREEN: Sauvegarde & Données */}
         {section === 'sauvegarde' && (
           <div className="flex flex-col gap-4">
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-3">
+            <section className="carte p-4 flex flex-col gap-3">
               <p className="text-[14px] text-[var(--ink-muted)] leading-relaxed">
                 Vos données sont stockées uniquement sur cet appareil. Exportez un fichier
                 .json pour les sauvegarder ou les transférer.
@@ -678,7 +653,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               )}
             </section>
 
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden divide-y divide-[var(--border)]">
+            <section className="carte overflow-hidden divide-y divide-[var(--border)]">
               <button
                 type="button"
                 onClick={() => setShowSampleConfirm(true)}
@@ -735,7 +710,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {/* SUB-SCREEN: À propos & Vie privée */}
         {section === 'apropos' && (
           <div className="flex flex-col gap-4">
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-2.5">
+            <section className="carte p-5 flex flex-col gap-2.5">
               <div>
                 <h2 className="font-display text-[24px] text-[var(--ink)]">Attablés</h2>
                 <p className="text-[15px] font-semibold text-[var(--ink-muted)] tabular-nums">
@@ -757,7 +732,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </button>
             </section>
 
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-3">
+            <section className="carte p-5 flex flex-col gap-3">
               <h2 className="font-display text-[19px] text-[var(--ink)]">
                 Conception & Licence open source
               </h2>
@@ -829,7 +804,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               )}
             </section>
 
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-3.5">
+            <section className="carte p-5 flex flex-col gap-3.5">
               <div className="flex items-center gap-2.5">
                 <IconShield size={22} className="text-[var(--primary-ink)] shrink-0" />
                 <h2 className="font-display text-[19px] text-[var(--ink)]">
@@ -872,6 +847,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </main>
 
       {/* Confirm Delete Tag */}
+      <BottomSheet open={tagEnEdition !== null} title="Modifier la contrainte" onClose={() => setTagEnEdition(null)}>
+        {tagEnEdition && (
+          <FormulaireContrainte
+            key={tagEnEdition.id}
+            tag={tagEnEdition}
+            onEnregistrer={(t) => {
+              onSaveTag(t);
+              setTagEnEdition(null);
+            }}
+          />
+        )}
+      </BottomSheet>
+
       <ConfirmModal
         open={Boolean(tagToDelete)}
         title={`Supprimer le tag « ${tagToDelete?.libelle ?? ''} » ?`}
@@ -952,5 +940,70 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         onCancel={() => setShowSampleConfirm(false)}
       />
     </div>
+  );
+};
+
+/** Édition d'une contrainte : libellé, niveau, pictogramme et allergènes qu'elle interdit. */
+const FormulaireContrainte: React.FC<{ tag: ContrainteTag; onEnregistrer: (t: ContrainteTag) => void }> = ({
+  tag,
+  onEnregistrer,
+}) => {
+  const [libelle, setLibelle] = useState(tag.libelle);
+  const [niveau, setNiveau] = useState<ContrainteNiveau>(tag.niveau);
+  const [icone, setIcone] = useState<NomIcone | undefined>(tag.icone);
+  const [allergenes, setAllergenes] = useState<string[]>(tag.allergenes);
+  const auto = iconeContrainte({ ...tag, icone: undefined, allergenes });
+
+  const enregistrer = (e: React.FormEvent) => {
+    e.preventDefault();
+    const propre = libelle.trim();
+    if (!propre) return;
+    const { icone: _ancienne, ...reste } = tag;
+    onEnregistrer({ ...reste, libelle: propre, niveau, allergenes, ...(icone ? { icone } : {}) });
+  };
+
+  return (
+    <form onSubmit={enregistrer} className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="contrainte-libelle" className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-1">
+          Libellé
+        </label>
+        <input
+          id="contrainte-libelle"
+          type="text"
+          required
+          value={libelle}
+          onChange={(e) => setLibelle(e.target.value)}
+          className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
+        />
+      </div>
+      <Puces
+        ariaLabel="Niveau"
+        valeur={niveau}
+        onChange={setNiveau}
+        options={[
+          { id: 'strict', label: 'Allergie stricte', icone: 'triangle-alert', ton: 'alerte' },
+          { id: 'preference', label: 'Préférence' },
+        ]}
+      />
+      <div className="flex flex-col gap-2">
+        <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Pictogramme</span>
+        <ChoixPictogramme valeur={icone} auto={auto} onChange={setIcone} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Allergènes concernés</span>
+        <p className="text-[13px] text-[var(--ink-muted)] -mt-1">
+          Un plat qui en contient déclenchera une alerte. Sans allergène, la contrainte reste personnelle et peut être
+          cochée elle-même sur un plat.
+        </p>
+        <ChoixAllergenes valeur={allergenes} onChange={setAllergenes} contraintes={[]} inclurePersonnels={false} />
+      </div>
+      <button
+        type="submit"
+        className="min-h-[48px] w-full rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] active:scale-[0.98] transition-transform"
+      >
+        Enregistrer
+      </button>
+    </form>
   );
 };
