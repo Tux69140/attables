@@ -8,6 +8,7 @@ import {
   HoteType,
   Invitation,
   MenuCourses,
+  PlatFiche,
 } from '../types/models';
 
 /**
@@ -272,13 +273,18 @@ export function findDishConflicts(
  * Collects unique dish labels from past invitations for autocomplete,
  * sorted by frequency & recency, matching query accent-insensitively.
  */
+/**
+ * Plats à proposer pendant la saisie d'un service : ceux déjà saisis dans ce service, puis les
+ * fiches rattachées à ce service. `idee` : jamais servi dans une invitation réalisée.
+ */
 export function getDishSuggestions(
   invitations: Invitation[],
   query: string,
-  courseFilter?: CourseKey
-): { label: string; course: CourseKey; count: number }[] {
+  courseFilter?: CourseKey,
+  plats: PlatFiche[] = []
+): { label: string; course: CourseKey; count: number; idee: boolean }[] {
   const q = normalizeForCompare(query);
-  const counts = new Map<string, { label: string; course: CourseKey; count: number }>();
+  const counts = new Map<string, { label: string; course: CourseKey; count: number; idee: boolean }>();
 
   const sortedInv = [...invitations].sort((a, b) => b.date.localeCompare(a.date));
 
@@ -292,13 +298,24 @@ export function getDishSuggestions(
       if (!key) continue;
       if (q && !key.includes(q)) continue;
 
+      const servi = inv.statut === 'realisee';
       const existing = counts.get(key);
       if (existing) {
         existing.count += 1;
+        if (servi) existing.idee = false;
       } else {
-        counts.set(key, { label: formatted, course, count: 1 });
+        counts.set(key, { label: formatted, course, count: 1, idee: !servi });
       }
     }
+  }
+
+  for (const fiche of plats) {
+    if (courseFilter && !fiche.services.includes(courseFilter)) continue;
+    const formatted = formatDishInput(fiche.libelle);
+    const key = normalizeForCompare(formatted);
+    if (!key || counts.has(key)) continue;
+    if (q && !key.includes(q)) continue;
+    counts.set(key, { label: formatted, course: courseFilter ?? fiche.services[0], count: 0, idee: true });
   }
 
   return Array.from(counts.values())

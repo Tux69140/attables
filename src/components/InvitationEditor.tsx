@@ -11,6 +11,7 @@ import {
   Invitation,
   InvitationStatut,
   MenuCourses,
+  PlatFiche,
   VERDICT_LABELS,
 } from '../types/models';
 import {
@@ -36,6 +37,7 @@ import {
   IconCopy,
   IconHeart,
   IconHome,
+  IconPlus,
   IconPromptExport,
   IconRepeat,
   IconSearch,
@@ -43,7 +45,12 @@ import {
   IconThumbUp,
   IconTrash,
 } from './Icons';
+import { ICONE_SERVICE } from '../icones/services';
+import { ALLERGENES, conflitsPlat, iconeContrainte } from '../utils/allergenes';
+import { trouverFiche } from '../utils/plats';
+import { AlertesAllergenes, BandeauAllergies, BlocTablee } from './Allergies';
 import { Puces } from './Controles';
+import { Icone } from './Icone';
 import { BottomSheet, ConfirmModal, FoyerTile } from './SharedUI';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
@@ -57,6 +64,10 @@ interface InvitationEditorProps {
   convivesById: Map<string, Convive>;
   contraintesById: Map<string, ContrainteTag>;
   prescriptionMois: number;
+  /** Fiches de plat : idées proposées à la saisie et allergènes des plats. */
+  plats: PlatFiche[];
+  /** Ouvre la feuille de création d'un convive ; `apres` reçoit le convive enregistré. */
+  onDemanderNouveauConvive: (apres: (c: Convive) => void) => void;
   onSave: (invitation: Invitation) => void;
   onReinvite?: (invitation: Invitation) => void;
   onDelete?: (invitation: Invitation) => void;
@@ -72,6 +83,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   convivesById,
   contraintesById,
   prescriptionMois,
+  plats,
+  onDemanderNouveauConvive,
   onSave,
   onReinvite,
   onDelete,
@@ -102,7 +115,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   // Collapsible prep sections to keep vertical scroll comfortable on mobile
   const [hostOpen, setHostOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(() => !existing && !initialDraft);
-  const [dashboardOpen, setDashboardOpen] = useState(true);
+  const [dejaServiOuvert, setDejaServiOuvert] = useState(false);
 
   const [guestSearch, setGuestSearch] = useState('');
   const [focusedCourse, setFocusedCourse] = useState<CourseKey | null>(null);
@@ -129,7 +142,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
     setMenuVerdicts(nextSource?.menuVerdicts ?? {});
     setHostOpen(false);
     setGuestsOpen(!existing && !initialDraft);
-    setDashboardOpen(true);
+    setDejaServiOuvert(false);
     setGuestSearch('');
     setSelectedDishDetail(null);
     setSelectedGuestDetail(null);
@@ -402,9 +415,14 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
       {/* Main Content */}
       <main className="flex-1 w-full max-w-[1080px] mx-auto px-safe pt-below-header pb-below-bar flex flex-col gap-5">
+        <BandeauAllergies
+          strict={constraints.strict}
+          enteteVisible={chromeVisible}
+          onToucher={() => document.getElementById('la-tablee')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        />
         {isFrozen ? (
           /* FROZEN REALISED SUMMARY (Date, Titre, Hôte, Convives read-only; notes & verdicts editable) */
-          <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-3.5">
+          <section id="la-tablee" className="carte p-4 flex flex-col gap-3.5 scroll-mt-32">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[14px] text-[var(--ink-muted)] tabular-nums">
@@ -459,22 +477,6 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
               )}
             </div>
 
-            {constraints.strict.length > 0 && (
-              <div className="px-3.5 py-2.5 rounded-xl bg-[var(--error-bg)] text-[var(--error)] text-[14px] flex items-start gap-2">
-                <IconAlert size={18} className="shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold">Allergies strictes : </span>
-                  <span>
-                    {constraints.strict
-                      .map(
-                        (s) =>
-                          `${s.tag.libelle} (${s.guests.map((g) => g.nomAffiche).join(', ')})`
-                      )
-                      .join(' · ')}
-                  </span>
-                </div>
-              </div>
-            )}
           </section>
         ) : (
           <>
@@ -669,8 +671,9 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                   {/* 1-click Foyer toggles */}
                   {filteredFoyers.length > 0 && (
                     <div className="flex flex-col gap-2">
-                      <span className="text-[14px] font-semibold text-[var(--ink-muted)]">
-                        Par foyer (1 clic)
+                      <span className="text-[14px] font-semibold text-[var(--ink-muted)] flex items-center gap-1.5">
+                        <Icone nom="assemblee" size={17} />
+                        Par foyer
                       </span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {filteredFoyers.map((f) => {
@@ -721,12 +724,13 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
                   {/* Individual Guest toggles */}
                   <div className="flex flex-col gap-2">
-                    <span className="text-[14px] font-semibold text-[var(--ink-muted)]">
-                      Convives individuels
+                    <span className="text-[14px] font-semibold text-[var(--ink-muted)] flex items-center gap-1.5">
+                      <Icone nom="user-round" size={17} />
+                      Individuels
                     </span>
                     {filteredGuests.length === 0 ? (
-                      <p className="text-[14px] text-[var(--ink-muted)] py-2">
-                        Aucun convive trouvé. Ajoutez des convives depuis l’onglet « Convives ».
+                      <p className="text-[14px] text-[var(--ink-muted)] py-1">
+                        {convives.length === 0 ? 'Personne dans le carnet pour l’instant.' : 'Aucun convive trouvé.'}
                       </p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
@@ -753,9 +757,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               {hasStrict && (
                                 <IconAlert
                                   size={15}
-                                  className={
-                                    checked ? 'text-[var(--on-primary)]' : 'text-[var(--error)]'
-                                  }
+                                  className={checked ? undefined : 'text-[var(--alerte)]'}
                                 />
                               )}
                             </button>
@@ -764,143 +766,82 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       </div>
                     )}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onDemanderNouveauConvive((c) => setConvivesIds((prev) => (prev.includes(c.id) ? prev : [...prev, c.id])))
+                    }
+                    className="self-start min-h-[44px] px-3.5 rounded-xl border border-dashed border-[var(--primary-ink)] text-[var(--primary-ink)] font-semibold text-[15px] inline-flex items-center gap-2"
+                  >
+                    <IconPlus size={18} />
+                    Nouveau convive
+                  </button>
                 </div>
               )}
             </section>
 
-            {/* 3. TABLEAU DE BORD TEMPS RÉEL DE LA TABLÉE (Collapsible) */}
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setDashboardOpen((v) => !v)}
-                aria-expanded={dashboardOpen}
-                className="w-full min-h-[58px] px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-[var(--surface-elevated)]/50 transition-colors"
-              >
-                <div className="min-w-0 flex-1">
-                  <h2 className="font-display text-[19px] text-[var(--ink)]">
-                    Tableau de bord de la tablée
-                  </h2>
-                  {!dashboardOpen && (
-                    <p className="text-[14px] text-[var(--ink-muted)] truncate tabular-nums">
-                      {selectedGuests.length === 0
-                        ? 'Sélectionnez des convives'
-                        : `${constraints.strict.length} allergie${
-                            constraints.strict.length > 1 ? 's' : ''
-                          } stricte${constraints.strict.length > 1 ? 's' : ''} · ${
-                            servedDishes.length
-                          } plat${servedDishes.length > 1 ? 's' : ''} déjà servi${
-                            servedDishes.length > 1 ? 's' : ''
-                          }`}
-                    </p>
-                  )}
-                </div>
-                <IconChevronDown
-                  size={18}
-                  className={`text-[var(--ink-muted)] shrink-0 transition-transform duration-200 ${
-                    dashboardOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
+            {/* 3. LA TABLÉE : contraintes réunies, toujours dépliées */}
+            <section id="la-tablee" aria-labelledby="titre-tablee" className="carte p-4 flex flex-col gap-3 scroll-mt-32">
+              <h2 id="titre-tablee" className="font-display text-[19px] text-[var(--ink)]">La tablée</h2>
+              {selectedGuests.length === 0 ? (
+                <p className="text-[15px] text-[var(--ink-muted)]">
+                  Cochez qui vient pour réunir leurs allergies et leurs goûts.
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {selectedGuests.map((g) => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => setSelectedGuestDetail(g)}
+                        className="min-h-[36px] px-2.5 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)] hover:bg-[var(--surface-active)] transition-colors"
+                        title={`Voir les plats déjà servis à ${g.nomAffiche}`}
+                      >
+                        {g.nomAffiche}
+                      </button>
+                    ))}
+                  </div>
+                  <BlocTablee constraints={constraints} />
+                </>
+              )}
+            </section>
 
-              {dashboardOpen && (
-                <div className="px-4 pb-4 pt-3 flex flex-col gap-4 border-t border-[var(--border)]/70">
-                  {selectedGuests.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {selectedGuests.map((g) => (
-                        <button
-                          key={g.id}
-                          type="button"
-                          onClick={() => setSelectedGuestDetail(g)}
-                          className="min-h-[36px] px-2.5 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)] hover:bg-[var(--surface-active)] transition-colors"
-                          title={`Voir les plats déjà servis à ${g.nomAffiche}`}
-                        >
-                          {g.nomAffiche}
-                        </button>
-                      ))}
+            {/* 4. DÉJÀ SERVI À CES CONVIVES (replié par défaut, résumé en pastilles) */}
+            {selectedGuests.length > 0 && (
+              <section className="carte overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setDejaServiOuvert((v) => !v)}
+                  aria-expanded={dejaServiOuvert}
+                  className="w-full min-h-[58px] px-4 py-3 flex items-center justify-between gap-3 text-left"
+                >
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-display text-[19px] text-[var(--ink)]">Déjà servi à ces convives</h2>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {servedDishes.some((d) => d.isRecent) && (
+                        <span className="px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] text-[13px] font-bold tabular-nums">
+                          {servedDishes.filter((d) => d.isRecent).length} récent{servedDishes.filter((d) => d.isRecent).length > 1 ? 's' : ''}
+                        </span>
+                      )}
+                      {servedDishes.some((d) => d.hasCoupDeCoeur) && (
+                        <span className="px-2 py-0.5 rounded-full bg-[var(--success-bg)] text-[var(--success)] text-[13px] font-bold tabular-nums inline-flex items-center gap-1">
+                          <IconHeart size={12} filled />
+                          {servedDishes.filter((d) => d.hasCoupDeCoeur).length} coup{servedDishes.filter((d) => d.hasCoupDeCoeur).length > 1 ? 's' : ''} de cœur
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--surface-elevated)] text-[var(--ink-muted)] text-[13px] font-bold tabular-nums">
+                        {servedDishes.length} plat{servedDishes.length > 1 ? 's' : ''}
+                      </span>
                     </div>
-                  )}
-
-                  {selectedGuests.length === 0 ? (
-                    <p className="text-[15px] text-[var(--ink-muted)]">
-                      Sélectionnez au moins un convive ci-dessus pour afficher les allergies
-                      réunies et l’historique anti-doublon.
-                    </p>
-                  ) : (
-                    <>
-                      {/* Contraintes réunies */}
-                      <div className="flex flex-col gap-2.5">
-                        <h3 className="text-[15px] font-bold text-[var(--ink)]">
-                          Contraintes réunies
-                        </h3>
-
-                        {constraints.strict.length === 0 &&
-                        constraints.preferences.length === 0 &&
-                        constraints.freeNotes.length === 0 ? (
-                          <div className="px-3.5 py-2.5 rounded-xl bg-[var(--success-bg)] text-[var(--success)] text-[14px] font-semibold flex items-center gap-2">
-                            <IconCheck size={17} />
-                            <span>
-                              Aucune allergie ni restriction signalée pour cette tablée.
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-2">
-                            {constraints.strict.map(({ tag, guests }) => (
-                              <div
-                                key={tag.id}
-                                className="px-3.5 py-2.5 rounded-xl bg-[var(--error-bg)] text-[var(--error)] flex items-start gap-2.5"
-                              >
-                                <IconAlert size={19} className="shrink-0 mt-0.5" />
-                                <div className="text-[15px] leading-snug">
-                                  <span className="font-bold">
-                                    Allergie stricte · {tag.libelle}
-                                  </span>
-                                  <span className="mx-1.5">—</span>
-                                  <span className="font-semibold">
-                                    {guests.map((g) => g.nomAffiche).join(', ')}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-
-                            {constraints.preferences.map(({ tag, guests }) => (
-                              <div
-                                key={tag.id}
-                                className="px-3.5 py-2 rounded-xl bg-[var(--pref-bg)] text-[var(--pref)] text-[14px] leading-snug"
-                              >
-                                <span className="font-bold">
-                                  Préférence · {tag.libelle}
-                                </span>
-                                <span className="mx-1.5">—</span>
-                                <span>{guests.map((g) => g.nomAffiche).join(', ')}</span>
-                              </div>
-                            ))}
-
-                            {constraints.freeNotes.map(({ guest, note: freeNote }) => (
-                              <div
-                                key={guest.id}
-                                className="px-3.5 py-2 rounded-xl bg-[var(--surface-elevated)] text-[var(--ink)] text-[14px] leading-snug border border-[var(--border)]"
-                              >
-                                <span className="font-semibold">{guest.nomAffiche}</span>
-                                <span className="mx-1.5 text-[var(--ink-muted)]">:</span>
-                                <span className="text-[var(--ink-muted)]">{freeNote}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Déjà servi à ces convives (Anti-doublon) */}
-                      <div className="flex flex-col gap-2.5 pt-3 border-t border-[var(--border)]">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <h3 className="text-[15px] font-bold text-[var(--ink)]">
-                            Déjà servi à ces convives
-                          </h3>
-                          <span className="text-[13px] text-[var(--ink-muted)] tabular-nums">
-                            {servedDishes.length}{' '}
-                            {servedDishes.length > 1 ? 'plats réalisés' : 'plat réalisé'}
-                          </span>
-                        </div>
-
+                  </div>
+                  <IconChevronDown
+                    size={18}
+                    className={`text-[var(--ink-muted)] shrink-0 transition-transform duration-200 ${dejaServiOuvert ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {dejaServiOuvert && (
+                  <div className="px-4 pb-4 pt-3 border-t border-[var(--border)]/70">
                         {servedDishes.length === 0 ? (
                           <p className="text-[14px] text-[var(--ink-muted)]">
                             Aucun repas réalisé enregistré jusqu’ici avec ces convives.
@@ -965,12 +906,10 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                             })}
                           </div>
                         )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </section>
+                  </div>
+                )}
+              </section>
+            )}
           </>
         )}
 
@@ -1029,24 +968,6 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                 </div>
               </div>
 
-              {/* Compact Strict Allergy Reminder right above Menu fields */}
-              {!isRealisee && constraints.strict.length > 0 && (
-                <div className="px-3.5 py-2.5 rounded-xl bg-[var(--error-bg)] text-[var(--error)] text-[14px] flex items-start gap-2">
-                  <IconAlert size={17} className="shrink-0 mt-0.5" />
-                  <div className="leading-snug">
-                    <span className="font-bold">Rappel allergies strictes : </span>
-                    <span>
-                      {constraints.strict
-                        .map(
-                          (s) =>
-                            `${s.tag.libelle} (${s.guests.map((g) => g.nomAffiche).join(', ')})`
-                        )
-                        .join(' · ')}
-                    </span>
-                  </div>
-                </div>
-              )}
-
               {/* 5 structured menu fields */}
               <div className="flex flex-col gap-3.5 pt-1">
                 {COURSE_KEYS.map((courseKey) => {
@@ -1054,15 +975,20 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                   const conflict = findDishConflicts(value, servedDishes);
                   const suggestions =
                     focusedCourse === courseKey
-                      ? getDishSuggestions(allInvitations, value)
+                      ? getDishSuggestions(allInvitations, value, courseKey, plats)
                       : [];
+                  const fiche = value.trim() ? trouverFiche(plats, value) : undefined;
+                  const conflitsAllergenes = fiche
+                    ? conflitsPlat(fiche.allergenes, selectedGuests, contraintesById)
+                    : [];
 
                   return (
                     <div key={courseKey} className="relative flex flex-col gap-1.5">
                       <label
                         htmlFor={`course-${courseKey}`}
-                        className="text-[14px] font-semibold text-[var(--ink)]"
+                        className="text-[14px] font-semibold text-[var(--ink)] flex items-center gap-1.5"
                       >
+                        <Icone nom={ICONE_SERVICE[courseKey]} size={17} className="text-[var(--primary-ink)]" />
                         {COURSE_LABELS[courseKey]}
                       </label>
                       <input
@@ -1094,6 +1020,13 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                           <div className="absolute left-0 right-0 top-[74px] z-20 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl overflow-hidden divide-y divide-[var(--border)]/60">
                             {suggestions.map((sug) => {
                               const sugConflict = findDishConflicts(sug.label, servedDishes);
+                              const sugFiche = trouverFiche(plats, sug.label);
+                              const sugStrict = Boolean(
+                                sugFiche &&
+                                  conflitsPlat(sugFiche.allergenes, selectedGuests, contraintesById).some(
+                                    (c) => c.niveau === 'strict'
+                                  )
+                              );
                               return (
                                 <button
                                   key={`${sug.label}-${sug.course}`}
@@ -1105,8 +1038,20 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                   }}
                                   className="w-full min-h-[44px] px-3.5 py-2 text-left flex items-center justify-between gap-2 hover:bg-[var(--surface-elevated)] text-[14px]"
                                 >
-                                  <span className="font-medium text-[var(--ink)] truncate">
-                                    {sug.label}
+                                  <span className="min-w-0 flex items-center gap-1.5">
+                                    {sugStrict && (
+                                      <>
+                                        <IconAlert size={15} className="text-[var(--alerte)] shrink-0" />
+                                        <span className="sr-only">Allergène d’un convive : </span>
+                                      </>
+                                    )}
+                                    <span className="font-medium text-[var(--ink)] truncate">{sug.label}</span>
+                                    {sugFiche?.allergenes.map((id) => {
+                                      const ref = ALLERGENES.find((a) => a.id === id);
+                                      const perso = contraintesById.get(id);
+                                      const nom = ref?.icone ?? (perso ? iconeContrainte(perso) : 'tag');
+                                      return <Icone key={id} nom={nom} size={14} className="text-[var(--ink-muted)] shrink-0" />;
+                                    })}
                                   </span>
                                   {sugConflict?.hasAEviter ? (
                                     <span className="text-[13px] text-[var(--error)] font-semibold shrink-0 flex items-center gap-1">
@@ -1123,16 +1068,17 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                       <IconClock size={14} />
                                       <span>Peut revenir ({sugConflict.elapsedLabel})</span>
                                     </span>
-                                  ) : (
-                                    <span className="text-[13px] text-[var(--ink-muted)] shrink-0">
-                                      {COURSE_LABELS[sug.course]}
-                                    </span>
-                                  )}
+                                  ) : sug.idee ? (
+                                    <span className="text-[13px] font-semibold text-[var(--primary-ink)] shrink-0">idée</span>
+                                  ) : null}
                                 </button>
                               );
                             })}
                           </div>
                         )}
+
+                      {/* Allergènes de la fiche du plat qui concernent la tablée */}
+                      <AlertesAllergenes conflits={conflitsAllergenes} />
 
                       {/* Immediate anti-duplicate / temporal prescription / verdict feedback */}
                       {conflict && (
@@ -1239,7 +1185,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       className="p-3 rounded-xl bg-[var(--surface-elevated)]/60 border border-[var(--border)] flex flex-col gap-2"
                     >
                       <div>
-                        <span className="text-[13px] font-semibold text-[var(--ink-muted)]">
+                        <span className="text-[13px] font-semibold text-[var(--ink-muted)] flex items-center gap-1.5">
+                          <Icone nom={ICONE_SERVICE[courseKey]} size={15} className="text-[var(--primary-ink)]" />
                           {COURSE_LABELS[courseKey]}
                         </span>
                         <div className="text-[16px] font-semibold text-[var(--ink)]">

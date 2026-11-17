@@ -380,6 +380,8 @@ export default function App() {
           convivesById={convivesById}
           contraintesById={contraintesById}
           prescriptionMois={data.settings.prescriptionMois}
+          plats={data.plats}
+          onDemanderNouveauConvive={demanderNouveauConvive}
           onSave={handleSaveInvitation}
           onReinvite={handleReinvite}
           onDelete={handleDeleteInvitation}
