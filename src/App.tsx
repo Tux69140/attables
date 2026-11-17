@@ -447,7 +447,7 @@ export default function App() {
                 : 'text-[var(--ink-muted)] font-semibold'
             }`}
           >
-            <IconCalendar size={22} active={activeTab === 'invitations'} />
+            <IconCalendar size={22} />
             <span className="text-[13px] leading-none">Invitations</span>
           </button>
 
@@ -461,7 +461,7 @@ export default function App() {
                 : 'text-[var(--ink-muted)] font-semibold'
             }`}
           >
-            <IconUsers size={22} active={activeTab === 'convives'} />
+            <IconUsers size={22} />
             <span className="text-[13px] leading-none">Convives</span>
           </button>
         </div>
