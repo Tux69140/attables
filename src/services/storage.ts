@@ -11,7 +11,7 @@ import {
   PlatFiche,
 } from '../types/models';
 import { LIAISONS_PAR_DEFAUT } from '../utils/allergenes';
-import { formatDishInput, normalizeForCompare } from '../utils/dishes';
+import { cleDePlat } from '../utils/plats';
 
 const STORAGE_KEY = 'attables_db_v1';
 export const CURRENT_DATA_VERSION = 1;
@@ -385,7 +385,7 @@ function normaliserPlats(v: unknown): PlatFiche[] {
     if (!p || typeof p !== 'object') continue;
     const brut = p as Record<string, unknown>;
     if (typeof brut.id !== 'string' || typeof brut.libelle !== 'string') continue;
-    const cle = normalizeForCompare(formatDishInput(brut.libelle));
+    const cle = cleDePlat(brut.libelle);
     if (!cle || vus.has(cle)) continue;
     const services = chaines(brut.services).filter((s): s is CourseKey => (COURSE_KEYS as string[]).includes(s));
     if (services.length === 0) continue;

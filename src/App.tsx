@@ -22,6 +22,7 @@ import {
   saveAppData,
 } from './services/storage';
 import { getTodayIso } from './utils/dishes';
+import { retirerContrainte } from './utils/allergenes';
 import { effacerExemples, resteDesExemples } from './utils/exemples';
 import {
   AppData,
@@ -263,14 +264,7 @@ export default function App() {
   const handleDeleteTag = (tagId: string) => {
     const snapshot = data;
     const label = data.contraintes.find((t) => t.id === tagId)?.libelle ?? 'Tag';
-    setData((prev) => ({
-      ...prev,
-      contraintes: prev.contraintes.filter((t) => t.id !== tagId),
-      convives: prev.convives.map((c) => ({
-        ...c,
-        contraintesIds: c.contraintesIds.filter((id) => id !== tagId),
-      })),
-    }));
+    setData((prev) => retirerContrainte(prev, tagId));
     showUndo(`Tag « ${label} » supprimé`, snapshot);
   };
 

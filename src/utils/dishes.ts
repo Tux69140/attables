@@ -60,7 +60,10 @@ export function normalizeForCompare(value: string): string {
     .replace(/œ/gi, 'oe')
     .replace(/æ/gi, 'ae')
     .toLowerCase()
-    .replace(/\s+/g, ' ');
+    .replace(/[’‘]/g, "'")
+    .replace(/[-‐‑–—]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export function formatDateFr(dateIso: string): string {
