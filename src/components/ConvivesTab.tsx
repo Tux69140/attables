@@ -24,7 +24,12 @@ import {
   IconTrash,
   IconUsers,
 } from './Icons';
+import { getFoyerColorHex } from '../types/models';
+import { teinteFoyer } from '../utils/teinte';
+import { PastilleContrainte } from './Allergies';
+import { Puces } from './Controles';
 import { FeuilleConvive } from './FeuilleConvive';
+import { Icone } from './Icone';
 import { FeuilleFoyer } from './FeuilleFoyer';
 import { BottomSheet, ConfirmModal, FoyerTile } from './SharedUI';
 
@@ -43,6 +48,8 @@ interface ConvivesTabProps {
   onDeleteConvive: (conviveId: string) => void;
   /** Ouvre la feuille « Ajouter… » (personne ou foyer), tenue par App. */
   onAjouter: () => void;
+  /** Thème sombre effectif : teinte des en-têtes de foyer. */
+  sombre: boolean;
 }
 
 export const ConvivesTab: React.FC<ConvivesTabProps> = ({
@@ -59,8 +66,13 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   onSaveConvive,
   onDeleteConvive,
   onAjouter,
+  sombre,
 }) => {
   const [search, setSearch] = useState('');
+  const [filtre, setFiltre] = useState<'tous' | 'allergies'>('tous');
+  const [menuFoyer, setMenuFoyer] = useState<Foyer | null>(null);
+  const aAllergie = (c: Convive) =>
+    c.contraintesIds.some((id) => contraintesById.get(id)?.niveau === 'strict');
 
   // Feuilles de modification (convive, foyer) et d'ajout d'un membre à un foyer
   const [feuilleConvive, setFeuilleConvive] = useState<null | { convive?: Convive; foyerId?: string }>(null);
@@ -92,26 +104,29 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
           .filter((c) => c.foyerId === foyer.id)
           .sort((a, b) => a.nomAffiche.localeCompare(b.nomAffiche, 'fr'));
         const foyerMatches = !queryNorm || normalizeForCompare(foyer.nom).includes(queryNorm);
-        const matchingMembers = foyerMatches
+        const parNom = foyerMatches
           ? members
           : members.filter((m) => normalizeForCompare(m.nomAffiche).includes(queryNorm));
+        // Filtre « Allergies » : le foyer est réduit à ses membres allergiques, masqué s'il n'en a pas.
+        const matchingMembers = filtre === 'allergies' ? parNom.filter(aAllergie) : parNom;
         return {
           foyer,
           members: matchingMembers,
           totalMembers: members.length,
-          visible: foyerMatches || matchingMembers.length > 0,
+          visible: filtre === 'allergies' ? matchingMembers.length > 0 : foyerMatches || matchingMembers.length > 0,
         };
       })
       .filter((item) => item.visible);
-  }, [foyers, convives, queryNorm]);
+  }, [foyers, convives, queryNorm, filtre, contraintesById]);
 
   const ungroupedGuests = useMemo(() => {
     const foyerIds = new Set(foyers.map((f) => f.id));
     return convives
       .filter((c) => !c.foyerId || !foyerIds.has(c.foyerId))
       .filter((c) => !queryNorm || normalizeForCompare(c.nomAffiche).includes(queryNorm))
+      .filter((c) => filtre === 'tous' || aAllergie(c))
       .sort((a, b) => a.nomAffiche.localeCompare(b.nomAffiche, 'fr'));
-  }, [convives, foyers, queryNorm]);
+  }, [convives, foyers, queryNorm, filtre, contraintesById]);
 
   // Viewed convive history
   const viewedHistory = useMemo(() => {
@@ -135,51 +150,65 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   const countMembersInFoyer = (foyerId: string) =>
     convives.filter((c) => c.foyerId === foyerId).length;
 
-  const renderConviveRow = (guest: Convive) => {
-    const strictTags = guest.contraintesIds
+  const tagsDe = (guest: Convive) => {
+    const tags = guest.contraintesIds
       .map((id) => contraintesById.get(id))
-      .filter((t): t is ContrainteTag => Boolean(t && t.niveau === 'strict'));
-    const prefTags = guest.contraintesIds
-      .map((id) => contraintesById.get(id))
-      .filter((t): t is ContrainteTag => Boolean(t && t.niveau === 'preference'));
+      .filter((t): t is ContrainteTag => Boolean(t));
+    return [...tags.filter((t) => t.niveau === 'strict'), ...tags.filter((t) => t.niveau !== 'strict')];
+  };
 
-    const summaryParts: string[] = [
-      ...strictTags.map((t) => t.libelle),
-      ...prefTags.map((t) => t.libelle),
-    ];
-    if (guest.contrainteLibre.trim()) summaryParts.push(guest.contrainteLibre.trim());
-
+  /** Ligne d'un convive ; `couleur` : filet et avatar teintés du foyer, sinon neutres. */
+  const renderConviveRow = (guest: Convive, couleur?: Foyer['couleur']) => {
+    const tags = tagsDe(guest);
+    const note = guest.contrainteLibre.trim();
+    const hex = couleur ? getFoyerColorHex(couleur) : undefined;
     return (
       <button
         key={guest.id}
         type="button"
         onClick={() => setViewedConvive(guest)}
-        className="w-full min-h-[56px] px-4 py-3 text-left flex items-center justify-between gap-3 hover:bg-[var(--surface-elevated)]/70 active:bg-[var(--surface-active)]/50 transition-colors"
+        className="w-full min-h-[56px] pl-3 pr-4 py-2.5 text-left flex items-center gap-3 active:bg-[var(--surface-active)]/50 transition-colors"
       >
-        <div className="min-w-0 flex flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[16px] font-semibold text-[var(--ink)] truncate">
-              {guest.nomAffiche}
-            </span>
-            {strictTags.length > 0 && (
-              <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--error)] shrink-0">
-                <IconAlert size={14} />
-                <span>Allergie</span>
-              </span>
-            )}
-          </div>
-          {summaryParts.length > 0 ? (
-            <p className="text-[14px] text-[var(--ink-muted)] truncate">
-              {summaryParts.join(' · ')}
-            </p>
+        <span
+          aria-hidden="true"
+          className="self-stretch w-[3px] rounded-full shrink-0"
+          style={{ backgroundColor: hex ?? 'transparent' }}
+        />
+        <span
+          aria-hidden="true"
+          className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-[15px] text-[var(--ink)] shrink-0"
+          style={{ backgroundColor: couleur ? teinteFoyer(couleur, sombre) : 'var(--surface-elevated)' }}
+        >
+          {guest.nomAffiche.trim().charAt(0).toUpperCase()}
+        </span>
+        <span className="min-w-0 flex-1 flex flex-col gap-1">
+          <span className="text-[16px] font-bold text-[var(--ink)] truncate">{guest.nomAffiche}</span>
+          {tags.length === 0 && !note ? (
+            <span className="text-[14px] text-[var(--ink-muted)]">Aucune contrainte</span>
           ) : (
-            <p className="text-[14px] text-[var(--ink-muted)]">Aucune contrainte</p>
+            <span className="flex flex-wrap items-center gap-1.5">
+              {tags.map((t) => (
+                <PastilleContrainte key={t.id} tag={t} />
+              ))}
+              {note && <span className="text-[13px] text-[var(--ink-muted)]">+ note</span>}
+            </span>
           )}
-        </div>
+        </span>
         <IconChevronRight size={18} className="text-[var(--ink-muted)] shrink-0" />
       </button>
     );
   };
+
+  const nbAllergiques = convives.filter(aAllergie).length;
+  const titreSection = (icone: 'assemblee' | 'user-round', titre: string, detail: string, id: string) => (
+    <div className="flex items-baseline justify-between gap-2 px-0.5">
+      <h2 id={id} className="font-display text-[21px] text-[var(--ink)] flex items-center gap-2">
+        <Icone nom={icone} size={22} className="text-[var(--primary-ink)] self-center" />
+        {titre}
+      </h2>
+      <span className="text-[14px] text-[var(--ink-muted)] tabular-nums">{detail}</span>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-4 pb-36">
@@ -190,7 +219,8 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
           className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] pointer-events-none"
         />
         <input
-          type="search"
+          type="text"
+          enterKeyHint="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher un foyer ou un convive…"
@@ -199,98 +229,126 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         />
       </div>
 
+      {convives.length > 0 && (
+        <Puces
+          ariaLabel="Filtrer les convives"
+          valeur={filtre}
+          onChange={setFiltre}
+          options={[
+            { id: 'tous', label: `Tous · ${convives.length}` },
+            { id: 'allergies', label: `Allergies · ${nbAllergiques}`, icone: 'triangle-alert', ton: 'alerte' },
+          ]}
+        />
+      )}
+
       {/* Empty State */}
       {groupedFoyers.length === 0 && ungroupedGuests.length === 0 && (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-7 text-center flex flex-col items-center gap-3 mt-2">
+        <div className="carte p-7 text-center flex flex-col items-center gap-3 mt-2">
           <div className="w-12 h-12 rounded-2xl bg-[var(--surface-elevated)] text-[var(--ink-muted)] flex items-center justify-center">
             <IconUsers size={24} />
           </div>
           <h2 className="font-display text-xl text-[var(--ink)]">
             {foyers.length === 0 && convives.length === 0
               ? 'Annuaire vide'
-              : 'Aucun convive trouvé'}
+              : filtre === 'allergies' && !queryNorm
+                ? 'Aucune allergie stricte'
+                : 'Aucun convive trouvé'}
           </h2>
           <p className="text-[15px] text-[var(--ink-muted)] max-w-sm">
             {foyers.length === 0 && convives.length === 0
               ? 'Ajoutez vos proches et regroupez-les par foyer pour cocher toute une famille en un seul geste.'
-              : 'Aucun foyer ni convive ne correspond à cette recherche.'}
+              : filtre === 'allergies' && !queryNorm
+                ? 'Personne dans le carnet n’a d’allergie stricte.'
+                : 'Aucun foyer ni convive ne correspond à cette recherche.'}
           </p>
         </div>
       )}
 
-      {/* Foyers list */}
-      {groupedFoyers.map(({ foyer, members, totalMembers }) => (
-        <section
-          key={foyer.id}
-          className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden"
-        >
-          <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <FoyerTile color={foyer.couleur} picto={foyer.picto} sizePx={44} />
-              <div className="min-w-0">
-                <h2 className="font-display text-[19px] text-[var(--ink)] truncate">
-                  {foyer.nom}
-                </h2>
-                <span className="text-[13px] text-[var(--ink-muted)] tabular-nums">
-                  {totalMembers} {totalMembers > 1 ? 'membres' : 'membre'}
-                </span>
+      {/* Foyers */}
+      {groupedFoyers.length > 0 && (
+        <section aria-labelledby="titre-foyers" className="flex flex-col gap-3">
+          {titreSection('assemblee', 'Foyers', String(groupedFoyers.length), 'titre-foyers')}
+          {groupedFoyers.map(({ foyer, members, totalMembers }) => (
+            <article key={foyer.id} className="carte overflow-hidden">
+              <div
+                className="pl-3 pr-1.5 py-2.5 flex items-center justify-between gap-2"
+                style={{ backgroundColor: teinteFoyer(foyer.couleur, sombre) }}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <FoyerTile color={foyer.couleur} picto={foyer.picto} sizePx={44} />
+                  <div className="min-w-0">
+                    <h3 className="font-display text-[19px] text-[var(--ink)] truncate">{foyer.nom}</h3>
+                    <span className="text-[13px] text-[var(--ink-muted)] tabular-nums">
+                      {totalMembers} {totalMembers > 1 ? 'membres' : 'membre'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => openNewConvive(foyer.id)}
+                    aria-label={`Ajouter un membre dans ${foyer.nom}`}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink)]"
+                  >
+                    <IconPlus size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMenuFoyer(foyer)}
+                    aria-label={`Actions du foyer ${foyer.nom}`}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink)]"
+                  >
+                    <Icone nom="ellipsis-vertical" size={20} />
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
-                onClick={() => openNewConvive(foyer.id)}
-                aria-label={`Ajouter un membre dans ${foyer.nom}`}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--primary-ink)] hover:bg-[var(--surface-elevated)]"
-              >
-                <IconPlus size={19} />
-              </button>
-              <button
-                type="button"
-                onClick={() => openEditFoyer(foyer)}
-                aria-label={`Modifier le foyer ${foyer.nom}`}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink-muted)] hover:bg-[var(--surface-elevated)]"
-              >
-                <IconEdit size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDeleteFoyer(foyer)}
-                aria-label={`Supprimer le foyer ${foyer.nom}`}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--error)] hover:bg-[var(--error-bg)]"
-              >
-                <IconTrash size={18} />
-              </button>
-            </div>
-          </div>
-
-          {members.length === 0 ? (
-            <div className="px-4 py-3.5 text-[14px] text-[var(--ink-muted)]">
-              Aucun membre dans ce foyer pour le moment.
-            </div>
-          ) : (
-            <div className="divide-y divide-[var(--border)]/70">
-              {members.map(renderConviveRow)}
-            </div>
-          )}
+              {members.length === 0 ? (
+                <p className="px-4 py-3.5 text-[14px] text-[var(--ink-muted)]">Aucun membre dans ce foyer pour le moment.</p>
+              ) : (
+                <div className="divide-y divide-[var(--border)]/70">{members.map((m) => renderConviveRow(m, foyer.couleur))}</div>
+              )}
+            </article>
+          ))}
         </section>
-      ))}
+      )}
 
-      {/* Sans foyer section */}
+      {/* Individuels */}
       {ungroupedGuests.length > 0 && (
-        <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-[var(--border)] flex items-baseline justify-between">
-            <h2 className="font-display text-[19px] text-[var(--ink)]">Sans foyer</h2>
-            <span className="text-[13px] text-[var(--ink-muted)] tabular-nums">
-              {ungroupedGuests.length}{' '}
-              {ungroupedGuests.length > 1 ? 'convives' : 'convive'}
-            </span>
-          </div>
-          <div className="divide-y divide-[var(--border)]/70">
-            {ungroupedGuests.map(renderConviveRow)}
+        <section aria-labelledby="titre-individuels" className="flex flex-col gap-3">
+          {titreSection('user-round', 'Individuels', `${ungroupedGuests.length} · sans foyer`, 'titre-individuels')}
+          <div className="carte overflow-hidden divide-y divide-[var(--border)]/70">
+            {ungroupedGuests.map((g) => renderConviveRow(g))}
           </div>
         </section>
       )}
+
+      {/* Menu « ⋮ » d'un foyer */}
+      <BottomSheet open={menuFoyer !== null} title={menuFoyer?.nom ?? ''} onClose={() => setMenuFoyer(null)}>
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              if (menuFoyer) openEditFoyer(menuFoyer);
+              setMenuFoyer(null);
+            }}
+            className="min-h-[52px] px-4 rounded-xl bg-[var(--surface-elevated)] text-[var(--ink)] font-semibold text-[15px] flex items-center gap-3"
+          >
+            <IconEdit size={18} />
+            Modifier le foyer
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setConfirmDeleteFoyer(menuFoyer);
+              setMenuFoyer(null);
+            }}
+            className="min-h-[52px] px-4 rounded-xl bg-[var(--error-bg)] text-[var(--error)] font-semibold text-[15px] flex items-center gap-3"
+          >
+            <IconTrash size={18} />
+            Supprimer le foyer
+          </button>
+        </div>
+      </BottomSheet>
 
       {/* Floating Action Buttons (auto-hide on scroll down, reappear on slight scroll up) */}
       <div
@@ -365,26 +423,11 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
-                  {viewedConvive.contraintesIds.map((cid) => {
-                    const tag = contraintesById.get(cid);
-                    if (!tag) return null;
-                    return (
-                      <div
-                        key={cid}
-                        className={`px-3.5 py-2 rounded-xl text-[14px] font-semibold flex items-center gap-2 ${
-                          tag.niveau === 'strict'
-                            ? 'bg-[var(--error-bg)] text-[var(--error)]'
-                            : 'bg-[var(--pref-bg)] text-[var(--pref)]'
-                        }`}
-                      >
-                        {tag.niveau === 'strict' && <IconAlert size={16} />}
-                        <span>
-                          {tag.niveau === 'strict' ? 'Allergie stricte · ' : 'Préférence · '}
-                          {tag.libelle}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  <div className="flex flex-wrap gap-1.5">
+                    {tagsDe(viewedConvive).map((t) => (
+                      <PastilleContrainte key={t.id} tag={t} />
+                    ))}
+                  </div>
                   {viewedConvive.contrainteLibre.trim() && (
                     <div className="px-3.5 py-2 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] text-[var(--ink)]">
                       {viewedConvive.contrainteLibre}

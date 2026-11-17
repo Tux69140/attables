@@ -57,6 +57,8 @@ export default function App() {
   const [ligneParcoursFermee, setLigneParcoursFermee] = useState(false);
   // Recherche de l'onglet Invitations, ouverte par la loupe de l'en-tête (null = fermée).
   const [recherche, setRecherche] = useState<string | null>(null);
+  // Thème sombre effectif (réglage, ou système en mode « Appareil ») : teintes calculées en JS.
+  const [sombre, setSombre] = useState(false);
   const undoTimerRef = useRef<number | null>(null);
   const chromeVisible = useAutoHideChrome(
     `${activeTab}-${Boolean(editorTarget)}-${settingsOpen}`
@@ -93,6 +95,7 @@ export default function App() {
       const isDark = mode === 'sombre' || (mode === 'appareil' && prefersDark);
 
       document.documentElement.classList.toggle('dark', isDark);
+      setSombre(isDark);
 
       const metaTheme = document.querySelector('meta[name="theme-color"]');
       if (metaTheme) {
@@ -511,6 +514,7 @@ export default function App() {
             onSaveConvive={handleSaveConvive}
             onDeleteConvive={handleDeleteConvive}
             onAjouter={ouvrirAjout}
+            sombre={sombre}
           />
         )}
       </main>
