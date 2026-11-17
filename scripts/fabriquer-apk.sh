@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# Fabrique l'APK release signé d'Attablés (arm64 + armv7), ou le bundle .aab
-# pour Google Play avec --aab.
+# Fabrique les deux APK release signés d'Attablés, une seule architecture chacun
+# (64 bits : attables-<version>.apk, 32 bits : attables-<version>-32bits.apk),
+# ou le bundle .aab universel pour Google Play avec --aab (Play le découpe par
+# appareil).
 #
 # Usage : scripts/fabriquer-apk.sh [--aab]
 #
-# Sortie : dist-android/attables-<version>.apk (ou .aab), non versionné.
+# Sortie : dist-android/attables-<version>.apk et attables-<version>-32bits.apk
+# (ou attables-<version>.aab), non versionnés.
 #
 # La clé est TOUJOURS ~/.android-keys/attables-release.jks (alias « attables ») ;
 # sa copie et son mot de passe sont dans KeePassXC (entrée « Attablés - clé de
@@ -27,7 +30,7 @@ FORMAT=apk
 case "${1:-}" in
     '') ;;
     --aab) FORMAT=aab ;;
-    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,21p' "$0"; exit 0 ;;
     *) arret "option inconnue : $1 (usage : $0 [--aab])" ;;
 esac
 [ $# -le 1 ] || arret "une seule option à la fois (usage : $0 [--aab])"
@@ -45,6 +48,19 @@ CARGO_VERSION=$(sed -n 's/^version = "\(.*\)"$/\1/p' src-tauri/Cargo.toml | head
 [ "$VERSION" = "$TAURI_VERSION" ] && [ "$VERSION" = "$CARGO_VERSION" ] ||
     arret "versions différentes : package.json $VERSION, tauri.conf.json $TAURI_VERSION, Cargo.toml $CARGO_VERSION"
 
+# ── Notes de version (vérifiées avant le mot de passe) ────────────────────────
+# versionCode Tauri : majeure × 1 000 000 + mineure × 1 000 + correctif. F-Droid
+# construit une fois par ABI et cherche aussi <10 × code + 1>.txt et <10 × code + 2>.txt.
+IFS=. read -r MAJEURE MINEURE CORRECTIF <<<"$VERSION"
+CODE=$((10#$MAJEURE * 1000000 + 10#$MINEURE * 1000 + 10#$CORRECTIF))
+for langue in fr-FR en-US; do
+    for code in "$CODE" "$((CODE * 10 + 1))" "$((CODE * 10 + 2))"; do
+        notes=fastlane/metadata/android/$langue/changelogs/$code.txt
+        [ -s "$notes" ] ||
+            arret "notes de version absentes ou vides : $notes (version $VERSION, versionCode $CODE). Les écrire avant de fabriquer."
+    done
+done
+
 # ── Outils et cibles Rust (vérifiés avant le mot de passe) ────────────────────
 KEYTOOL=${JAVA_HOME:+$JAVA_HOME/bin/}keytool
 command -v "$KEYTOOL" >/dev/null || arret "keytool introuvable (JAVA_HOME=${JAVA_HOME:-non défini})."
@@ -55,6 +71,7 @@ for sdk in "${ANDROID_HOME:-}" "${ANDROID_SDK_ROOT:-}" "$HOME/Android/Sdk"; do
     [ -n "$APKSIGNER" ] && break
 done
 [ -n "$APKSIGNER" ] || arret "apksigner introuvable (SDK Android : build-tools)."
+command -v unzip >/dev/null || arret "unzip introuvable : il faut l'installer (sudo apt install unzip)."
 command -v rustup >/dev/null || arret "rustup introuvable."
 CIBLES_RUST=$(rustup target list --installed)
 for cible in aarch64-linux-android armv7-linux-androideabi; do
@@ -88,23 +105,53 @@ mkdir -p "$SORTIE"
 
 # ── Fabrication et contrôle de la signature ───────────────────────────────────
 SORTIE_GRADLE=src-tauri/gen/android/app/build/outputs
+# fabriquer_apk <cible tauri> <ABI attendue> <nom dans $SORTIE> : un APK signé
+# d'une seule architecture, contrôlé (ABI, signature unique, empreinte de la
+# clé épinglée) avant d'être rangé. Avec une seule cible, Tauri écrit quand
+# même sous « universal ».
+fabriquer_apk() {
+    local cible=$1 abi=$2 nom=$3 fichier abis verif empreinte
+    fichier=$SORTIE_GRADLE/apk/universal/release/app-universal-release.apk
+    rm -f -- "$fichier" "${fichier%.apk}-unsigned.apk"   # jamais l'APK de la fabrication précédente
+    pnpm tauri android build --apk --target "$cible"
+    [ -f "$fichier" ] || arret "APK signé absent ($abi) : $fichier (signature non appliquée ?)."
+    # Une seule architecture, et la bonne : sans sa bibliothèque l'appli ne
+    # démarre pas ; une autre en plus doublerait la taille de l'APK.
+    abis=$(unzip -Z1 "$fichier" 'lib/*' 2>/dev/null | cut -d/ -f2 | sort -u | paste -sd' ') || abis=''
+    [ "$abis" = "$abi" ] ||
+        arret "l'APK $nom doit porter la seule architecture $abi ; il porte : ${abis:-aucune}."
+    verif=$("$APKSIGNER" verify --print-certs "$fichier" 2>&1) || arret "APK non signé ou signature invalide : $nom"
+    [ "$(grep -c '^Signer #[0-9]* certificate SHA-256 digest: ' <<<"$verif")" = 1 ] ||
+        arret "l'APK $nom doit porter exactement une signature."
+    empreinte=$(sed -n 's/^Signer #1 certificate SHA-256 digest: \([0-9a-f]\{64\}\)$/\1/p' <<<"$verif")
+    [ "$empreinte" = "$EPINGLEE" ] ||
+        arret "$nom n'est pas signé par la clé d'Attablés (attendu $EPINGLEE, obtenu ${empreinte:-aucune signature})."
+    cp -- "$fichier" "$SORTIE/$nom"
+    ls -lh "$SORTIE/$nom"
+    echo "APK $abi signé par la clé d'Attablés (certificat SHA-256 $empreinte)."
+}
+
 if [ "$FORMAT" = apk ]; then
-    FICHIER=$SORTIE_GRADLE/apk/universal/release/app-universal-release.apk
-    rm -f -- "$FICHIER" "${FICHIER%.apk}-unsigned.apk"
-    pnpm tauri android build --apk --target aarch64 armv7
-    [ -f "$FICHIER" ] || arret "APK signé absent : $FICHIER (signature non appliquée ?)."
-    VERIF=$("$APKSIGNER" verify --print-certs "$FICHIER" 2>&1) || arret "APK non signé ou signature invalide : $FICHIER"
-    [ "$(grep -c '^Signer #[0-9]* certificate SHA-256 digest: ' <<<"$VERIF")" = 1 ] ||
-        arret "l'APK doit porter exactement une signature."
-    EMPREINTE=$(sed -n 's/^Signer #1 certificate SHA-256 digest: \([0-9a-f]\{64\}\)$/\1/p' <<<"$VERIF")
-else
-    FICHIER=$SORTIE_GRADLE/bundle/universalRelease/app-universal-release.aab
-    rm -f -- "$FICHIER"
-    pnpm tauri android build --aab --target aarch64 armv7
-    [ -f "$FICHIER" ] || arret "bundle absent : $FICHIER"
-    EMPREINTE=$("$KEYTOOL" -J-Duser.language=en -printcert -jarfile "$FICHIER" 2>/dev/null |
-        sed -n 's/^[[:space:]]*SHA256: \([0-9A-F:]*\)$/\1/p' | head -n1 | tr -d ':' | tr 'A-F' 'a-f')
+    # Jamais un 32 bits d'une fabrication précédente à côté d'un 64 bits neuf.
+    rm -f -- "$SORTIE/attables-$VERSION.apk" "$SORTIE/attables-$VERSION-32bits.apk"
+    # 64 bits (aarch64, arm64-v8a) : le bouton principal du site.
+    fabriquer_apk aarch64 arm64-v8a "attables-$VERSION.apk"
+    # 32 bits (armv7, armeabi-v7a) : secours pour un téléphone ancien ou
+    # d'entrée de gamme. Jamais dans le même APK que le 64 bits.
+    fabriquer_apk armv7 armeabi-v7a "attables-$VERSION-32bits.apk"
+    unset ATTABLES_KEYSTORE_MDP
+    echo "Sur le téléphone, sans désinstaller : adb install -r $SORTIE/attables-$VERSION.apk"
+    echo "(téléphone 32 bits seulement : $SORTIE/attables-$VERSION-32bits.apk)"
+    exit 0
 fi
+
+# Bundle universel : Google Play le découpe par appareil, une seule fabrication.
+FICHIER=$SORTIE_GRADLE/bundle/universalRelease/app-universal-release.aab
+rm -f -- "$FICHIER"
+pnpm tauri android build --aab --target aarch64 armv7
+[ -f "$FICHIER" ] || arret "bundle absent : $FICHIER"
+EMPREINTE=$("$KEYTOOL" -J-Duser.language=en -printcert -jarfile "$FICHIER" 2>/dev/null |
+    sed -n 's/^[[:space:]]*SHA256: \([0-9A-F:]*\)$/\1/p' | head -n1 | tr -d ':' | tr 'A-F' 'a-f')
 unset ATTABLES_KEYSTORE_MDP
 
 [ "$EMPREINTE" = "$EPINGLEE" ] ||
@@ -114,5 +161,4 @@ DEST=$SORTIE/attables-$VERSION.$FORMAT
 cp -- "$FICHIER" "$DEST"
 ls -lh "$DEST"
 echo "Signé par la clé d'Attablés (certificat SHA-256 $EMPREINTE)."
-[ "$FORMAT" = apk ] && echo "Sur le téléphone, sans désinstaller : adb install -r $DEST"
 exit 0

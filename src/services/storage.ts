@@ -206,29 +206,57 @@ export function createEmptyData(keepSettings?: Partial<AppData['settings']>): Ap
   };
 }
 
-export function loadAppData(): AppData {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
+// Mode « démo » : copie publiée sur le site de présentation. Les exemples sont
+// rechargés à chaque visite et rien n'est écrit dans localStorage.
+// Chaînage optionnel : import.meta.env est indéfini sous Node (tests).
+export const MODE_DEMO: boolean = import.meta.env?.MODE === 'demo';
+
+export function creerStockage(demo: boolean): {
+  charger(): AppData;
+  enregistrer(data: AppData): void;
+} {
+  function enregistrer(data: AppData): void {
+    if (demo) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (err) {
+      console.error('Erreur lors de la sauvegarde locale :', err);
+    }
+  }
+
+  function charger(): AppData {
+    if (demo) {
+      // La démo s'ouvre toujours en thème clair, quel que soit l'appareil.
+      const exemple = createSampleData();
+      return { ...exemple, settings: { ...exemple.settings, theme: 'clair' } };
+    }
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        const sample = createSampleData();
+        enregistrer(sample);
+        return sample;
+      }
+      const parsed = JSON.parse(raw);
+      return migrateAndValidateAppData(parsed);
+    } catch {
       const sample = createSampleData();
-      saveAppData(sample);
+      enregistrer(sample);
       return sample;
     }
-    const parsed = JSON.parse(raw);
-    return migrateAndValidateAppData(parsed);
-  } catch {
-    const sample = createSampleData();
-    saveAppData(sample);
-    return sample;
   }
+
+  return { charger, enregistrer };
+}
+
+const stockage = creerStockage(MODE_DEMO);
+
+export function loadAppData(): AppData {
+  return stockage.charger();
 }
 
 export function saveAppData(data: AppData): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (err) {
-    console.error('Erreur lors de la sauvegarde locale :', err);
-  }
+  stockage.enregistrer(data);
 }
 
 export function migrateAndValidateAppData(input: unknown): AppData {

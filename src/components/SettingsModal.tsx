@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
+import { URL_NOTES_DE_VERSION, ouvrirLien } from '../services/liens';
 import { migrateAndValidateAppData } from '../services/storage';
 import {
   AppData,
@@ -53,6 +54,8 @@ interface SettingsScreenProps {
   onRestoreBackup: (restored: AppData) => void;
   onClearAllData: () => void;
   onResetSampleData: () => void;
+  resteDesExemples: boolean;
+  onEffacerExemples: () => void;
   onClose: () => void;
 }
 
@@ -65,6 +68,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onRestoreBackup,
   onClearAllData,
   onResetSampleData,
+  resteDesExemples,
+  onEffacerExemples,
   onClose,
 }) => {
   const [section, setSection] = useState<SettingsSection>('root');
@@ -83,6 +88,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSampleConfirm, setShowSampleConfirm] = useState(false);
+  const [showEffacerExemplesConfirm, setShowEffacerExemplesConfirm] = useState(false);
   const [showLicenseDetails, setShowLicenseDetails] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -281,7 +287,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       {/* Centered-title 3-zone Top Bar */}
       <header
-        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe transition-transform duration-200 ease-out ${
+        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -411,7 +417,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     À propos & Vie privée
                   </div>
                   <div className="text-[14px] text-[var(--ink-muted)] truncate">
-                    Version 0.1.1 · GPL v3.0 · BioVibraLyon
+                    Version 0.2.1 · GPL v3.0 · BioVibraLyon
                   </div>
                 </div>
               </div>
@@ -702,6 +708,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <IconChevronRight size={18} className="text-[var(--ink-muted)] shrink-0" />
               </button>
 
+              {resteDesExemples && (
+                <button
+                  type="button"
+                  onClick={() => setShowEffacerExemplesConfirm(true)}
+                  className="w-full min-h-[58px] px-4 py-3 text-left flex items-center justify-between gap-3 hover:bg-[var(--surface-elevated)]/60 transition-colors"
+                >
+                  <div>
+                    <div className="text-[15px] font-semibold text-[var(--ink)]">
+                      Effacer les exemples
+                    </div>
+                    <div className="text-[13px] text-[var(--ink-muted)]">
+                      Retire Marc, Sophie et les autres ; vos propres données restent
+                    </div>
+                  </div>
+                  <IconChevronRight size={18} className="text-[var(--ink-muted)] shrink-0" />
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => setShowClearConfirm(true)}
@@ -728,7 +752,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <div>
                 <h2 className="font-display text-[24px] text-[var(--ink)]">Attablés</h2>
                 <p className="text-[15px] font-semibold text-[var(--ink-muted)] tabular-nums">
-                  Version 0.1.1 · attables.biovibralyon.fr
+                  Version 0.2.1 · attables.biovibralyon.fr
                 </p>
               </div>
               <p className="text-[15px] text-[var(--ink)] leading-relaxed">
@@ -736,6 +760,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 allergies et préférences alimentaires, et mémoire anti-doublon des plats
                 servis.
               </p>
+              <button
+                type="button"
+                onClick={() => void ouvrirLien(URL_NOTES_DE_VERSION)}
+                className="min-h-[44px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--ink)] text-[14px] font-semibold text-left flex items-center justify-between gap-2"
+              >
+                <span>Notes de version</span>
+                <IconChevronRight size={17} className="text-[var(--ink-muted)] shrink-0" />
+              </button>
             </section>
 
             <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-3">
@@ -821,18 +853,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <div className="flex flex-col gap-3 text-[14px] text-[var(--ink-muted)] leading-relaxed">
                 <p>
                   <strong className="text-[var(--ink)]">Aucune collecte :</strong>{' '}
-                  Attablés fonctionne entièrement hors ligne. Vos convives, foyers,
-                  contraintes et menus ne quittent jamais votre appareil et ne sont envoyés
-                  à aucun serveur. L’application ne contient ni publicité, ni outil de
-                  mesure d’audience.
+                  Attablés fonctionne entièrement sans connexion. Vos convives, foyers,
+                  contraintes et menus restent sur votre appareil : Attablés n’envoie rien
+                  de lui-même. L’application ne contient ni publicité, ni outil de mesure
+                  d’audience.
                 </p>
                 <p>
                   <strong className="text-[var(--ink)]">
                     Export vers une IA externe :
                   </strong>{' '}
-                  Par défaut, le résumé généré pour votre assistant IA ne contient pas les
-                  noms de vos invités. Lorsque vous le collez dans un service tiers, il
-                  devient soumis aux conditions de ce service.
+                  Par défaut, ce résumé est anonymisé : il ne reprend ni les prénoms, ni le
+                  nom d’hôte saisis dans les champs prévus pour cela. Les notes libres écrites
+                  pour un convive y figurent telles que vous les avez tapées. Relisez le texte
+                  avant de le coller dans un autre service, qui applique ses propres
+                  conditions.
                 </p>
                 <p>
                   <strong className="text-[var(--ink)]">Sauvegardes :</strong> Le fichier
@@ -902,6 +936,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           onClearAllData();
         }}
         onCancel={() => setShowClearConfirm(false)}
+      />
+
+      {/* Confirm Erase Sample Data */}
+      <ConfirmModal
+        open={showEffacerExemplesConfirm}
+        title="Effacer les exemples ?"
+        description="Les foyers, convives et repas d’exemple seront retirés ; vos propres données restent. Vous pourrez annuler juste après."
+        confirmLabel="Effacer"
+        onConfirm={() => {
+          setShowEffacerExemplesConfirm(false);
+          onEffacerExemples();
+        }}
+        onCancel={() => setShowEffacerExemplesConfirm(false)}
       />
 
       {/* Confirm Reload Sample Data */}

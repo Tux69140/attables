@@ -1,12 +1,12 @@
-@import "@fontsource/baumans/400.css";
-@import "@fontsource/source-sans-3/400.css";
-@import "@fontsource/source-sans-3/600.css";
-@import "@fontsource/source-sans-3/700.css";
+@import "./polices.css";
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  --duree-chrome: 600ms;
+  --courbe-chrome: cubic-bezier(0.33, 0, 0.2, 1);
+  --haut-systeme: max(6px, env(safe-area-inset-top));
   --bg: #F7F6F1;
   --card: #FEFDFB;
   --surface-elevated: #F1EEE7;
@@ -71,15 +71,47 @@ body {
 }
 
 .pt-safe {
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--haut-systeme);
+}
+
+/* Nappe : bande fixe sous la barre d'état, jamais masquée au défilement.
+   Vichy rouge tomate délavé ; reste discret pour garder les icônes lisibles. */
+.nappe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--haut-systeme);
+  z-index: 50;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(90deg, rgba(196, 58, 43, 0.22) 50%, transparent 50%),
+    linear-gradient(rgba(196, 58, 43, 0.22) 50%, transparent 50%);
+  background-size: 8px 8px;
+}
+
+.dark .nappe {
+  background-image:
+    linear-gradient(90deg, rgba(150, 40, 50, 0.35) 50%, transparent 50%),
+    linear-gradient(rgba(150, 40, 50, 0.35) 50%, transparent 50%);
+}
+
+/* Nappe du bas : même bande, dans la zone de la barre de navigation Android
+   (nulle en navigateur), au-dessus de la barre d'onglets, sans capter les touchers. */
+.nappe-bas {
+  top: auto;
+  bottom: 0;
+  height: env(safe-area-inset-bottom);
+  pointer-events: none;
 }
 
 /*
  * Android affiche la WebView sous les barres système (edge-to-edge) : l'en-tête
  * (3.5rem + .pt-safe) et la barre d'onglets (4rem + .pb-safe) grandissent de la
  * hauteur de ces barres. Tout ce qui se positionne par rapport à eux doit donc
- * ajouter les mêmes marges env(safe-area-inset-*). Marges nulles (navigateur) :
- * on retrouve exactement les anciennes valeurs (72px, 82px, 144px, 80px…).
+ * ajouter les mêmes marges (--haut-systeme en haut, env(safe-area-inset-*) ailleurs).
+ * --haut-systeme vaut au moins 6px : en navigateur (marge nulle) la nappe reste
+ * visible et le haut gagne 6px par rapport aux anciennes valeurs.
  */
 .px-safe {
   padding-left: max(1rem, env(safe-area-inset-left));
@@ -92,7 +124,7 @@ body {
 }
 
 .pt-below-header {
-  padding-top: calc(4.5rem + env(safe-area-inset-top));
+  padding-top: calc(4.5rem + var(--haut-systeme));
 }
 
 .pb-inset {
@@ -149,5 +181,17 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mouvement partagé des barres qui se masquent au défilement (en-têtes, onglets, boutons flottants, bandeau d'annulation). */
+.chrome-mouvement {
+  transition-property: transform, translate, opacity, bottom;
+  transition-duration: var(--duree-chrome);
+  transition-timing-function: var(--courbe-chrome);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chrome-mouvement {
+    transition: none;
   }
 }

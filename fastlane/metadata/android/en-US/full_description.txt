@@ -17,7 +17,7 @@ ANTI-DUPLICATE DISH MEMORY & RATINGS
 
 OPTIONAL ANONYMIZED MARKDOWN EXPORT
 • Copy a structured Markdown summary of constraints and dish history in one tap.
-• Anonymized by default: no guest or host names are included, only headcount, dietary restrictions, and dish history.
+• Anonymized by default: first names and the host name are left out; your free-text notes are copied as typed, so reread them before pasting.
 
 100% LOCAL & OPEN SOURCE
 • Works completely offline with zero ads, zero trackers, and zero telemetry.

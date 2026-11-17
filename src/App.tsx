@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { signalerThemeAuxBarres } from './services/barresSysteme';
+import { BandeauExemples } from './components/BandeauExemples';
 import { ConvivesTab } from './components/ConvivesTab';
 import { IconCalendar, IconGear, IconUsers } from './components/Icons';
 import { InvitationEditor } from './components/InvitationEditor';
@@ -16,9 +18,11 @@ import {
   createEmptyData,
   createSampleData,
   loadAppData,
+  MODE_DEMO,
   saveAppData,
 } from './services/storage';
 import { getTodayIso } from './utils/dishes';
+import { effacerExemples, resteDesExemples } from './utils/exemples';
 import {
   AppData,
   ContrainteTag,
@@ -35,6 +39,7 @@ export default function App() {
   const [data, setData] = useState<AppData>(() => loadAppData());
   const [activeTab, setActiveTab] = useState<MainTab>('invitations');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [bandeauMasque, setBandeauMasque] = useState(false);
   const [editorTarget, setEditorTarget] = useState<
     | { mode: 'new'; draft?: Partial<Invitation> }
     | { mode: 'edit'; invitation: Invitation }
@@ -83,6 +88,8 @@ export default function App() {
       if (metaTheme) {
         metaTheme.setAttribute('content', isDark ? '#0D1624' : '#F7F6F1');
       }
+
+      signalerThemeAuxBarres(isDark);
     };
 
     applyTheme();
@@ -296,6 +303,13 @@ export default function App() {
     showUndo('Exemples rechargés', snapshot);
   };
 
+  const handleEffacerExemples = () => {
+    const snapshot = data;
+    setData(effacerExemples(data));
+    setSettingsOpen(false);
+    showUndo('Exemples effacés', snapshot);
+  };
+
   // Full-screen Editor view
   if (editorTarget) {
     return (
@@ -336,6 +350,8 @@ export default function App() {
           onRestoreBackup={handleRestoreBackup}
           onClearAllData={handleClearAllData}
           onResetSampleData={handleResetSampleData}
+          resteDesExemples={resteDesExemples(data)}
+          onEffacerExemples={handleEffacerExemples}
           onClose={() => setSettingsOpen(false)}
         />
         <UndoBanner
@@ -351,7 +367,7 @@ export default function App() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)] flex flex-col">
       {/* Compact Android Top Bar */}
       <header
-        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe transition-transform duration-200 ease-out ${
+        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -378,6 +394,13 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 w-full max-w-[1080px] mx-auto px-safe pt-below-header pb-inset">
+        {resteDesExemples(data) && !bandeauMasque && (
+          <BandeauExemples
+            demo={MODE_DEMO}
+            onEffacer={handleEffacerExemples}
+            onMasquer={() => setBandeauMasque(true)}
+          />
+        )}
         {activeTab === 'invitations' ? (
           <InvitationsTab
             invitations={data.invitations}
@@ -409,7 +432,7 @@ export default function App() {
       {/* Android Bottom Navigation Bar */}
       <nav
         aria-label="Navigation principale"
-        className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] pb-safe transition-transform duration-200 ease-out ${
+        className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] pb-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >

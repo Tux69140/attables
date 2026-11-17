@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Attablés — le carnet de vos invités</title>
+  <meta name="description" content="Carnet d’invitations hors ligne : foyers, allergies et mémoire des plats déjà servis.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <a class="lien-evitement" href="#contenu">Aller au contenu</a>
+  <div class="vichy bandeau-vichy" aria-hidden="true"></div>
+  <header class="entete">
+    <a class="marque" href="/"><img class="marque-icone" src="/icone-attables.png" alt="" width="36" height="36">Attablés</a>
+    <nav class="nav-principale" aria-label="Navigation principale">
+      <ul role="list">
+        <li><a href="#comment">Comment<span class="nav-long"> ça marche</span></a></li>
+        <li><a href="#telecharger">Télécharger</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="contenu">
+    <section class="accroche" aria-labelledby="titre-accroche">
+      <div class="accroche-texte">
+        <p class="surtitre">Carnet d’invitations pour Android, hors ligne</p>
+        <h1 id="titre-accroche">On remet <span class="vichy-accent">le couvert</span>&nbsp;?</h1>
+        <p class="accroche-phrase">Qui vient, qui est allergique à quoi, et ce que vous leur avez déjà servi.</p>
+        <p class="boutons">
+          <a class="bouton bouton-principal" href="#telecharger">Télécharger <span aria-hidden="true">→</span></a>
+          <a class="bouton bouton-secondaire" href="/demo/">Essayer la démo</a>
+        </p>
+        <p class="clin-d-oeil">Tante Odile a déjà eu le gratin. Deux fois.</p>
+        <div class="accroche-pictos" aria-hidden="true">
+          <svg class="deco-flottante deco-herbes" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 19C5 11 10 6 19 5c0 8-5 14-14 14z"/><path d="M5 19 13 11M9 15h4M11 13V9"/></svg>
+          <svg class="deco-flottante deco-tomate" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="14" r="7"/><path d="M12 7c-1.2-1.6-3-2.2-4.6-1.8 1.2.6 2 1.4 2.4 2.4M12 7c1.2-1.6 3-2.2 4.6-1.8-1.2.6-2 1.4-2.4 2.4M12 7V4.5"/></svg>
+          <svg class="deco-flottante deco-pain" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 19.5c-1.8-1.8.2-6 4.2-10s8.2-6 10-4.2-.2 6-4.2 10-8.2 6-10 4.2z"/><path d="M8.5 13.5l2 1M11 10.5l2 1M13.8 7.8l1.8 1"/></svg>
+          <svg class="deco-flottante deco-fromage" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 17.5 20 9.5v8H3z"/><path d="M3 17.5 12.5 7.5l7.5 2"/><circle cx="15" cy="14" r="1.3"/><circle cx="9.5" cy="15.5" r="0.9"/></svg>
+        </div>
+      </div>
+
+      <div class="zone-demo" id="demo">
+        <!-- Sur ordinateur (≥ 900 px, avec JavaScript), accueil.ts pose l'appli vivante dans ce cadre. -->
+        <figure class="demo-cadre" data-demo-cadre hidden>
+          <div class="telephone">
+            <div class="telephone-ecran" data-demo-ecran></div>
+            <p class="pastille pastille-coeur" aria-hidden="true">
+              <span class="pastille-icone"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span>
+              <span><span class="pastille-titre">Coup de cœur</span><span class="pastille-detail">Lasagnes aux légumes grillés</span></span>
+            </p>
+            <p class="pastille pastille-recent" aria-hidden="true">
+              <span class="pastille-icone"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+              <span><span class="pastille-titre">Récent, il y a 26 jours</span><span class="pastille-detail">Houmous de betterave</span></span>
+            </p>
+          </div>
+          <figcaption>La vraie appli, avec la tablée d’exemple. Touchez à tout&nbsp;: rien n’est gardé.<svg class="legende-fleche" viewBox="0 0 64 40" aria-hidden="true" focusable="false"><path d="M4 34c14 2 30-2 42-14 4-4 7-9 9-14"/><path d="M47 9l8-4 2 9"/></svg></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <div class="vichy ourlet" aria-hidden="true"></div>
+
+    <section class="section pourquoi" aria-labelledby="titre-pourquoi">
+      <svg class="deco deco-couvert" viewBox="0 0 220 140" aria-hidden="true" focusable="false">
+        <g class="deco-couverts">
+          <path d="M28 18v34c0 7 4 11 9 12v58h8V64c5-1 9-5 9-12V18h-6v32h-4V18h-6v32h-4V18z"/>
+          <path d="M182 18c-10 6-14 22-14 38 0 8 3 12 10 13v53h8V18z"/>
+        </g>
+        <circle class="deco-assiette" cx="111" cy="70" r="56"/>
+        <circle class="deco-assiette-creux" cx="111" cy="70" r="38"/>
+        <circle class="deco-assiette-filet" cx="111" cy="70" r="49"/>
+      </svg>
+      <div class="pourquoi-texte">
+        <p class="surtitre">Pourquoi Attablés</p>
+        <h2 id="titre-pourquoi">«&nbsp;Que leur ai-je servi la dernière fois qu’ils sont venus&nbsp;?&nbsp;»</h2>
+        <p>La question revient à chaque invitation, souvent accompagnée d’autres&nbsp;: qui ne mange pas de porc, déjà&nbsp;? Le petit dernier, c’était les arachides ou les noix&nbsp;?</p>
+        <p>Attablés garde les réponses pour vous&nbsp;: qui est venu, ce qui a été servi, ce que vous en avez pensé, et les allergies de chacun, réunies dès que vous dressez la liste des invités.</p>
+      </div>
+    </section>
+
+    <section class="section" id="comment" aria-labelledby="titre-comment">
+      <!-- Sans JavaScript : la liste des trois étapes. Avec (carrousel.ts) : les étapes à gauche, les téléphones à droite. -->
+      <div class="carrousel" data-carrousel>
+        <h2 id="titre-comment">Comment ça marche</h2>
+        <ol class="etapes" role="list" data-carrousel-piste>
+          <li class="etape">
+            <div class="capture-cadre">
+              <img class="capture" src="/captures/convives.png" width="393" height="852" loading="lazy" draggable="false"
+                alt="Écran Convives d’Attablés : la famille Martin avec Léa (allergie stricte aux arachides), Marc (aucune contrainte) et Sophie (sans lactose, fromages de chèvre et de brebis tolérés), puis le foyer Paul &amp; Julie avec Julie (végétarienne, évite les plats trop épicés) et Paul (allergie stricte aux crustacés).">
+            </div>
+            <div class="etape-texte">
+              <h3>Vos convives, rangés par foyer</h3>
+              <p>Notez chaque convive et regroupez-les par foyer pour inviter toute une famille d’un geste. Les allergies strictes (arachides, crustacés, gluten…) sont distinguées des simples préférences, avec une note libre pour les nuances.</p>
+            </div>
+          </li>
+          <li class="etape">
+            <div class="capture-cadre">
+              <img class="capture" src="/captures/invitation.png" width="393" height="852" loading="lazy" draggable="false"
+                alt="Écran d’une invitation : en haut, les allergies strictes de la tablée (arachides pour Léa, fruits à coque pour Nadia), les préférences (sans lactose pour Sophie, sans porc pour Nadia) et la note de Sophie sur les fromages ; en dessous, la liste « Déjà servi à ces convives », où le houmous de betterave, la salade niçoise et les lasagnes aux légumes grillés portent la mention « Récent (il y a 26 jours) » et l’avis « Coup de cœur ».">
+            </div>
+            <div class="etape-texte">
+              <h3>L’invitation, toute la tablée d’un coup d’œil</h3>
+              <p>Cochez qui vient&nbsp;: leurs contraintes sont réunies, les allergies strictes en tête. Juste en dessous, Attablés liste ce que ces convives ont déjà mangé et signale ce qui leur a été servi récemment.</p>
+            </div>
+          </li>
+          <li class="etape">
+            <div class="capture-cadre">
+              <img class="capture" src="/captures/memoire.png" width="393" height="852" loading="lazy" draggable="false"
+                alt="Fiche du convive Paul : allergie stricte aux crustacés, puis « Plats déjà mangés » (8 plats), dont le houmous de betterave, la salade niçoise et les lasagnes aux légumes grillés, notés « Coup de cœur », servis le 18/10/2026 chez moi.">
+            </div>
+            <div class="etape-texte">
+              <h3>La mémoire des plats</h3>
+              <p>Une fois le repas passé, l’invitation devient «&nbsp;réalisée&nbsp;» et rejoint la mémoire, avec votre avis&nbsp;: Coup de cœur, Bien ou À éviter. Chaque fiche de convive garde ses plats déjà mangés. Après six mois (c’est réglable), un plat n’est plus «&nbsp;récent&nbsp;»&nbsp;: il peut revenir. Même le gratin.</p>
+            </div>
+          </li>
+        </ol>
+        <div class="carrousel-nav" data-carrousel-nav hidden>
+          <button class="carrousel-fleche" type="button" data-carrousel-prec aria-label="Étape précédente">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="carrousel-points" role="group" aria-label="Choisir une étape">
+            <button class="carrousel-point" type="button" data-carrousel-point="0" aria-label="Étape 1&nbsp;: vos convives"></button>
+            <button class="carrousel-point" type="button" data-carrousel-point="1" aria-label="Étape 2&nbsp;: l’invitation"></button>
+            <button class="carrousel-point" type="button" data-carrousel-point="2" aria-label="Étape 3&nbsp;: la mémoire des plats"></button>
+          </div>
+          <button class="carrousel-fleche" type="button" data-carrousel-lecture aria-label="Mettre en pause la rotation">
+            <svg class="icone-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6v12M15 6v12"/></svg>
+            <svg class="icone-lecture" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+          </button>
+          <button class="carrousel-fleche" type="button" data-carrousel-suiv aria-label="Étape suivante">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <p class="lecteur-seul" aria-live="polite" data-carrousel-annonce></p>
+        <div class="cerise" data-cerise>
+          <svg class="cerise-gateau" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <path class="cerise-assiette" d="M5 38.5h38M10 41.5h28"/>
+            <rect class="cerise-genoise" x="9" y="18" width="30" height="20" rx="3"/>
+            <path class="cerise-creme" d="M9 28.2c2.5-1.6 5-1.6 7.5 0s5 1.6 7.5 0 5-1.6 7.5 0 5 1.6 7.5 0v2.6c-2.5 1.6-5 1.6-7.5 0s-5-1.6-7.5 0-5 1.6-7.5 0-5-1.6-7.5 0z"/>
+            <path class="cerise-nappage" d="M9 22v-3a4 4 0 0 1 4-4h22a4 4 0 0 1 4 4v3c-1 2.6-2.4 2.6-3.2 0-.9 3.6-2.9 3.6-3.6 0-.9 2.4-2.6 2.4-3.4 0-.9 4-3 4-3.8 0-.9 2.6-2.6 2.6-3.4 0-.9 3.4-2.9 3.4-3.6 0-.9 2.2-2.4 2.2-3 0z"/>
+            <g class="cerise-fruit">
+              <path class="cerise-queue" d="M24 9.5c.4-3.6 2.2-6 5.2-7.4"/>
+              <path class="cerise-feuille" d="M27.4 3.4c1.6-1.9 4.3-2.2 6.1-.9-1.6 1.8-4.2 2.1-6.1.9z"/>
+              <circle class="cerise-baie" cx="23.5" cy="10.5" r="4.6"/>
+              <path class="cerise-reflet" d="M21.4 9.2a2.2 2.2 0 0 1 1.6-1.4"/>
+            </g>
+          </svg>
+          <p class="en-prime"><strong>Cerise sur le gâteau&nbsp;:</strong> Attablés prépare un résumé de la tablée (contraintes, plats déjà servis, coups de cœur) à coller dans l’outil d’IA de votre choix pour trouver des idées de menu. Sans prénom ni nom d’hôte&nbsp;; relisez vos notes libres avant de coller.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="vichy ourlet" aria-hidden="true"></div>
+
+    <section class="section chez-vous" aria-labelledby="titre-chez-vous">
+      <div class="chez-vous-entete">
+        <h2 id="titre-chez-vous">Vos invités restent chez vous</h2>
+        <svg class="deco deco-carton" viewBox="0 0 200 110" aria-hidden="true" focusable="false">
+          <path class="deco-carton-dos" d="M30 38 L100 14 L170 38 Z"/>
+          <path class="deco-carton-face" d="M30 38 H170 L178 96 H22 Z"/>
+          <path class="deco-carton-pli" d="M30 38 H170"/>
+          <text class="deco-carton-nom" x="100" y="76" text-anchor="middle">Tante Odile</text>
+        </svg>
+      </div>
+      <!-- Sur mobile, une rangée qui défile de côté : accueil.ts la rend focalisable et ajoute les points. -->
+      <ul class="engagements" role="list" data-engagements>
+        <li>
+          <div class="engagement-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+              <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+              <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+              <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+              <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+              <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+          </div>
+          <h3>Hors ligne</h3>
+          <p>Tout reste sur votre téléphone. L’appli ne demande même pas l’accès à Internet.</p>
+        </li>
+        <li>
+          <div class="engagement-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+            </svg>
+          </div>
+          <h3>Sans compte</h3>
+          <p>Pas d’inscription, pas de mot de passe&nbsp;: vous l’ouvrez, vous l’utilisez.</p>
+        </li>
+        <li>
+          <div class="engagement-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+            </svg>
+          </div>
+          <h3>Sans publicité ni mesure d’audience</h3>
+          <p>Ni dans l’appli, ni sur ce site.</p>
+        </li>
+        <li>
+          <div class="engagement-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="M9 12l2 2 4-4"></path>
+            </svg>
+          </div>
+          <h3>Export IA anonymisé par défaut</h3>
+          <p>Les prénoms et le nom d’hôte n’y figurent pas&nbsp;; vos notes libres sont reprises telles quelles&nbsp;: relisez-les avant de coller.</p>
+        </li>
+        <li>
+          <div class="engagement-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </div>
+          <h3>Votre sauvegarde, votre fichier</h3>
+          <p>Exportez vos données dans un fichier .json et restaurez-les quand vous voulez.</p>
+        </li>
+        <li>
+          <div class="engagement-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </div>
+          <h3>Logiciel libre</h3>
+          <p>Sous licence GPL-3.0&nbsp;: le code est ouvert à tous sur <a href="https://github.com/Tux69140/attables">GitHub</a>.</p>
+        </li>
+      </ul>
+    </section>
+
+    <div class="vichy ourlet" aria-hidden="true"></div>
+
+    <section class="section" id="telecharger" aria-labelledby="titre-telecharger">
+      <h2 id="titre-telecharger">Télécharger</h2>
+      <div class="telechargement">
+        <div class="carte apk">
+          <p class="apk-version">Attablés %APK_VERSION%</p>
+          <div class="apk-principal">
+            <a class="bouton bouton-principal" href="/telechargement/%APK_FICHIER%" download><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Télécharger l’APK</a>
+            <div class="apk-infos">
+              <p class="apk-fichier">%APK_FICHIER% · %APK_TAILLE%</p>
+              <p class="apk-condition">Pour Android&nbsp;7 ou plus récent, sur un téléphone 64&nbsp;bits.</p>
+            </div>
+          </div>
+          <div class="apk-32">
+            <p>Téléphone ancien ou d’entrée de gamme&nbsp;? Si l’application ne s’installe pas ou ne s’ouvre pas, prenez la version 32&nbsp;bits.</p>
+            <p><a href="/telechargement/%APK32_FICHIER%" download aria-describedby="apk-32-taille">Télécharger la version 32&nbsp;bits</a> <span id="apk-32-taille" class="apk-32-taille">Fichier APK · %APK32_TAILLE%</span></p>
+          </div>
+          <details class="depliant">
+            <summary>Vérifier les fichiers (SHA-256)</summary>
+            <dl class="empreintes">
+              <dt>SHA-256 du fichier (64&nbsp;bits)</dt>
+              <dd><code>%APK_SHA256%</code></dd>
+              <dt>SHA-256 de la version 32&nbsp;bits</dt>
+              <dd><code>%APK32_SHA256%</code></dd>
+              <dt>SHA-256 du certificat de signature</dt>
+              <dd><code>%CERT_SHA256%</code></dd>
+            </dl>
+          </details>
+          <details class="depliant aide-installation">
+            <summary>Installer un APK</summary>
+            <ol>
+              <li>Touchez «&nbsp;Télécharger l’APK&nbsp;»&nbsp;: votre navigateur enregistre le fichier.</li>
+              <li>Ouvrez-le depuis la notification ou le dossier Téléchargements.</li>
+              <li>Si Android le demande, autorisez votre navigateur à installer des applis, puis revenez en arrière.</li>
+              <li>Touchez «&nbsp;Installer&nbsp;».</li>
+              <li>Une fois Attablés installé, retirez cette autorisation au navigateur dans les paramètres d’Android (le chemin varie selon les téléphones, souvent Applications → Accès spéciaux → Installer des applis inconnues).</li>
+            </ol>
+          </details>
+          <div class="apk-pied">
+            <p class="bientot">Bientôt sur le Play Store et F-Droid.</p>
+            <p><a href="/notes-de-version.html">Notes de version</a>&nbsp;: les nouveautés de chaque version.</p>
+          </div>
+        </div>
+        <aside class="carte premiers-pas" aria-labelledby="titre-premiers-pas">
+          <h3 id="titre-premiers-pas">Premiers pas</h3>
+          <p>Au premier lancement, Attablés s’ouvre sur une tablée d’exemple&nbsp;: la famille Martin, Paul &amp; Julie et quelques repas, pour voir à quoi tout ressemble.</p>
+          <p>Quand vous voulez commencer pour de vrai, touchez «&nbsp;Effacer les exemples&nbsp;» dans le bandeau en haut des onglets Invitations et Convives. Ce que vous avez créé vous-même est gardé.</p>
+          <p>Le bouton se trouve aussi dans Réglages → Sauvegarde &amp; Données.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied" data-pied-de-site><div class="pied-bas"><div class="pied-bas-inner"><a href="/mentions-legales.html">Mentions légales</a><a href="/confidentialite.html">Confidentialité</a><a href="/conditions-utilisation.html">Conditions d’utilisation</a></div></div></footer>
+  <script type="module" src="/src/accueil.ts"></script>
+</body>
+</html>

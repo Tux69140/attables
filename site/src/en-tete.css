@@ -1,0 +1,73 @@
+/*
+ * Copyright (C) 2026 Stéphane MICHEL
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+/* En-tête du site */
+/* Collant : s'efface en descendant, revient dès qu'on remonte (en-tete.ts). Le bandeau vichy reste dans le flux
+   et défile avec la page. En haut de page, l'en-tête est transparent ; une fois la page défilée (.est-defile),
+   un fond givré apparaît, dont le bas se fond dans la page au lieu de tracer une frontière. */
+.entete {
+  --fondu-entete: 24px;
+  position: sticky; top: 0; z-index: 10;
+  padding: 14px max(16px, calc((100% - 1120px) / 2));
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 16px;
+  transition: transform 260ms ease;
+}
+/* Le givre déborde sous l'en-tête et s'y estompe : le contenu de l'en-tête reste sur un fond plein. */
+.entete::before {
+  content: ""; position: absolute; inset: 0 0 calc(-1 * var(--fondu-entete)); z-index: -1;
+  pointer-events: none;
+  background: rgba(247, 246, 241, 0.94);
+  --fondu-masque: linear-gradient(to bottom, #000 calc(100% - 36px), rgba(0, 0, 0, 0.72) calc(100% - 26px),
+    rgba(0, 0, 0, 0.38) calc(100% - 16px), rgba(0, 0, 0, 0.12) calc(100% - 7px), transparent);
+  -webkit-mask-image: var(--fondu-masque);
+  mask-image: var(--fondu-masque);
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+@supports (backdrop-filter: blur(1px)) {
+  .entete::before { background: rgba(247, 246, 241, 0.6); backdrop-filter: blur(16px) saturate(1.25); }
+}
+.entete.est-defile::before { opacity: 1; }
+.entete.est-efface:not(:focus-within) { transform: translateY(calc(-100% - var(--fondu-entete))); }
+
+.entete .marque {
+  font: 400 1.5rem "Baumans", system-ui, sans-serif; color: var(--ink); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px;
+}
+.marque-icone {
+  width: 36px; height: 36px; flex: none; border-radius: 22%;
+  box-shadow: 0 1px 2px rgba(26, 38, 60, 0.14), 0 3px 8px rgba(26, 38, 60, 0.10);
+  transition: transform 220ms ease;
+}
+.marque:hover .marque-icone { transform: rotate(-6deg) scale(1.04); }
+
+.nav-principale ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0 20px; }
+.nav-principale a {
+  display: inline-flex; align-items: center; min-height: 44px;
+  color: var(--ink); font-weight: 600; text-decoration: none;
+}
+.nav-principale a:hover { color: var(--primary); text-decoration: underline; }
+/* Le lien est un conteneur flex : sans « pre », l'espace en tête de la partie longue disparaît. */
+.nav-long { white-space: pre; }
+
+/* Mobile : une seule ligne, nom à gauche, navigation à droite. */
+@media (max-width: 600px) {
+  .entete { padding-block: 8px; gap: 0 12px; }
+  .entete .marque { font-size: 1.375rem; gap: 8px; }
+  .marque-icone { width: 32px; height: 32px; }
+  .nav-principale ul { gap: 0 16px; }
+  .nav-principale a { font-size: 1rem; }
+}
+/* « Comment ça marche » devient « Comment » à l'écran ; le nom accessible reste entier. */
+@media (max-width: 479px) {
+  .nav-long {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entete, .entete::before, .marque-icone { transition: none; }
+  .marque:hover .marque-icone { transform: none; }
+}

@@ -1,0 +1,4 @@
+Version 0.2.1 :
+• Les icônes des barres Android restent lisibles quel que soit le thème choisi, même quand le téléphone est en mode sombre et Attablés en clair.
+• La nappe vichy se prolonge sous les boutons Android du bas.
+• Téléchargement plus léger : polices limitées aux caractères latins, et un APK par type de téléphone (64 bits par défaut, 32 bits de secours).

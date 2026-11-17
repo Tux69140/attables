@@ -1,0 +1,20 @@
+/*
+ * Copyright (C) 2026 Stéphane MICHEL
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+:root { color-scheme:light; --bg:#F7F6F1; --ink:#1A263C; --muted:#4D586C; --line:#D3D1CA; --surface:#FEFDFB; --green:#007232; }
+* { box-sizing:border-box; }
+/* Le pied de site prend toute la largeur : seuls l'en-tête et le texte gardent la colonne de lecture. */
+body { display:flex; flex-direction:column; min-height:100dvh; margin:0; background:var(--bg); color:var(--ink); font:18px/1.6 system-ui,sans-serif; }
+body > header, body > main { width:min(800px, 100% - 40px); margin-inline:auto; }
+body > header { margin-top:32px; }
+body > main { flex:1 0 auto; margin-bottom:72px; }
+header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 18px; margin-bottom:56px; border-bottom:1px solid var(--line); padding-bottom:20px; }
+header a { display:inline-flex; align-items:center; min-height:44px; color:var(--green); font-weight:700; text-decoration:none; }
+h1 { margin:0 0 22px; font:400 clamp(2.25rem,6vw,4rem)/1.05 Baumans,system-ui,sans-serif; }
+h2 { margin:42px 0 12px; font:650 1.25rem/1.2 system-ui,sans-serif; }
+p, li { color:var(--muted); }
+strong { color:var(--ink); }
+a { color:var(--green); }
+.mise-a-jour { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+.notice { padding:16px 18px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }

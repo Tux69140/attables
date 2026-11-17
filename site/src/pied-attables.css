@@ -1,0 +1,11 @@
+/*
+ * Copyright (C) 2026 Stéphane MICHEL
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+/* Le pied de site aux couleurs d'Attablés : marine, comme « Nuit marine » de l'appli, dans les deux thèmes. */
+.pied {
+  --pied-fond: #162131; --pied-bas: #0D1624; --pied-texte: #F4F2EA; --pied-doux: #B4BFCE; --pied-accent: #6EC083;
+  --pied-titre: Baumans, system-ui, sans-serif; --pied-corps: "Source Sans 3", system-ui, sans-serif;
+  --pied-largeur: min(1120px, 100% - 32px);
+}
+.pied-icone { width: 30px; height: 30px; flex: none; border-radius: 22%; box-shadow: 0 0 0 1px rgba(244, 242, 234, 0.14); }

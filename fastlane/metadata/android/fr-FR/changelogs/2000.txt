@@ -1,0 +1,6 @@
+Version 0.2.0 :
+• Une démo en ligne est disponible sur attables.biovibralyon.fr.
+• Un liseré « nappe vichy » orne le haut de l'écran, sous la barre d'état.
+• Un bandeau signale les données d'exemple : « Effacer les exemples » (annulable) ou « Masquer ce bandeau ». Aussi dans Réglages, Sauvegarde et données.
+• « Notes de version » est accessible depuis « À propos ».
+• Correction : le contenu ne passe plus sous l'heure et la batterie quand l'en-tête se masque au défilement.

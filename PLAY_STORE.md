@@ -15,6 +15,8 @@ Ce document rassemble les paramètres techniques, les déclarations obligatoires
 
 > **Compte développeur pro :** Les informations légales vérifiées de votre entreprise (BioVibraLyon / D-U-N-S / adresse professionnelle) sont gérées et affichées directement par votre profil Organisation dans Google Play Console ; il n’est pas nécessaire de les dupliquer dans le code source de cette application libre et gratuite.
 >
+> **Un paquet par architecture :** l'`.aab` fabriqué par `scripts/fabriquer-apk.sh --aab` est universel (arm64 et armv7) ; Google Play le découpe lui-même et envoie à chaque appareil le seul paquet de son architecture. Rien d'autre à faire : les deux APK 64/32 bits du site ne servent pas au Play Store.
+>
 > **Format `.aab` :** Google Play exige le format `.aab` (et non `.apk`) pour la mise en ligne. Reportez-vous à [`BUILD_ANDROID_DEBIAN.md`](./BUILD_ANDROID_DEBIAN.md) (section 4C) pour compiler le `.aab` signé et générer toutes les icônes Android à partir de `store-assets/icon-512x512.png`.
 
 ---
@@ -52,11 +54,11 @@ MÉMOIRE ANTI-DOUBLON & APPRÉCIATIONS
 
 EXPORT IA ANONYMISÉ EN OPTION
 • Besoin d’inspiration ? Générez d’un clic un résumé structuré à coller dans l’assistant IA de votre choix.
-• Anonymisé par défaut : aucun prénom ni nom d’hôte n’est inclus, uniquement le nombre de convives, les contraintes et l’historique des plats.
+• Anonymisé par défaut : les prénoms et le nom d’hôte n’y figurent pas ; vos notes libres sont reprises telles quelles : relisez-les avant de coller.
 
 100 % SUR VOTRE APPAREIL
 • Fonctionne entièrement hors ligne, sans publicité ni traceur.
-• Vos données ne quittent jamais votre téléphone.
+• Vos données restent sur votre téléphone : l’appli n’envoie rien d’elle-même.
 • Export et restauration locale via fichier .json.
 • Logiciel libre sous licence GNU GPL v3.0 (code source sur GitHub).
 ```
@@ -86,11 +88,7 @@ Il reste uniquement à prendre **2 à 4 captures d’écran téléphone** (forma
 
 Google Play exige une **URL publique** pointant vers votre politique de confidentialité, même pour une application 100 % hors ligne.
 
-Le fichier prêt à héberger se trouve ici : [`public/privacy.html`](./public/privacy.html) (et sa version Markdown dans [`PRIVACY_POLICY.md`](./PRIVACY_POLICY.md)).
-
-Deux options simples pour obtenir une URL publique :
-1. **GitHub Pages** : activez *Settings → Pages* sur le dépôt `Tux69140/attables` (ou publiez `privacy.html` dans `docs/`), ou servez-la sur `https://attables.biovibralyon.fr/privacy.html`.
-2. **Lien brut ou domaine personnel** : hébergez `public/privacy.html` sur votre domaine `biovibralyon.fr` (par ex. `https://attables.biovibralyon.fr/privacy.html`).
+URL à déclarer : **<https://attables.biovibralyon.fr/confidentialite.html>**, publiée avec le site de présentation (`scripts/deployer-site.sh`, page générée par `~/Documents/Textes-legaux`). Sa version Markdown est [`PRIVACY_POLICY.md`](./PRIVACY_POLICY.md) ; [`public/privacy.html`](./public/privacy.html) en est un résumé embarqué dans l’appli.
 
 ---
 
@@ -120,7 +118,7 @@ Dans **Contenu de l’application → Sécurité des données** :
 
 ### Ce qui reste à faire manuellement côté Play Console
 1. **Vérifier le profil Organisation (compte pro) :** vérifiez que la validation D-U-N-S et vos coordonnées professionnelles BioVibraLyon sont bien validées dans Google Play Console *(un compte Organisation vérifié n’est pas soumis à l’obligation des 12 testeurs pendant 14 jours avant la mise en production)*.
-2. **Héberger la politique de confidentialité :** publiez `public/privacy.html` en HTTPS (sur `biovibralyon.fr` ou via GitHub Pages) et collez cette URL dans *Contenu de l’application → Règles de confidentialité*.
+2. **Politique de confidentialité :** vérifiez que <https://attables.biovibralyon.fr/confidentialite.html> est en ligne et collez cette URL dans *Contenu de l’application → Règles de confidentialité*.
 3. **Compiler le `.aab` signé et sauvegarder le keystore :** suivez [`BUILD_ANDROID_DEBIAN.md`](./BUILD_ANDROID_DEBIAN.md), fabriquez-le avec `scripts/fabriquer-apk.sh --aab`, conservez `~/.android-keys/attables-release.jks` et son mot de passe dans KeePassXC (**jamais dans le dépôt**), puis activez **Play App Signing** (*Signature d’application par Google Play*) lors du premier envoi du `.aab`.
 4. **Ajouter 2 à 4 captures d’écran téléphone** (et éventuellement activer la langue **English (United States)** avec les textes prêts dans `fastlane/metadata/android/en-US/`).
 5. **Valider tous les questionnaires** (*Sécurité des données*, *Publicités*, *Accès*, *IARC*, *Public cible*, *Santé = Non*) puis soumettre en **Production** (ou en *Test interne* rapide sur votre appareil au préalable).

@@ -1,0 +1,277 @@
+/*
+ * Copyright (C) 2026 Stéphane MICHEL
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+/* Comment ça marche : sans JavaScript, les trois étapes en liste ; avec, un carrousel (carrousel.ts). */
+#comment h2 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); margin: 0 0 28px; }
+.etapes { list-style: none; counter-reset: etape; margin: 0; padding: 0; display: grid; gap: 48px; }
+.etape { counter-increment: etape; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+/* Même cadre que le téléphone de l'accroche, en plus petit. La largeur est portée par le cadre, pas par l'image. */
+.capture-cadre {
+  width: min(250px, 72vw);
+  padding: 7px;
+  border-radius: 34px;
+  background: #111;
+  box-shadow:
+    inset 0 0 0 1px #4a4a4a,
+    inset 0 0 0 2px #0a0a0a,
+    0 0 0 1px #0a0a0a,
+    0 2px 4px rgba(26, 38, 60, 0.16),
+    0 24px 48px -22px rgba(26, 38, 60, 0.5);
+}
+.capture { display: block; width: 100%; height: auto; border-radius: 27px; background: var(--bg); }
+.etape-texte { max-width: 36ch; }
+.etape h3 { font-size: 1.5rem; margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; }
+.etape h3::before {
+  content: counter(etape);
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--card); border: 2px solid var(--vichy-accent); color: var(--vichy-accent);
+  font-size: 1.25rem; transform: translateY(-2px);
+}
+.etape p { margin: 0; }
+@media (min-width: 900px) {
+  .etapes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+  .capture-cadre { width: min(250px, 100%); }
+}
+
+/* ---------- Carrousel ---------- */
+/* Taille des téléphones (--largeur-cadre, --ecart-cadre) : voir les blocs « Une colonne » et « Ordinateur ». */
+.carrousel.est-actif {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "titre" "scene" "nav" "etapes" "prime";
+  overflow-x: clip;
+}
+.carrousel.est-actif > h2 { grid-area: titre; margin-bottom: 6px; }
+.carrousel.est-actif .etapes { grid-area: etapes; }
+.carrousel.est-actif .carrousel-nav { grid-area: nav; }
+.carrousel.est-actif .cerise { grid-area: prime; }
+
+/* Scène : les trois téléphones dans la même case, l'actif devant, les deux autres en retrait de part et d'autre. */
+.carrousel-scene {
+  grid-area: scene;
+  display: grid; justify-items: center; align-items: center;
+  touch-action: pan-y; user-select: none; -webkit-user-select: none;
+}
+.carrousel-scene .capture-cadre {
+  grid-area: 1 / 1;
+  width: var(--largeur-cadre);
+  border-radius: calc(var(--largeur-cadre) * 0.13);
+  transition: transform 0.7s cubic-bezier(0.22, 0.8, 0.24, 1), opacity 0.5s ease;
+}
+.carrousel-scene .capture { border-radius: calc(var(--largeur-cadre) * 0.13 - 7px); }
+.carrousel-scene .capture-cadre[data-pos="0"] { z-index: 2; }
+.carrousel-scene .capture-cadre:not([data-pos="0"]) { z-index: 1; opacity: 0.42; cursor: pointer; }
+.carrousel-scene .capture-cadre[data-traverse] { z-index: 0; }
+.carrousel-scene .capture-cadre[data-pos="-1"] { transform: translateX(calc(-1 * var(--ecart-cadre))) scale(0.8); }
+.carrousel-scene .capture-cadre[data-pos="1"] { transform: translateX(var(--ecart-cadre)) scale(0.8); }
+.carrousel-scene .capture-cadre:not([data-pos="0"]):hover { opacity: 0.7; }
+
+/* Étapes, sur mobile : l'active seule, les trois dans la même case pour réserver la hauteur de la plus longue. */
+.carrousel.est-actif .etapes { display: grid; gap: 0; grid-template-columns: minmax(0, 1fr); }
+.carrousel.est-actif .etape {
+  grid-area: 1 / 1; display: block; position: relative;
+  transition: opacity 0.4s ease, visibility 0s linear 0s;
+}
+.carrousel.est-actif .etape:not(.est-active) { opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0s linear 0.2s; }
+.carrousel.est-actif .etape-texte { max-width: 46ch; margin-inline: auto; }
+.carrousel.est-actif .etape h3 { display: block; font-size: 1.25rem; margin: 0; }
+.carrousel.est-actif .etape h3::before { content: none; }
+.etape-bouton {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; min-height: 44px; padding: 0;
+  background: none; border: 0; border-radius: 12px;
+  font: inherit; line-height: 1.15; color: inherit; text-align: left;
+}
+.etape-bouton::before {
+  content: counter(etape);
+  flex: none; display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid var(--vichy-accent);
+  background: var(--card); color: var(--vichy-accent);
+  font-size: 1.125rem; line-height: 1;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.est-active .etape-bouton::before { background: var(--vichy-accent); color: var(--card); }
+.carrousel.est-actif .etape p { margin-top: 4px; font-size: 1rem; line-height: 1.45; }
+.etape-progression { display: none; }
+
+/* Commandes : précédent, points, lecture ou pause, suivant. */
+.carrousel-nav { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 6px 0; }
+.carrousel-points { display: flex; }
+.carrousel-point {
+  display: grid; place-items: center;
+  width: 40px; height: 44px; padding: 0;
+  background: none; border: 0; border-radius: 22px; cursor: pointer;
+}
+.carrousel-point::before,
+.carrousel-point::after {
+  content: "";
+  grid-area: 1 / 1;
+  width: 10px; height: 10px; border-radius: 5px;
+  background: var(--border);
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+.carrousel-point::after { content: none; }
+.carrousel-point:hover::before { background: var(--outline); }
+.carrousel-point[aria-current="step"]::before { width: 30px; background: rgba(179, 54, 42, 0.28); }
+/* Le point actif se remplit au fil de l'étape. */
+.carrousel-point[aria-current="step"]::after {
+  content: "";
+  width: 30px; background: var(--vichy-accent);
+  transform-origin: 0 50%; transform: scaleX(var(--progression, 0));
+  transition: none;
+}
+.est-en-pause .carrousel-point[aria-current="step"]::after { transform: none; }
+.carrousel-fleche {
+  display: grid; place-items: center;
+  width: 44px; height: 44px; padding: 0;
+  border-radius: 50%; border: 2px solid var(--border);
+  background: var(--card); color: var(--ink); cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+.carrousel-fleche svg { grid-area: 1 / 1; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.carrousel-fleche:hover { border-color: var(--ink); background: var(--surface-elevated); transform: scale(1.06); }
+.carrousel-fleche .icone-lecture { stroke-width: 2; translate: 1px 0; }
+.carrousel-fleche .icone-lecture,
+.est-en-pause .carrousel-fleche .icone-pause { display: none; }
+.est-en-pause .carrousel-fleche .icone-lecture { display: block; }
+
+#comment .carrousel.est-actif .cerise { margin: 8px 0 0; max-width: none; }
+#comment .carrousel.est-actif .en-prime { --pad-droite: 16px; font-size: 0.9375rem; line-height: 1.5; padding: 12px 16px; }
+.en-prime-suite { display: none; }
+/* Écrans bas : « Cerise sur le gâteau » replié sur une ligne, à déplier. Le gâteau, plus petit, entre à peine dans la carte. */
+@media (max-width: 899px) and (max-height: 900px), (min-width: 900px) and (max-height: 620px) {
+  #comment .carrousel.est-actif .en-prime:not(.est-deplie) {
+    position: relative; min-height: 46px; padding: 10px 124px 10px 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .en-prime-suite {
+    display: flex; align-items: center; min-height: 44px; margin: 0 -8px -8px auto; padding: 0 12px;
+    border: 0; border-radius: 10px; background: none; cursor: pointer;
+    font: inherit; font-weight: 700; color: var(--primary); text-decoration: underline; text-underline-offset: 3px;
+  }
+  #comment .carrousel.est-actif .cerise { --cerise-taille: 42px; --cerise-droite: 28px; --cerise-hauteur: 0.6; }
+  #comment .carrousel.est-actif .en-prime:not(.est-deplie)::before { display: none; }
+  .en-prime:not(.est-deplie) .en-prime-suite { position: absolute; top: 0; right: 0; bottom: 0; margin: 0; padding-right: 16px; }
+  #comment .en-prime-suite:focus-visible { outline-offset: -4px; }
+}
+
+/* Une colonne (mobile, tablette en portrait) : seul le haut des téléphones sort de la page, en fondu.
+   Les téléphones en retrait gardent la même découpe, réduite, et débordent jusqu'aux bords de l'écran. */
+@media (max-width: 899px) {
+  .carrousel.est-actif {
+    --largeur-cadre: clamp(200px, 56vw, 280px);
+    --hauteur-ecran: calc((var(--largeur-cadre) - 14px) * 2.168);
+    --hauteur-visible: clamp(220px, calc(100svh - 486px), calc(var(--hauteur-ecran) * 0.65 + 7px));
+    /* Le bord extérieur des téléphones en retrait (réduits à 80 %) dépasse de 12 px du bord de l'écran. */
+    --ecart-cadre: calc(50vw + 12px - var(--largeur-cadre) * 0.4);
+    overflow-x: visible;
+  }
+  .carrousel-scene { margin-inline: -16px; overflow-x: clip; }
+  .carrousel-scene .capture-cadre {
+    height: var(--hauteur-visible); overflow: hidden;
+    border-radius: calc(var(--largeur-cadre) * 0.13) calc(var(--largeur-cadre) * 0.13) 0 0;
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 120px), transparent calc(100% - 22px));
+    mask-image: linear-gradient(#000 calc(100% - 120px), transparent calc(100% - 22px));
+  }
+  .carrousel-scene .capture { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .carrousel-nav { position: relative; z-index: 3; margin-top: -26px; }
+}
+
+/* Tablette en portrait : tout centré, le texte plus large. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .carrousel.est-actif {
+    --hauteur-visible: clamp(260px, calc(100svh - 570px), calc(var(--hauteur-ecran) * 0.8 + 7px));
+    --ecart-cadre: 85%;
+  }
+  .carrousel.est-actif > h2 { text-align: center; }
+  .carrousel.est-actif .etape-texte { max-width: 32rem; }
+  #comment .carrousel.est-actif .cerise { width: 100%; max-width: 32rem; margin: 16px auto 0; }
+}
+
+/* ---------- Ordinateur : les étapes à gauche, la scène à droite ---------- */
+@media (min-width: 900px) {
+  .carrousel.est-actif {
+    --largeur-cadre: clamp(170px, calc((100svh - var(--hauteur-entete, 72px) - 2 * max(40px, 6svh) - 16px) * 0.4613 + 7.5px), 310px);
+    --ecart-cadre: 40%;
+    --marge-corps: 26px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 1fr auto auto auto auto 1fr;
+    grid-template-areas: ". scene" "titre scene" "etapes scene" "nav scene" "prime scene" ". scene";
+    column-gap: clamp(32px, 5vw, 72px);
+  }
+  .carrousel-scene { width: calc(var(--largeur-cadre) * 1.62); }
+
+  .carrousel.est-actif .etapes { gap: 6px; padding-bottom: var(--reserve, 0px); transition: padding-bottom 0.45s cubic-bezier(0.22, 0.8, 0.24, 1); }
+  .carrousel.est-actif .etape {
+    grid-area: auto;
+    border: 1px solid transparent; border-radius: 16px;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .carrousel.est-actif .etape:not(.est-active) { opacity: 1; visibility: visible; transition: background-color 0.3s ease, border-color 0.3s ease; }
+  .carrousel.est-actif .etape:not(.est-active):hover { background: rgba(254, 253, 251, 0.6); border-color: var(--border); }
+  .carrousel.est-actif .etape.est-active {
+    background: var(--card); border-color: var(--border);
+    box-shadow: 0 14px 30px -18px rgba(26, 38, 60, 0.35);
+  }
+  .carrousel.est-actif .etape-texte {
+    max-width: none; margin: 0; overflow: hidden;
+    display: grid; grid-template-rows: auto 0px;
+    transition: grid-template-rows 0.45s cubic-bezier(0.22, 0.8, 0.24, 1);
+  }
+  .carrousel.est-actif .est-active .etape-texte { grid-template-rows: auto calc(var(--hauteur-corps, 0px) + var(--marge-corps)); }
+  .carrousel.est-actif > h2 { margin-bottom: 16px; }
+  #comment .carrousel.est-actif .cerise { margin-top: 16px; }
+  .carrousel.est-actif .etape h3 { font-size: 1.375rem; }
+  .etape-bouton { min-height: 54px; padding: 8px 16px; cursor: pointer; color: var(--ink-muted); transition: color 0.2s ease; }
+  .etape:not(.est-active) .etape-bouton:hover,
+  .est-active .etape-bouton { color: var(--ink); }
+  .est-active .etape-bouton { cursor: default; }
+  #comment .etape-bouton:focus-visible { outline-offset: -3px; border-radius: 15px; }
+  .carrousel.est-actif .etape p {
+    align-self: start; margin: 0; font-size: 1.0625rem; line-height: 1.55;
+    padding: 0 18px 0 62px;
+    transition: opacity 0.35s ease 0.1s, visibility 0s linear 0s;
+  }
+  .carrousel.est-actif .etape:not(.est-active) p { opacity: 0; visibility: hidden; transition: opacity 0.15s ease, visibility 0s linear 0.3s; }
+
+  .etape-progression {
+    display: block; position: absolute; left: 62px; right: 18px; bottom: 12px;
+    height: 3px; border-radius: 2px; background: var(--surface-active);
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  .etape-progression::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: var(--vichy-accent);
+    transform-origin: 0 50%; transform: scaleX(var(--progression, 0));
+  }
+  .est-active .etape-progression { opacity: 1; }
+
+  .carrousel-nav { justify-content: flex-start; margin: 14px 0 0; }
+  .carrousel-fleche { width: 48px; height: 48px; }
+  .carrousel-points { display: none; }
+}
+/* Écrans bas (portables) : tout se resserre pour que la section tienne dans la fenêtre. */
+@media (min-width: 900px) and (max-height: 760px) {
+  .carrousel.est-actif { --marge-corps: 22px; }
+  #comment .carrousel.est-actif > h2 { font-size: 2.375rem; margin-bottom: 10px; }
+  .carrousel.est-actif .etapes { gap: 4px; }
+  .etape-bouton { min-height: 46px; padding-block: 5px; }
+  .carrousel.est-actif .etape p { font-size: 1rem; line-height: 1.5; }
+  .etape-progression { bottom: 10px; }
+  .carrousel-nav { margin-top: 12px; }
+  .carrousel-fleche { width: 44px; height: 44px; }
+  #comment .carrousel.est-actif .cerise { margin-top: 14px; }
+  #comment .carrousel.est-actif .en-prime { --pad-droite: 14px; padding: 10px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carrousel-scene .capture-cadre { transition: opacity 0.15s linear; }
+  .carrousel.est-actif .etapes, .carrousel.est-actif .etape, .carrousel.est-actif .etape:not(.est-active),
+  .carrousel.est-actif .etape-texte, .carrousel.est-actif .etape p, .carrousel.est-actif .etape:not(.est-active) p,
+  .etape-bouton, .etape-bouton::before, .etape-progression,
+  .carrousel-point::before, .carrousel-fleche { transition: none; }
+  .carrousel-fleche:hover { transform: none; }
+}

@@ -1,0 +1,6 @@
+Version 0.2.0:
+• An online demo is now available at attables.biovibralyon.fr.
+• A gingham "tablecloth" strip decorates the top of the screen, below the status bar.
+• A banner flags the sample data: "Clear examples" (undoable) or "Hide this banner". Also in Settings, Backup & Data.
+• "Release notes" is reachable from "About".
+• Fix: content no longer slides under the clock and battery when the header hides on scroll.

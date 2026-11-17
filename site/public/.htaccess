@@ -1,0 +1,53 @@
+# Attablés — configuration de sécurité du site public (aucun PHP, aucun réseau tiers).
+
+# Une seule adresse officielle, toujours chiffrée.
+# Exception : /.well-known/ (renouvellement du certificat SSL, défis ACME HTTP-01) reste
+# joignable tel quel, y compris en HTTP simple.
+RewriteEngine On
+RewriteRule ^\.well-known/ - [L]
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} !^attables\.biovibralyon\.fr$ [NC]
+RewriteRule ^ https://attables.biovibralyon.fr%{REQUEST_URI} [R=301,L]
+
+# Fichiers hachés (site et démo) : cache long. Variable lue plus bas par « Header ... env=ASSET_HACHE ».
+RewriteRule ^(?:demo/)?assets/ - [E=ASSET_HACHE:1]
+
+# Ne pas afficher le contenu d'un dossier en l'absence de page d'accueil.
+Options -Indexes
+
+# Refuser les fichiers cachés (dont le nom commence par un point), de configuration, journaux,
+# sauvegardes, bases, scripts, clés, cartes de source et tout .php (le site n'en contient aucun).
+# FilesMatch ne teste que le nom du fichier : les jetons de .well-known/acme-challenge/ (sans point initial)
+# restent servis.
+<FilesMatch "(?i)^(?:\.|.*\.(?:env|ini|log|sql|sqlite|sqlite3|bak|backup|old|orig|dist|sh|pem|key|map|php))$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mime_module>
+    AddType application/vnd.android.package-archive .apk
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Le navigateur mémorise l'usage exclusif de HTTPS pendant un an.
+    Header always set Strict-Transport-Security "max-age=31536000"
+
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+
+    # Tout vient du site lui-même. frame-src 'self' : la page d'accueil intègre /demo/ (même origine).
+    Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; frame-src 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; upgrade-insecure-requests"
+
+    # Pages : toujours revalidées. Fichiers hachés : cache d'un an.
+    <FilesMatch "\.html$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+    Header set Cache-Control "max-age=31536000, immutable" env=ASSET_HACHE
+
+    # L'APK est téléchargé, jamais affiché, et jamais servi depuis un cache périmé.
+    <FilesMatch "\.apk$">
+        Header set Content-Disposition "attachment"
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>

@@ -1,0 +1,4 @@
+Version 0.2.1:
+• Icons in the Android system bars stay readable whatever theme is chosen, even when the phone is in dark mode and Attablés in light mode.
+• The gingham tablecloth now extends under the Android buttons at the bottom.
+• Lighter download: fonts limited to Latin characters, and one APK per phone type (64-bit by default, 32-bit as a fallback).

@@ -1,6 +1,7 @@
 node_modules/
 build/
 dist/
+dist-site/
 coverage/
 .DS_Store
 *.log
@@ -27,3 +28,6 @@ dist-android/
 
 # Schémas générés par Tauri
 src-tauri/gen/schemas/
+
+# Notes de travail de l'assistant
+.superpowers/

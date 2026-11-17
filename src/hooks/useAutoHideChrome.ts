@@ -27,10 +27,10 @@ export function useAutoHideChrome(resetKey?: string | number | boolean): boolean
         if (currentY <= 24) {
           setVisible(true);
           lastYRef.current = currentY;
-        } else if (delta > 10 && currentY > 56) {
+        } else if (delta > 14 && currentY > 56) {
           setVisible(false);
           lastYRef.current = currentY;
-        } else if (delta < -4) {
+        } else if (delta < -6) {
           setVisible(true);
           lastYRef.current = currentY;
         }

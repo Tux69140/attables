@@ -147,11 +147,11 @@ Fichier généré :
    scripts/fabriquer-apk.sh
    ```
 
-   Le script vérifie les versions (`package.json`, `tauri.conf.json`, `Cargo.toml`), ouvre la clé avec le mot de passe saisi et contrôle son empreinte **avant** de compiler, transmet le mot de passe à Gradle par l’environnement seulement (jamais dans un fichier, sans démon ni cache de configuration Gradle), compile pour arm64 + armv7, puis vérifie la signature de l’APK avec `apksigner`.
+   Le script vérifie les versions (`package.json`, `tauri.conf.json`, `Cargo.toml`), ouvre la clé avec le mot de passe saisi et contrôle son empreinte **avant** de compiler, transmet le mot de passe à Gradle par l’environnement seulement (jamais dans un fichier, sans démon ni cache de configuration Gradle), compile **deux APK, une architecture chacun** (arm64-v8a puis armeabi-v7a, vérifiées avec `unzip -Z1`), puis vérifie la signature de chacun avec `apksigner` (un seul mot de passe pour les deux).
 
-Fichier généré : `dist-android/attables-<version>.apk` (ignoré par Git).
+Fichiers générés (ignorés par Git) : `dist-android/attables-<version>.apk` (64 bits, celui du bouton du site) et `dist-android/attables-<version>-32bits.apk` (32 bits, de secours pour un téléphone ancien ou d’entrée de gamme). Avec une seule cible, Tauri écrit quand même sous `…/apk/universal/release/app-universal-release.apk`.
 
-*(Sans le script, `pnpm tauri android build --apk` produit un APK release **non signé** `app-universal-release-unsigned.apk` : c’est le comportement attendu par F-Droid, mais cet APK ne s’installe pas sur un téléphone.)*
+*(Sans le script, `pnpm tauri android build --apk` produit un APK release **non signé** `app-universal-release-unsigned.apk` (universel, deux architectures ; F-Droid construit une cible à la fois, voir [`F_DROID.md`](./F_DROID.md)) : c’est le comportement attendu par F-Droid, mais cet APK ne s’installe pas sur un téléphone.)*
 
 ### Option C — Bundle `.aab` signé (Google Play Store)
 
@@ -159,7 +159,7 @@ Fichier généré : `dist-android/attables-<version>.apk` (ignoré par Git).
 scripts/fabriquer-apk.sh --aab
 ```
 
-Fichier généré : `dist-android/attables-<version>.aab`.
+Fichier généré : `dist-android/attables-<version>.aab` (universel : Google Play le découpe par appareil).
 
 *(Voir [`PLAY_STORE.md`](./PLAY_STORE.md) pour la fiche et les déclarations Play Console.)*
 
@@ -170,7 +170,7 @@ Fichier généré : `dist-android/attables-<version>.aab`.
 ### Par câble USB (débogage USB activé)
 
 ```bash
-adb install -r dist-android/attables-0.1.1.apk
+adb install -r dist-android/attables-<version>.apk   # téléphone 32 bits seulement : …-32bits.apk
 ```
 
 ### Sans câble
@@ -179,7 +179,7 @@ Transférez le fichier `.apk` sur votre téléphone puis ouvrez-le depuis le ges
 
 ---
 
-## 7. Contrôle final, tag GitHub `v0.1.1` & vérification F-Droid
+## 7. Contrôle final, tag GitHub `v<version>` & vérification F-Droid
 
 Avant de publier sur GitHub et de soumettre sur `fdroiddata` :
 
@@ -191,14 +191,16 @@ git status
 
 Assurez-vous qu’il n’y a **aucun** fichier `.apk`, `.aab`, `.jks` ni `.keystore` dans les fichiers suivis.
 
-### 7.2 Commiter et poser le tag `v0.1.1`
+### 7.2 Commiter et poser le tag `v<version>`
+
+`<version>` est celle de `package.json` (identique dans `src-tauri/tauri.conf.json` et `src-tauri/Cargo.toml`) ; exemple ci-dessous avec `0.2.1`.
 
 ```bash
 pnpm lint
 pnpm build
 git add package.json pnpm-lock.yaml src-tauri/ fastlane/
-git commit -m "Prepare v0.1.1 Android & F-Droid release"
-git tag -a v0.1.1 -m "Version 0.1.1"
+git commit -m "Prepare v0.2.1 Android & F-Droid release"
+git tag -a v0.2.1 -m "Version 0.2.1"
 git push origin main --tags
 ```
 

@@ -364,7 +364,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       {/* Top App Bar */}
       <header
-        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe transition-transform duration-200 ease-out ${
+        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -1365,7 +1365,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
       {/* Bottom Action Bar */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] pb-safe transition-transform duration-200 ease-out ${
+        className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] pb-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
