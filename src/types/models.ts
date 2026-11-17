@@ -1,3 +1,5 @@
+import type { NomIcone } from '../icones/donnees';
+
 export type FoyerColorId =
   | 'corail'
   | 'tournesol'
@@ -63,6 +65,10 @@ export interface ContrainteTag {
   id: string;
   libelle: string;
   niveau: ContrainteNiveau;
+  /** Allergènes de référence (identifiants de ALLERGENES) que cette contrainte interdit. */
+  allergenes: string[];
+  /** Pictogramme choisi par l'utilisateur ; à défaut, déduit des allergènes liés. */
+  icone?: NomIcone;
 }
 
 export interface Convive {
@@ -119,11 +125,25 @@ export interface Invitation {
   menuVerdicts?: Partial<Record<CourseKey, DishVerdict>>;
 }
 
+/**
+ * Fiche d'un plat : idée jamais servie, ou services et allergènes d'un plat connu.
+ * Le nom fait le lien avec les menus des invitations (comparaison normalisée).
+ */
+export interface PlatFiche {
+  id: string;
+  libelle: string;
+  services: CourseKey[];
+  /** Identifiants d'allergènes de référence ou de contraintes personnelles. */
+  allergenes: string[];
+}
+
 export type ThemeMode = 'appareil' | 'clair' | 'sombre';
 
 export interface AppSettings {
   theme: ThemeMode;
   prescriptionMois: number;
+  /** Faux tant que la présentation du premier lancement n'a pas été parcourue. */
+  accueilVu: boolean;
 }
 
 export interface AppData {
@@ -132,6 +152,7 @@ export interface AppData {
   convives: Convive[];
   contraintes: ContrainteTag[];
   invitations: Invitation[];
+  plats: PlatFiche[];
   settings: AppSettings;
 }
 

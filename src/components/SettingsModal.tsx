@@ -128,6 +128,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       id: `tag-${Date.now()}`,
       libelle: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
       niveau: newTagNiveau,
+      allergenes: [],
     });
     setNewTagLabel('');
   };

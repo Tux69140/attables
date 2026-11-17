@@ -10,6 +10,7 @@ interface IdsExemples {
   foyers: ReadonlySet<string>;
   convives: ReadonlySet<string>;
   invitations: ReadonlySet<string>;
+  plats: ReadonlySet<string>;
 }
 
 let cacheIds: IdsExemples | undefined;
@@ -25,23 +26,25 @@ function idsExemples(): IdsExemples {
       foyers: new Set(ex.foyers.map((f) => f.id)),
       convives: new Set(ex.convives.map((c) => c.id)),
       invitations: new Set(ex.invitations.map((i) => i.id)),
+      plats: new Set(ex.plats.map((p) => p.id)),
     };
   }
   return cacheIds;
 }
 
-/** Vrai s'il reste au moins un foyer, convive ou invitation d'exemple (reconnu par son identifiant). */
+/** Vrai s'il reste au moins un foyer, convive, invitation ou fiche de plat d'exemple (reconnu par son identifiant). */
 export function resteDesExemples(data: AppData): boolean {
   const ids = idsExemples();
   return (
     data.foyers.some((f) => ids.foyers.has(f.id)) ||
     data.convives.some((c) => ids.convives.has(c.id)) ||
-    data.invitations.some((i) => ids.invitations.has(i.id))
+    data.invitations.some((i) => ids.invitations.has(i.id)) ||
+    data.plats.some((p) => ids.plats.has(p.id))
   );
 }
 
 /**
- * Retire les foyers, convives et invitations d'exemple, en conservant les
+ * Retire les foyers, convives, invitations et fiches de plat d'exemple, en conservant les
  * données de l'utilisateur et en nettoyant les références pendantes.
  * Ne modifie pas l'entrée.
  */
@@ -65,5 +68,6 @@ export function effacerExemples(data: AppData): AppData {
           ...(refExemple ? { hoteRefType: undefined, hoteRefId: undefined } : {}),
         };
       }),
+    plats: data.plats.filter((p) => !ids.plats.has(p.id)),
   };
 }

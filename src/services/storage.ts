@@ -1,10 +1,23 @@
-import { AppData, ContrainteTag, Convive, Foyer, Invitation } from '../types/models';
+import { ICONES, type NomIcone } from '../icones/donnees';
+import {
+  AppData,
+  COURSE_KEYS,
+  ContrainteNiveau,
+  ContrainteTag,
+  Convive,
+  CourseKey,
+  Foyer,
+  Invitation,
+  PlatFiche,
+} from '../types/models';
+import { LIAISONS_PAR_DEFAUT } from '../utils/allergenes';
+import { formatDishInput, normalizeForCompare } from '../utils/dishes';
 
 const STORAGE_KEY = 'attables_db_v1';
 export const CURRENT_DATA_VERSION = 1;
 
 export function getDefaultContraintes(): ContrainteTag[] {
-  return [
+  const tags: { id: string; libelle: string; niveau: ContrainteNiveau }[] = [
     { id: 'tag-arachides', libelle: 'Arachides', niveau: 'strict' },
     { id: 'tag-fruits-coque', libelle: 'Fruits à coque', niveau: 'strict' },
     { id: 'tag-crustaces', libelle: 'Crustacés', niveau: 'strict' },
@@ -15,6 +28,7 @@ export function getDefaultContraintes(): ContrainteTag[] {
     { id: 'tag-sans-porc', libelle: 'Sans porc', niveau: 'preference' },
     { id: 'tag-sans-alcool', libelle: 'Sans alcool', niveau: 'preference' },
   ];
+  return tags.map((t) => ({ ...t, allergenes: [...(LIAISONS_PAR_DEFAUT[t.id] ?? [])] }));
 }
 
 export function createSampleData(): AppData {
@@ -179,15 +193,24 @@ export function createSampleData(): AppData {
     },
   ];
 
+  // Deux idées jamais servies et la fiche d'un plat déjà servi (Mousse, inv-3).
+  const plats: PlatFiche[] = [
+    { id: 'plat-exemple-pot-au-feu', libelle: 'Pot-au-feu', services: ['plat'], allergenes: ['viande', 'celeri'] },
+    { id: 'plat-exemple-cervelle-canut', libelle: 'Cervelle de canut', services: ['apero'], allergenes: ['lait'] },
+    { id: 'plat-exemple-mousse', libelle: 'Mousse au chocolat noir', services: ['dessert'], allergenes: ['oeufs', 'lait'] },
+  ];
+
   return {
     version: CURRENT_DATA_VERSION,
     foyers,
     convives,
     contraintes: getDefaultContraintes(),
     invitations,
+    plats,
     settings: {
       theme: 'appareil',
       prescriptionMois: 6,
+      accueilVu: true,
     },
   };
 }
@@ -199,9 +222,11 @@ export function createEmptyData(keepSettings?: Partial<AppData['settings']>): Ap
     convives: [],
     contraintes: getDefaultContraintes(),
     invitations: [],
+    plats: [],
     settings: {
       theme: keepSettings?.theme ?? 'appareil',
       prescriptionMois: keepSettings?.prescriptionMois ?? 6,
+      accueilVu: keepSettings?.accueilVu ?? false,
     },
   };
 }
@@ -230,19 +255,20 @@ export function creerStockage(demo: boolean): {
       const exemple = createSampleData();
       return { ...exemple, settings: { ...exemple.settings, theme: 'clair' } };
     }
+    // Nouvelle installation, ou stockage illisible : carnet vide, présentation à afficher.
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) {
-        const sample = createSampleData();
-        enregistrer(sample);
-        return sample;
+        const vide = createEmptyData();
+        enregistrer(vide);
+        return vide;
       }
       const parsed = JSON.parse(raw);
       return migrateAndValidateAppData(parsed);
     } catch {
-      const sample = createSampleData();
-      enregistrer(sample);
-      return sample;
+      const vide = createEmptyData();
+      enregistrer(vide);
+      return vide;
     }
   }
 
@@ -270,10 +296,12 @@ export function migrateAndValidateAppData(input: unknown): AppData {
   }
 
   const contraintes: ContrainteTag[] = Array.isArray(obj.contraintes)
-    ? obj.contraintes.filter(
-        (c): c is ContrainteTag =>
-          Boolean(c && typeof c === 'object' && typeof (c as ContrainteTag).id === 'string' && typeof (c as ContrainteTag).libelle === 'string')
-      )
+    ? obj.contraintes
+        .filter(
+          (c): c is ContrainteTag =>
+            Boolean(c && typeof c === 'object' && typeof (c as ContrainteTag).id === 'string' && typeof (c as ContrainteTag).libelle === 'string')
+        )
+        .map(normaliserContrainte)
     : getDefaultContraintes();
 
   const foyers: Foyer[] = obj.foyers.filter(
@@ -314,6 +342,8 @@ export function migrateAndValidateAppData(input: unknown): AppData {
   const rawMois = Number(rawSettings.prescriptionMois);
   const prescriptionMois =
     Number.isFinite(rawMois) && rawMois >= 1 && rawMois <= 60 ? Math.round(rawMois) : 6;
+  // Absent : données d'avant la 0.3.0, la présentation n'a pas à être revue.
+  const accueilVu = typeof rawSettings.accueilVu === 'boolean' ? rawSettings.accueilVu : true;
 
   return {
     version: CURRENT_DATA_VERSION,
@@ -321,6 +351,46 @@ export function migrateAndValidateAppData(input: unknown): AppData {
     convives,
     contraintes,
     invitations,
-    settings: { theme, prescriptionMois },
+    plats: normaliserPlats(obj.plats),
+    settings: { theme, prescriptionMois, accueilVu },
   };
+}
+
+const chaines = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+
+/** Liaisons absentes (données d'avant la 0.3.0) : celles par défaut ; pictogramme inconnu retiré. */
+function normaliserContrainte(c: ContrainteTag): ContrainteTag {
+  const brut = c as unknown as Record<string, unknown>;
+  const allergenes = Array.isArray(brut.allergenes)
+    ? chaines(brut.allergenes)
+    : [...(LIAISONS_PAR_DEFAUT[c.id] ?? [])];
+  const icone =
+    typeof brut.icone === 'string' && Object.prototype.hasOwnProperty.call(ICONES, brut.icone) ? (brut.icone as NomIcone) : undefined;
+  return {
+    id: c.id,
+    libelle: c.libelle,
+    niveau: c.niveau === 'strict' ? 'strict' : 'preference',
+    allergenes,
+    ...(icone ? { icone } : {}),
+  };
+}
+
+/** Fiches valides seulement : nom non vide, au moins un service connu, une fiche par nom normalisé. */
+function normaliserPlats(v: unknown): PlatFiche[] {
+  if (!Array.isArray(v)) return [];
+  const vus = new Set<string>();
+  const plats: PlatFiche[] = [];
+  for (const p of v) {
+    if (!p || typeof p !== 'object') continue;
+    const brut = p as Record<string, unknown>;
+    if (typeof brut.id !== 'string' || typeof brut.libelle !== 'string') continue;
+    const cle = normalizeForCompare(formatDishInput(brut.libelle));
+    if (!cle || vus.has(cle)) continue;
+    const services = chaines(brut.services).filter((s): s is CourseKey => (COURSE_KEYS as string[]).includes(s));
+    if (services.length === 0) continue;
+    vus.add(cle);
+    plats.push({ id: brut.id, libelle: brut.libelle, services, allergenes: chaines(brut.allergenes) });
+  }
+  return plats;
 }

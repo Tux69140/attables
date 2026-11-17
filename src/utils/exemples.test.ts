@@ -115,3 +115,16 @@ test('l\'entrée n\'est pas mutée', () => {
   effacerExemples(data);
   assert.deepEqual(data, copie);
 });
+
+test('effacerExemples retire les fiches d\'exemple et garde celles de l\'utilisateur', () => {
+  const data = createSampleData();
+  const mienne = { id: 'plat-1700000000000', libelle: 'Blanquette', services: ['plat' as const], allergenes: [] };
+  data.plats.push(mienne);
+  assert.deepEqual(effacerExemples(data).plats, [mienne]);
+});
+
+test('resteDesExemples vrai s\'il ne reste qu\'une fiche d\'exemple', () => {
+  const data = createEmptyData();
+  data.plats = [createSampleData().plats[0]];
+  assert.equal(resteDesExemples(data), true);
+});
