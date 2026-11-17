@@ -1,0 +1,5 @@
+Version 0.3.0 :
+• Accueil guidé : trois écrans, puis « Commencer avec mes proches » ou « Visiter avec des exemples ».
+• Nouvelle palette safran, en clair comme en sombre, et de nouvelles icônes.
+• Les allergies strictes restent visibles en haut de l’invitation ; un plat qui contient l’allergène d’un convive est signalé.
+• Nouvel onglet Plats : vérifiez une idée de menu, notez les plats à proposer, retrouvez ce qui a été servi.

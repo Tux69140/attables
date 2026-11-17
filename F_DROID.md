@@ -44,9 +44,9 @@ RepoType: git
 Repo: https://github.com/Tux69140/attables.git
 
 Builds:
-  - versionName: '0.2.1'
-    versionCode: 20011
-    commit: v0.2.1
+  - versionName: '0.3.0'
+    versionCode: 30001
+    commit: v0.3.0
     subdir: src-tauri/gen/android
     sudo: &sudo
       - apt-get update
@@ -62,13 +62,13 @@ Builds:
       - export NDK_HOME="$ANDROID_NDK"
       - pushd ../../..
       - pnpm install --frozen-lockfile --ignore-scripts
-      - pnpm tauri android build --apk --target armv7 --config '{"bundle":{"android":{"versionCode":20011}}}'
+      - pnpm tauri android build --apk --target armv7 --config '{"bundle":{"android":{"versionCode":30001}}}'
       - popd
     ndk: r27c
 
-  - versionName: '0.2.1'
-    versionCode: 20012
-    commit: v0.2.1
+  - versionName: '0.3.0'
+    versionCode: 30002
+    commit: v0.3.0
     subdir: src-tauri/gen/android
     sudo: *sudo
     output: app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
@@ -79,7 +79,7 @@ Builds:
       - export NDK_HOME="$ANDROID_NDK"
       - pushd ../../..
       - pnpm install --frozen-lockfile --ignore-scripts
-      - pnpm tauri android build --apk --target aarch64 --config '{"bundle":{"android":{"versionCode":20012}}}'
+      - pnpm tauri android build --apk --target aarch64 --config '{"bundle":{"android":{"versionCode":30002}}}'
       - popd
     ndk: r27c
 
@@ -88,8 +88,8 @@ UpdateCheckMode: Tags
 VercodeOperation:
   - 10 * %c + 1
   - 10 * %c + 2
-CurrentVersion: '0.2.1'
-CurrentVersionCode: 20012
+CurrentVersion: '0.3.0'
+CurrentVersionCode: 30002
 ```
 
 > **Un paquet par architecture (décision de l'auteur) :** une construction par ABI, donc deux APK distincts sur F-Droid, chacun ne portant qu'une architecture (`armeabi-v7a` ou `arm64-v8a`, la bibliothèque native et le site embarqué pèsent ~23 Mo par ABI). F-Droid exige un `versionCode` distinct par APK. Schéma retenu, celui de la documentation F-Droid (`VercodeOperation`, « utile pour les applis compilées pour plusieurs ABI ») : `versionCode = 10 × code de base + chiffre d'ABI`, avec le code de base calculé par Tauri (majeure × 1 000 000 + mineure × 1 000 + correctif, `2001` pour `0.2.1`) et le chiffre `1` pour armeabi-v7a, `2` pour arm64-v8a (le 64 bits a le plus grand code : un téléphone qui accepte les deux reçoit le 64 bits). Soit `20011` et `20012` pour `0.2.1`. Tauri n'a pas d'option « un code par ABI » : chaque construction fixe le sien avec `--config '{"bundle":{"android":{"versionCode":N}}}'`, fusionné par la CLI dans `tauri.conf.json` (vérifié en local : `tauri.properties` reçoit `tauri.android.versionCode=N`). Ces codes ne concernent que F-Droid ; les APK du site portent le code de base (`2001`) et le Play Store reçoit l'AAB (code de base, découpé par Google). À chaque nouvelle version, mettre à jour les deux `versionCode:`, les deux `--config` et `CurrentVersionCode` (le plus grand des deux).

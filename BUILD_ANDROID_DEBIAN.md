@@ -193,14 +193,14 @@ Assurez-vous qu’il n’y a **aucun** fichier `.apk`, `.aab`, `.jks` ni `.keyst
 
 ### 7.2 Commiter et poser le tag `v<version>`
 
-`<version>` est celle de `package.json` (identique dans `src-tauri/tauri.conf.json` et `src-tauri/Cargo.toml`) ; exemple ci-dessous avec `0.2.1`.
+`<version>` est celle de `package.json` (identique dans `src-tauri/tauri.conf.json` et `src-tauri/Cargo.toml`) ; exemple ci-dessous avec `0.3.0`.
 
 ```bash
 pnpm lint
 pnpm build
 git add package.json pnpm-lock.yaml src-tauri/ fastlane/
-git commit -m "Prepare v0.2.1 Android & F-Droid release"
-git tag -a v0.2.1 -m "Version 0.2.1"
+git commit -m "Prepare v0.3.0 Android & F-Droid release"
+git tag -a v0.3.0 -m "Version 0.3.0"
 git push origin main --tags
 ```
 

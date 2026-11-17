@@ -79,3 +79,5 @@ Ce programme est un logiciel libre : vous pouvez le redistribuer et/ou le modifi
 En particulier, toute version modifiée ou œuvre dérivée redistribuée **doit rester open source sous licence GNU GPL v3.0** et **conserver la mention de l’auteur original (Stéphane MICHEL — BioVibraLyon, `stephane@biovibralyon.fr`)** ainsi que l’accès au code source correspondant.
 
 Consultez le fichier [`LICENSE`](./LICENSE) pour le texte complet de la licence.
+
+**Composants tiers :** les icônes viennent de [Lucide](https://lucide.dev) (licence ISC, voir [`src/icones/LICENCE-lucide.txt`](./src/icones/LICENCE-lucide.txt)), recopiées dans `src/icones/svg/` ; les pictogrammes arachide, céleri, moutarde, sésame, ail, chocolat et assemblée sont dessinés pour Attablés (GPL-3.0-or-later).
