@@ -117,7 +117,7 @@ export function createSampleData(): AppData {
     {
       id: 'inv-2',
       statut: 'prevue',
-      date: '2026-12-06',
+      date: '2026-11-15',
       titre: 'Brunch du dimanche',
       hoteType: 'autre',
       hoteLabel: 'Claire & Tom',

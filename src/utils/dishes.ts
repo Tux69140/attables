@@ -89,14 +89,14 @@ export interface ElapsedTimeInfo {
 /**
  * Computes elapsed months/days since a YYYY-MM-DD date relative to today.
  */
-export function getElapsedTimeInfo(dateIso: string): ElapsedTimeInfo {
+export function getElapsedTimeInfo(dateIso: string, aujourdHui: string = getTodayIso()): ElapsedTimeInfo {
   if (!dateIso || !/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) {
     return { monthsAgo: 0, daysAgo: 0, label: 'récemment' };
   }
   const [y, m, d] = dateIso.split('-').map(Number);
   const target = new Date(y, m - 1, d);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const [ay, am, ad] = aujourdHui.split('-').map(Number);
+  const today = new Date(ay, am - 1, ad);
 
   const diffMs = today.getTime() - target.getTime();
   const daysAgo = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));

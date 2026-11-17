@@ -9,7 +9,7 @@ import { Accueil } from './components/Accueil';
 import { BandeauExemples } from './components/BandeauExemples';
 import { ConvivesTab } from './components/ConvivesTab';
 import { FeuilleAjouter, type EtatAjout } from './components/FeuilleAjouter';
-import { IconCalendar, IconGear, IconUsers } from './components/Icons';
+import { IconCalendar, IconGear, IconSearch, IconUsers } from './components/Icons';
 import { InvitationEditor } from './components/InvitationEditor';
 import { InvitationsTab } from './components/InvitationsTab';
 import { SettingsScreen } from './components/SettingsModal';
@@ -55,6 +55,8 @@ export default function App() {
   // « Revoir la présentation » (Réglages) ; rappel « Dernière étape » masqué pour la session.
   const [revoirAccueil, setRevoirAccueil] = useState(false);
   const [ligneParcoursFermee, setLigneParcoursFermee] = useState(false);
+  // Recherche de l'onglet Invitations, ouverte par la loupe de l'en-tête (null = fermée).
+  const [recherche, setRecherche] = useState<string | null>(null);
   const undoTimerRef = useRef<number | null>(null);
   const chromeVisible = useAutoHideChrome(
     `${activeTab}-${Boolean(editorTarget)}-${settingsOpen}`
@@ -431,8 +433,8 @@ export default function App() {
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-safe h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
-          <div className="w-[44px]" aria-hidden="true" />
+        <div className="max-w-[1080px] mx-auto px-safe h-14 grid grid-cols-[88px_1fr_88px] items-center gap-2">
+          <div aria-hidden="true" />
           <button
             type="button"
             onClick={handleGoHome}
@@ -441,14 +443,27 @@ export default function App() {
           >
             Attablés
           </button>
-          <button
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            aria-label="Réglages"
-            className="justify-self-end min-h-[44px] min-w-[44px] -mr-2 flex items-center justify-center rounded-xl text-[var(--ink)] hover:bg-[var(--surface-elevated)] active:scale-95 transition-transform"
-          >
-            <IconGear size={22} />
-          </button>
+          <div className="justify-self-end -mr-2 flex items-center">
+            {activeTab === 'invitations' && data.invitations.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setRecherche((r) => (r === null ? '' : null))}
+                aria-label="Rechercher"
+                aria-pressed={recherche !== null}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink)] hover:bg-[var(--surface-elevated)] active:scale-95 transition-transform"
+              >
+                <IconSearch size={22} />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Réglages"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink)] hover:bg-[var(--surface-elevated)] active:scale-95 transition-transform"
+            >
+              <IconGear size={22} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -466,7 +481,10 @@ export default function App() {
             invitations={data.invitations}
             convivesById={convivesById}
             contraintesById={contraintesById}
+            plats={data.plats}
             chromeVisible={chromeVisible}
+            recherche={recherche}
+            onRecherche={setRecherche}
             onOpenNew={() => setEditorTarget({ mode: 'new' })}
             onOpenEdit={(invitation) => setEditorTarget({ mode: 'edit', invitation })}
             onMarkRealisee={handleMarkRealisee}

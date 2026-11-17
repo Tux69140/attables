@@ -5,6 +5,7 @@
  */
 import type { NomIcone } from '../icones/donnees';
 import type { AppData, ContrainteNiveau, ContrainteTag, Convive } from '../types/models';
+import type { AggregatedConstraints } from './dishes';
 
 /** Allergène de référence : les 14 réglementaires, puis quelques familles courantes. */
 export interface Allergene {
@@ -156,4 +157,16 @@ export function retirerContrainte(data: AppData, tagId: string): AppData {
       p.allergenes.includes(tagId) ? { ...p, allergenes: p.allergenes.filter((id) => id !== tagId) } : p
     ),
   };
+}
+
+/** Bandeau de carte : « Arachides (Léa) · Fruits à coque (Nadia) », puis le nombre d'allergies non citées. */
+export function resumeAllergiesStrictes(
+  strict: AggregatedConstraints['strict'],
+  max = 2
+): { texte: string; reste: number } {
+  const texte = strict
+    .slice(0, max)
+    .map(({ tag, guests }) => `${tag.libelle} (${guests.map((g) => g.nomAffiche).join(', ')})`)
+    .join(' · ');
+  return { texte, reste: Math.max(0, strict.length - max) };
 }

@@ -1,39 +1,34 @@
+/**
+ * Attablés — Carnet d'invitations personnel hors ligne
+ * Copyright (C) 2026 Stéphane MICHEL <stephane@biovibralyon.fr>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 import React, { useMemo, useState } from 'react';
+import { useAndroidBack } from '../hooks/useAndroidBack';
+import { COURSE_KEYS, ContrainteTag, Convive, Invitation, PlatFiche } from '../types/models';
+import { trierAVenir } from '../utils/dates';
+import { getTodayIso, normalizeForCompare } from '../utils/dishes';
 import type { EtatParcours } from '../utils/parcours';
+import { CarteInvitation, CarteRealisee } from './CarteInvitation';
+import { Onglets, Puces } from './Controles';
+import { IconClose, IconPlus, IconSearch } from './Icons';
 import { LigneDerniereEtape, ParcoursGuide } from './ParcoursGuide';
-import {
-  COURSE_KEYS,
-  COURSE_LABELS,
-  ContrainteTag,
-  Convive,
-  Invitation,
-  VERDICT_LABELS,
-} from '../types/models';
-import { formatDateFr, normalizeForCompare } from '../utils/dishes';
-import {
-  IconAlert,
-  IconBan,
-  IconCheck,
-  IconChevronRight,
-  IconHeart,
-  IconHome,
-  IconPlus,
-  IconSearch,
-  IconThumbUp,
-  IconUtensils,
-} from './Icons';
 
-type HostFilter = 'toutes' | 'moi' | 'autres';
-type StatusFilter = 'toutes' | 'prevues' | 'realisees';
+type Onglet = 'avenir' | 'realisees';
+type Hote = 'tous' | 'moi' | 'autres';
 
 interface InvitationsTabProps {
   invitations: Invitation[];
   convivesById: Map<string, Convive>;
   contraintesById: Map<string, ContrainteTag>;
+  plats: PlatFiche[];
   chromeVisible?: boolean;
   onOpenNew: () => void;
   onOpenEdit: (invitation: Invitation) => void;
   onMarkRealisee: (invitationId: string) => void;
+  /** Recherche ouverte par la loupe de l'en-tête (null = fermée). */
+  recherche: string | null;
+  onRecherche: (valeur: string | null) => void;
   /** Parcours guidé du premier usage (déduit des données). */
   parcours: EtatParcours;
   resumeProches: string;
@@ -42,201 +37,53 @@ interface InvitationsTabProps {
   onFermerLigneParcours: () => void;
 }
 
+const SUFFIXE_HOTE: Record<Hote, string> = { tous: '', moi: ' chez vous', autres: ' chez les autres' };
+
 export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   invitations,
   convivesById,
   contraintesById,
+  plats,
   chromeVisible = true,
   onOpenNew,
   onOpenEdit,
   onMarkRealisee,
+  recherche,
+  onRecherche,
   parcours,
   resumeProches,
   onAjouterProche,
   ligneParcoursFermee,
   onFermerLigneParcours,
 }) => {
-  const [hostFilter, setHostFilter] = useState<HostFilter>('toutes');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('toutes');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [onglet, setOnglet] = useState<Onglet>('avenir');
+  const [hote, setHote] = useState<Hote>('tous');
+  const aujourdHui = getTodayIso();
+  useAndroidBack(recherche !== null, () => onRecherche(null));
 
-  const statusCounts = useMemo(() => {
-    let prevuesCount = 0;
-    let realiseesCount = 0;
-    for (const inv of invitations) {
-      if (inv.statut === 'prevue') prevuesCount += 1;
-      else realiseesCount += 1;
-    }
-    return { total: invitations.length, prevues: prevuesCount, realisees: realiseesCount };
-  }, [invitations]);
+  const q = normalizeForCompare(recherche ?? '');
 
-  const filtered = useMemo(() => {
-    const q = normalizeForCompare(searchQuery);
-
-    return invitations.filter((inv) => {
-      if (hostFilter === 'moi' && inv.hoteType !== 'moi') return false;
-      if (hostFilter === 'autres' && inv.hoteType !== 'autre') return false;
-      if (statusFilter === 'prevues' && inv.statut !== 'prevue') return false;
-      if (statusFilter === 'realisees' && inv.statut !== 'realisee') return false;
-
+  const { aVenir, realisees } = useMemo(() => {
+    const retenues = invitations.filter((inv) => {
+      if (hote === 'moi' && inv.hoteType !== 'moi') return false;
+      if (hote === 'autres' && inv.hoteType !== 'autre') return false;
       if (!q) return true;
-
-      const titleMatch = inv.titre && normalizeForCompare(inv.titre).includes(q);
-      const hostMatch = normalizeForCompare(inv.hoteLabel).includes(q);
-      const dishMatch = COURSE_KEYS.some((k) => {
-        const val = inv.menu[k];
-        return val ? normalizeForCompare(val).includes(q) : false;
-      });
-      const guestMatch = inv.convivesIds.some((cid) => {
-        const g = convivesById.get(cid);
-        return g ? normalizeForCompare(g.nomAffiche).includes(q) : false;
-      });
-
-      return Boolean(titleMatch || hostMatch || dishMatch || guestMatch);
+      const dans = (texte?: string) => Boolean(texte && normalizeForCompare(texte).includes(q));
+      return (
+        dans(inv.titre) ||
+        dans(inv.hoteLabel) ||
+        COURSE_KEYS.some((k) => dans(inv.menu[k])) ||
+        inv.convivesIds.some((id) => dans(convivesById.get(id)?.nomAffiche))
+      );
     });
-  }, [invitations, hostFilter, statusFilter, searchQuery, convivesById]);
-
-  const prevues = useMemo(
-    () =>
-      filtered
-        .filter((inv) => inv.statut === 'prevue')
-        .sort((a, b) => a.date.localeCompare(b.date)),
-    [filtered]
-  );
-
-  const realisees = useMemo(
-    () =>
-      filtered
-        .filter((inv) => inv.statut === 'realisee')
-        .sort((a, b) => b.date.localeCompare(a.date)),
-    [filtered]
-  );
-
-  const renderCard = (inv: Invitation) => {
-    const guests = inv.convivesIds
-      .map((id) => convivesById.get(id))
-      .filter((g): g is Convive => Boolean(g));
-
-    const hasStrictAllergy = guests.some((g) =>
-      g.contraintesIds.some((cid) => contraintesById.get(cid)?.niveau === 'strict')
-    );
-
-    const dishesList = COURSE_KEYS.map((k) => ({
-      key: k,
-      label: COURSE_LABELS[k],
-      value: inv.menu[k]?.trim(),
-    })).filter((item) => Boolean(item.value));
-
-    const guestSummary =
-      guests.length > 0
-        ? guests.map((g) => g.nomAffiche).join(', ')
-        : 'Aucun convive sélectionné';
-
-    return (
-      <article
-        key={inv.id}
-        className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden transition-colors"
-      >
-        <button
-          type="button"
-          onClick={() => onOpenEdit(inv)}
-          className="w-full text-left p-4 flex flex-col gap-2.5 hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors focus-visible:outline-2 focus-visible:outline-[var(--primary-ink)]"
-        >
-          {/* Metadata line — clean unboxed text with separators */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-[var(--ink-muted)] tabular-nums">
-              <span className="font-semibold text-[var(--ink)]">
-                {formatDateFr(inv.date)}
-              </span>
-              <span aria-hidden="true">·</span>
-              <span>
-                {guests.length} {guests.length > 1 ? 'convives' : 'convive'}
-              </span>
-              {inv.hoteType === 'autre' && (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span className="inline-flex items-center gap-1 font-semibold text-[var(--ink)]">
-                    <IconHome size={15} className="text-[var(--primary-ink)] shrink-0" />
-                    <span>Chez {inv.hoteLabel}</span>
-                  </span>
-                </>
-              )}
-            </div>
-            <IconChevronRight size={18} className="text-[var(--ink-muted)] shrink-0" />
-          </div>
-
-          {/* Primary title */}
-          <h3 className="font-display text-[20px] leading-snug text-[var(--ink)]">
-            {inv.titre?.trim() ||
-              (inv.hoteType === 'autre' ? `Repas chez ${inv.hoteLabel}` : 'Repas à la maison')}
-          </h3>
-
-          {/* Guest names */}
-          <p className="text-[15px] text-[var(--ink-muted)] leading-snug">
-            {guestSummary}
-          </p>
-
-          {/* Strict allergy alert indicator & Verdict (never color alone: icon + text) */}
-          {(hasStrictAllergy || inv.verdict) && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              {hasStrictAllergy && (
-                <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--error)]">
-                  <IconAlert size={16} className="shrink-0" />
-                  <span>Allergie stricte à table</span>
-                </div>
-              )}
-              {inv.verdict === 'coup_de_coeur' && (
-                <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--success)]">
-                  <IconHeart size={15} filled className="shrink-0" />
-                  <span>{VERDICT_LABELS.coup_de_coeur}</span>
-                </div>
-              )}
-              {inv.verdict === 'bien' && (
-                <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--ink-muted)]">
-                  <IconThumbUp size={15} className="shrink-0" />
-                  <span>{VERDICT_LABELS.bien}</span>
-                </div>
-              )}
-              {inv.verdict === 'a_eviter' && (
-                <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--error)]">
-                  <IconBan size={15} className="shrink-0" />
-                  <span>{VERDICT_LABELS.a_eviter}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Menu preview */}
-          {dishesList.length > 0 && (
-            <div className="pt-2 border-t border-[var(--border)]/70 flex flex-col gap-1">
-              {dishesList.map((d) => (
-                <div key={d.key} className="text-[14px] flex items-baseline gap-2">
-                  <span className="text-[var(--ink-muted)] font-semibold shrink-0 w-[68px]">
-                    {d.label}
-                  </span>
-                  <span className="text-[var(--ink)] truncate">{d.value}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </button>
-
-        {/* Quick action for upcoming invitations */}
-        {inv.statut === 'prevue' && (
-          <div className="px-4 pb-3.5 pt-1 flex items-center justify-end border-t border-[var(--border)]/50 bg-[var(--surface-elevated)]/40">
-            <button
-              type="button"
-              onClick={() => onMarkRealisee(inv.id)}
-              className="min-h-[44px] px-4 rounded-xl bg-[var(--success-bg)] text-[var(--success)] font-semibold text-[14px] inline-flex items-center gap-2 active:scale-[0.98] transition-transform"
-            >
-              <IconCheck size={17} />
-              <span>Passer en réalisée</span>
-            </button>
-          </div>
-        )}
-      </article>
-    );
-  };
+    return {
+      aVenir: trierAVenir(
+        retenues.filter((i) => i.statut === 'prevue'),
+        aujourdHui
+      ),
+      realisees: retenues.filter((i) => i.statut === 'realisee').sort((a, b) => b.date.localeCompare(a.date)),
+    };
+  }, [invitations, hote, q, convivesById, aujourdHui]);
 
   // Aucune invitation : seulement le guide (rien à filtrer ni à chercher).
   if (parcours.affichage === 'complet') {
@@ -252,169 +99,130 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
     );
   }
 
+  const carteAVenir = (inv: Invitation) => (
+    <CarteInvitation
+      key={inv.id}
+      invitation={inv}
+      convivesById={convivesById}
+      contraintesById={contraintesById}
+      plats={plats}
+      aujourdHui={aujourdHui}
+      onOuvrir={() => onOpenEdit(inv)}
+      onMarquerRealisee={() => onMarkRealisee(inv.id)}
+    />
+  );
+  const carteRealisee = (inv: Invitation) => (
+    <CarteRealisee
+      key={inv.id}
+      invitation={inv}
+      convivesById={convivesById}
+      aujourdHui={aujourdHui}
+      onOuvrir={() => onOpenEdit(inv)}
+    />
+  );
+  const vide = (texte: string) => (
+    <p className="py-10 px-4 text-center text-[15px] text-[var(--ink-muted)]">{texte}</p>
+  );
+  const grille = (enfants: React.ReactNode) => <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{enfants}</div>;
+
   return (
     <div className="flex flex-col gap-4 pb-28">
-      {parcours.affichage === 'ligne' && !ligneParcoursFermee && (
-        <LigneDerniereEtape onFermer={onFermerLigneParcours} />
-      )}
+      {parcours.affichage === 'ligne' && !ligneParcoursFermee && <LigneDerniereEtape onFermer={onFermerLigneParcours} />}
 
-      {/* Filter & Search controls */}
-      <div className="flex flex-col gap-3">
-        <div
-          className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)]"
-          role="tablist"
-          aria-label="Filtrer par hôte"
-        >
-          {(
-            [
-              { id: 'toutes', label: 'Toutes' },
-              { id: 'moi', label: 'Chez moi' },
-              { id: 'autres', label: 'Chez les autres' },
-            ] as const
-          ).map((tab) => {
-            const active = hostFilter === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setHostFilter(tab.id)}
-                className={`min-h-[44px] px-2 rounded-lg text-[14px] font-semibold whitespace-nowrap transition-colors ${
-                  active
-                    ? 'bg-[var(--card)] text-[var(--ink)] shadow-sm border border-[var(--border)]'
-                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div
-          className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)]"
-          role="tablist"
-          aria-label="Filtrer par statut"
-        >
-          {(
-            [
-              { id: 'toutes', label: `Toutes (${statusCounts.total})` },
-              { id: 'prevues', label: `Prévues (${statusCounts.prevues})` },
-              { id: 'realisees', label: `Réalisées (${statusCounts.realisees})` },
-            ] as const
-          ).map((tab) => {
-            const active = statusFilter === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setStatusFilter(tab.id)}
-                className={`min-h-[44px] px-2 rounded-lg text-[13px] font-semibold whitespace-nowrap tabular-nums transition-colors ${
-                  active
-                    ? 'bg-[var(--card)] text-[var(--ink)] shadow-sm border border-[var(--border)]'
-                    : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
+      {recherche !== null ? (
         <div className="relative">
-          <IconSearch
-            size={19}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] pointer-events-none"
-          />
+          <IconSearch size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] pointer-events-none" />
           <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher un titre, un plat ou un convive…"
+            type="text"
+            enterKeyHint="search"
+            autoFocus
+            value={recherche}
+            onChange={(e) => onRecherche(e.target.value)}
+            placeholder="Un titre, un plat ou un convive…"
             aria-label="Rechercher dans les invitations"
-            className="w-full min-h-[46px] pl-10 pr-4 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
+            className="w-full min-h-[46px] pl-10 pr-12 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
           />
+          <button
+            type="button"
+            onClick={() => onRecherche(null)}
+            aria-label="Fermer la recherche"
+            className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-[var(--ink-muted)]"
+          >
+            <IconClose size={18} />
+          </button>
         </div>
-      </div>
-
-      {/* Empty state */}
-      {prevues.length === 0 && realisees.length === 0 && (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-7 text-center flex flex-col items-center gap-3 mt-2">
-          <div className="w-12 h-12 rounded-2xl bg-[var(--surface-elevated)] text-[var(--ink-muted)] flex items-center justify-center">
-            <IconUtensils size={24} />
-          </div>
-          <h2 className="font-display text-xl text-[var(--ink)]">
-            {invitations.length === 0
-              ? 'Aucune invitation enregistrée'
-              : 'Aucun résultat pour cette recherche'}
-          </h2>
-          <p className="text-[15px] text-[var(--ink-muted)] max-w-sm">
-            {invitations.length === 0
-              ? 'Préparez votre premier repas pour suivre les allergies et éviter les doublons de plats.'
-              : 'Essayez un autre mot-clé ou réinitialisez le filtre ci-dessus.'}
-          </p>
-        </div>
+      ) : (
+        <Onglets
+          ariaLabel="Invitations"
+          valeur={onglet}
+          onChange={setOnglet}
+          options={[
+            { id: 'avenir', label: 'À venir', compte: aVenir.length },
+            { id: 'realisees', label: 'Réalisées', compte: realisees.length },
+          ]}
+        />
       )}
 
-      {/* Prévues section */}
-      {prevues.length > 0 && (
-        <section aria-labelledby="sec-prevues" className="flex flex-col gap-3">
-          <div className="flex items-baseline justify-between px-0.5">
-            <h2 id="sec-prevues" className="font-display text-[21px] text-[var(--ink)]">
-              Prévues
-            </h2>
-            <span className="text-[14px] text-[var(--ink-muted)] tabular-nums">
-              {prevues.length} {prevues.length > 1 ? 'repas' : 'repas'}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {prevues.map(renderCard)}
-          </div>
-        </section>
-      )}
+      <Puces
+        ariaLabel="Filtrer par hôte"
+        valeur={hote}
+        onChange={setHote}
+        options={[
+          { id: 'tous', label: 'Tous' },
+          { id: 'moi', label: 'Chez moi', icone: 'house' },
+          { id: 'autres', label: 'Chez les autres' },
+        ]}
+      />
 
-      {/* Réalisées section */}
-      {realisees.length > 0 && (
-        <section aria-labelledby="sec-realisees" className="flex flex-col gap-3 mt-2">
-          <div className="flex items-baseline justify-between px-0.5">
-            <h2 id="sec-realisees" className="font-display text-[21px] text-[var(--ink)]">
-              Réalisées
-            </h2>
-            <span className="text-[14px] text-[var(--ink-muted)] tabular-nums">
-              {realisees.length} {realisees.length > 1 ? 'repas' : 'repas'}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {realisees.map(renderCard)}
-          </div>
-        </section>
+      {recherche !== null && q ? (
+        aVenir.length + realisees.length === 0 ? (
+          vide(`Aucun résultat pour « ${recherche.trim()} ».`)
+        ) : (
+          <>
+            {aVenir.length > 0 && (
+              <section aria-labelledby="res-avenir" className="flex flex-col gap-3">
+                <h2 id="res-avenir" className="font-display text-[20px] text-[var(--ink)]">À venir</h2>
+                {grille(aVenir.map(carteAVenir))}
+              </section>
+            )}
+            {realisees.length > 0 && (
+              <section aria-labelledby="res-realisees" className="flex flex-col gap-3">
+                <h2 id="res-realisees" className="font-display text-[20px] text-[var(--ink)]">Réalisées</h2>
+                {grille(realisees.map(carteRealisee))}
+              </section>
+            )}
+          </>
+        )
+      ) : onglet === 'avenir' ? (
+        aVenir.length === 0 ? vide(`Aucune invitation à venir${SUFFIXE_HOTE[hote]}.`) : grille(aVenir.map(carteAVenir))
+      ) : realisees.length === 0 ? (
+        vide(`Aucune invitation réalisée${SUFFIXE_HOTE[hote]}.`)
+      ) : (
+        grille(realisees.map(carteRealisee))
       )}
 
       {/* Bouton flottant : dès qu'une invitation existe (avant, le guide porte le bouton) */}
       {invitations.length > 0 && (
-      <div
-        aria-hidden={!chromeVisible}
-        className={`fixed bottom-above-nav left-0 right-0 z-30 pointer-events-none flex justify-center px-safe chrome-mouvement ${
-          chromeVisible ? 'translate-y-0 opacity-100' : 'translate-y-[160px] opacity-0'
-        }`}
-      >
-        <div className="w-full max-w-[1080px] flex justify-end">
-          <button
-            type="button"
-            tabIndex={chromeVisible ? 0 : -1}
-            onClick={onOpenNew}
-            className={`${
-              chromeVisible ? 'pointer-events-auto' : 'pointer-events-none'
-            } min-h-[50px] px-5 rounded-2xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] shadow-lg flex items-center gap-2 active:scale-[0.97] transition-transform`}
-          >
-            <IconPlus size={20} />
-            <span className="whitespace-nowrap">Préparer une invitation</span>
-          </button>
+        <div
+          aria-hidden={!chromeVisible}
+          className={`fixed bottom-above-nav left-0 right-0 z-30 pointer-events-none flex justify-center px-safe chrome-mouvement ${
+            chromeVisible ? 'translate-y-0 opacity-100' : 'translate-y-[160px] opacity-0'
+          }`}
+        >
+          <div className="w-full max-w-[1080px] flex justify-end">
+            <button
+              type="button"
+              tabIndex={chromeVisible ? 0 : -1}
+              onClick={onOpenNew}
+              className={`${
+                chromeVisible ? 'pointer-events-auto' : 'pointer-events-none'
+              } min-h-[50px] px-5 rounded-2xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] shadow-lg flex items-center gap-2 active:scale-[0.97] transition-transform`}
+            >
+              <IconPlus size={20} />
+              <span className="whitespace-nowrap">Préparer une invitation</span>
+            </button>
+          </div>
         </div>
-      </div>
       )}
     </div>
   );

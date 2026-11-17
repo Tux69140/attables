@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createEmptyData, getDefaultContraintes } from '../services/storage';
 import type { ContrainteTag, Convive } from '../types/models';
-import { choixAllergenes, conflitsPlat, iconeContrainte, retirerContrainte } from './allergenes';
+import { choixAllergenes, conflitsPlat, iconeContrainte, resumeAllergiesStrictes, retirerContrainte } from './allergenes';
 
 const coriandre: ContrainteTag = { id: 'tag-coriandre', libelle: 'Coriandre', niveau: 'preference', allergenes: [] };
 const contraintes = [...getDefaultContraintes(), coriandre];
@@ -82,4 +82,17 @@ test('iconeContrainte', () => {
   assert.equal(iconeContrainte(parId.get('tag-arachides')!), 'arachide');
   assert.equal(iconeContrainte(parId.get('tag-vegetarien')!), 'tag');
   assert.equal(iconeContrainte(coriandre), 'tag');
+});
+
+test('resumeAllergiesStrictes : deux premières puis le reste', () => {
+  const nadia = convive('conv-nadia', 'Nadia', ['tag-fruits-coque', 'tag-gluten']);
+  const strict = ['tag-arachides', 'tag-fruits-coque', 'tag-crustaces', 'tag-gluten'].map((id) => ({
+    tag: parId.get(id)!,
+    guests: id === 'tag-arachides' ? [lea] : id === 'tag-crustaces' ? [paul] : [nadia],
+  }));
+  assert.deepEqual(resumeAllergiesStrictes(strict), {
+    texte: 'Arachides (Léa) · Fruits à coque (Nadia)',
+    reste: 2,
+  });
+  assert.deepEqual(resumeAllergiesStrictes(strict.slice(0, 1)), { texte: 'Arachides (Léa)', reste: 0 });
 });
