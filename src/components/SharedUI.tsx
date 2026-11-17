@@ -88,7 +88,7 @@ export const ConfirmModal: React.FC<{
             onClick={onConfirm}
             className={`min-h-[46px] px-5 rounded-xl font-semibold text-[15px] active:scale-[0.98] transition-transform ${
               destructive
-                ? 'bg-[#A82E27] text-white'
+                ? 'bg-[var(--alerte)] text-[var(--on-alerte)]'
                 : 'bg-[var(--primary)] text-[var(--on-primary)]'
             }`}
           >

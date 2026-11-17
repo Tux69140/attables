@@ -22,7 +22,7 @@ export const BandeauExemples: React.FC<BandeauExemplesProps> = ({
     className="mb-4 p-3.5 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-3"
   >
     <div className="flex items-start gap-3">
-      <IconUtensils size={20} className="text-[var(--primary)] shrink-0 mt-0.5" />
+      <IconUtensils size={20} className="text-[var(--primary-ink)] shrink-0 mt-0.5" />
       <div>
         <p className="text-[15px] font-semibold text-[var(--ink)]">
           Marc, Sophie et les autres sont des exemples.

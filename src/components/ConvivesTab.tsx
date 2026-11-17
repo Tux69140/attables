@@ -266,7 +266,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher un foyer ou un convive…"
           aria-label="Rechercher dans l’annuaire"
-          className="w-full min-h-[46px] pl-10 pr-4 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary)]"
+          className="w-full min-h-[46px] pl-10 pr-4 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
         />
       </div>
 
@@ -312,7 +312,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
                 type="button"
                 onClick={() => openNewConvive(foyer.id)}
                 aria-label={`Ajouter un membre dans ${foyer.nom}`}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--primary)] hover:bg-[var(--surface-elevated)]"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--primary-ink)] hover:bg-[var(--surface-elevated)]"
               >
                 <IconPlus size={19} />
               </button>
@@ -425,7 +425,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
               value={foyerNom}
               onChange={(e) => setFoyerNom(e.target.value)}
               placeholder="Ex. Famille Martin, Paul & Julie…"
-              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]"
+              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
             />
           </div>
 
@@ -474,7 +474,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
                     aria-pressed={selected}
                     className={`min-h-[54px] px-2 py-1.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition-colors ${
                       selected
-                        ? 'bg-[var(--surface-active)] border-[var(--primary)] text-[var(--ink)]'
+                        ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--card)]'
                         : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink-muted)]'
                     }`}
                   >
@@ -547,7 +547,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
                         className={`px-3.5 py-2 rounded-xl text-[14px] font-semibold flex items-center gap-2 ${
                           tag.niveau === 'strict'
                             ? 'bg-[var(--error-bg)] text-[var(--error)]'
-                            : 'bg-[var(--warning-bg)] text-[var(--warning)]'
+                            : 'bg-[var(--pref-bg)] text-[var(--pref)]'
                         }`}
                       >
                         {tag.niveau === 'strict' && <IconAlert size={16} />}
@@ -688,7 +688,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
               value={conviveNom}
               onChange={(e) => setConviveNom(e.target.value)}
               placeholder="Prénom, nom ou pseudo…"
-              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]"
+              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
             />
           </div>
 
@@ -703,7 +703,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
               id="convive-foyer"
               value={conviveFoyerId}
               onChange={(e) => setConviveFoyerId(e.target.value)}
-              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]"
+              className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
             >
               <option value="">Sans foyer</option>
               {foyers.map((f) => (
@@ -732,7 +732,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
                       selected
                         ? isStrict
                           ? 'bg-[var(--error-bg)] border-[var(--error)] text-[var(--error)]'
-                          : 'bg-[var(--warning-bg)] border-[var(--warning)] text-[var(--warning)]'
+                          : 'bg-[var(--pref-bg)] border-[var(--pref)] text-[var(--pref)]'
                         : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink)]'
                     }`}
                   >
@@ -758,7 +758,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
               value={conviveLibre}
               onChange={(e) => setConviveLibre(e.target.value)}
               placeholder="Ex. N’aime pas la coriandre, tolère le fromage de chèvre…"
-              className="w-full p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]"
+              className="w-full p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
             />
           </div>
 

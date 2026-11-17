@@ -26,6 +26,7 @@ import {
   IconTrash,
   IconUpload,
 } from './Icons';
+import { Puces } from './Controles';
 import { ConfirmModal } from './SharedUI';
 
 type SettingsSection =
@@ -44,6 +45,12 @@ const SECTION_TITLES: Record<SettingsSection, string> = {
   sauvegarde: 'Sauvegarde & Données',
   apropos: 'À propos',
 };
+
+const THEMES: { id: ThemeMode; label: string; desc: string }[] = [
+  { id: 'appareil', label: 'Appareil', desc: 'Suit automatiquement les réglages clair/sombre d’Android.' },
+  { id: 'clair', label: 'Clair', desc: 'Safran — fond crème, encre expresso, touches safran.' },
+  { id: 'sombre', label: 'Sombre', desc: 'Nuit marine — confort visuel en soirée ou faible luminosité.' },
+];
 
 interface SettingsScreenProps {
   data: AppData;
@@ -198,7 +205,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     data.settings.theme === 'appareil'
       ? 'Appareil (automatique)'
       : data.settings.theme === 'clair'
-      ? 'Clair (Sable)'
+      ? 'Clair (Safran)'
       : 'Sombre (Nuit marine)';
 
   const renderTagRow = (tag: ContrainteTag) => {
@@ -245,7 +252,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 className={`min-h-[34px] px-2.5 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
                   isStrict
                     ? 'bg-[var(--error-bg)] text-[var(--error)]'
-                    : 'bg-[var(--warning-bg)] text-[var(--warning)]'
+                    : 'bg-[var(--pref-bg)] text-[var(--pref)]'
                 }`}
                 title="Appuyer pour basculer Allergie stricte / Préférence"
               >
@@ -496,57 +503,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
         {/* SUB-SCREEN: Apparence */}
         {section === 'apparence' && (
-          <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden divide-y divide-[var(--border)]">
-            {(
-              [
-                {
-                  id: 'appareil',
-                  title: 'Appareil',
-                  desc: 'Suit automatiquement les réglages clair/sombre d’Android.',
-                },
-                {
-                  id: 'clair',
-                  title: 'Clair — Sable',
-                  desc: 'Fond sable chaud et encre marine haute lisibilité.',
-                },
-                {
-                  id: 'sombre',
-                  title: 'Sombre — Nuit marine',
-                  desc: 'Confort visuel en soirée ou faible luminosité.',
-                },
-              ] as const
-            ).map((option) => {
-              const active = data.settings.theme === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => onChangeTheme(option.id)}
-                  className="w-full min-h-[68px] px-4 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-[var(--surface-elevated)]/60 transition-colors"
-                >
-                  <div className="min-w-0">
-                    <div className="text-[16px] font-semibold text-[var(--ink)]">
-                      {option.title}
-                    </div>
-                    <div className="text-[14px] text-[var(--ink-muted)]">
-                      {option.desc}
-                    </div>
-                  </div>
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                      active
-                        ? 'border-[var(--primary)] bg-[var(--primary)] text-[var(--on-primary)]'
-                        : 'border-[var(--outline)]'
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {active && <IconCheck size={14} />}
-                  </div>
-                </button>
-              );
-            })}
+          <section className="carte p-4 flex flex-col gap-3">
+            <Puces
+              ariaLabel="Thème"
+              valeur={data.settings.theme}
+              onChange={onChangeTheme}
+              options={THEMES}
+            />
+            <p className="text-[14px] text-[var(--ink-muted)]">
+              {THEMES.find((t) => t.id === data.settings.theme)?.desc}
+            </p>
           </section>
         )}
 
@@ -566,7 +532,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     onChange={(e) => setNewTagLabel(e.target.value)}
                     placeholder="Ex. Sésame, Sans œufs…"
                     aria-label="Libellé du nouveau tag"
-                    className="flex-1 min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary)]"
+                    className="flex-1 min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
                   />
                   <button
                     type="submit"
@@ -594,7 +560,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     onClick={() => setNewTagNiveau('preference')}
                     className={`min-h-[44px] px-3 rounded-xl border text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors ${
                       newTagNiveau === 'preference'
-                        ? 'bg-[var(--warning-bg)] border-[var(--warning)] text-[var(--warning)]'
+                        ? 'bg-[var(--pref-bg)] border-[var(--pref)] text-[var(--pref)]'
                         : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink-muted)]'
                     }`}
                   >
@@ -783,7 +749,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <strong className="text-[var(--ink)]">Contact :</strong>{' '}
                   <a
                     href="mailto:stephane@biovibralyon.fr"
-                    className="text-[var(--primary)] font-semibold underline underline-offset-2"
+                    className="text-[var(--primary-ink)] font-semibold underline underline-offset-2"
                   >
                     stephane@biovibralyon.fr
                   </a>
@@ -844,7 +810,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
             <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-3.5">
               <div className="flex items-center gap-2.5">
-                <IconShield size={22} className="text-[var(--primary)] shrink-0" />
+                <IconShield size={22} className="text-[var(--primary-ink)] shrink-0" />
                 <h2 className="font-display text-[19px] text-[var(--ink)]">
                   Vie privée — 100 % sur votre appareil
                 </h2>

@@ -127,7 +127,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
         <button
           type="button"
           onClick={() => onOpenEdit(inv)}
-          className="w-full text-left p-4 flex flex-col gap-2.5 hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors focus-visible:outline-2 focus-visible:outline-[var(--primary)]"
+          className="w-full text-left p-4 flex flex-col gap-2.5 hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors focus-visible:outline-2 focus-visible:outline-[var(--primary-ink)]"
         >
           {/* Metadata line — clean unboxed text with separators */}
           <div className="flex items-center justify-between gap-2">
@@ -143,7 +143,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
                 <>
                   <span aria-hidden="true">·</span>
                   <span className="inline-flex items-center gap-1 font-semibold text-[var(--ink)]">
-                    <IconHome size={15} className="text-[var(--primary)] shrink-0" />
+                    <IconHome size={15} className="text-[var(--primary-ink)] shrink-0" />
                     <span>Chez {inv.hoteLabel}</span>
                   </span>
                 </>
@@ -304,7 +304,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher un titre, un plat ou un convive…"
             aria-label="Rechercher dans les invitations"
-            className="w-full min-h-[46px] pl-10 pr-4 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary)]"
+            className="w-full min-h-[46px] pl-10 pr-4 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
           />
         </div>
       </div>

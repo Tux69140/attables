@@ -43,6 +43,7 @@ import {
   IconThumbUp,
   IconTrash,
 } from './Icons';
+import { Puces } from './Controles';
 import { BottomSheet, ConfirmModal, FoyerTile } from './SharedUI';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
@@ -412,7 +413,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                   </span>
                   <span aria-hidden="true">·</span>
                   <span className="inline-flex items-center gap-1 font-semibold text-[var(--ink)]">
-                    <IconHome size={15} className="text-[var(--primary)] shrink-0" />
+                    <IconHome size={15} className="text-[var(--primary-ink)] shrink-0" />
                     <span>
                       {hoteType === 'moi' ? 'Chez moi' : `Chez ${hoteLabel || 'un proche'}`}
                     </span>
@@ -503,7 +504,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                 <div className="min-w-0">
                   <h2 className="font-display text-[19px] text-[var(--ink)]">Qui reçoit ?</h2>
                   <p className="text-[14px] text-[var(--ink-muted)] truncate flex items-center gap-1.5">
-                    <IconHome size={14} className="text-[var(--primary)] shrink-0" />
+                    <IconHome size={14} className="text-[var(--primary-ink)] shrink-0" />
                     <span>
                       {hoteType === 'moi'
                         ? 'Chez moi'
@@ -521,38 +522,26 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
               {hostOpen && (
                 <div className="px-4 pb-4 pt-1 flex flex-col gap-3.5 border-t border-[var(--border)]/70">
-                  <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] mt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHoteType('moi');
-                        setHoteLabel('Moi');
-                        setHoteRefType(undefined);
-                        setHoteRefId(undefined);
+                  <div className="mt-2">
+                    <Puces
+                      ariaLabel="Lieu du repas"
+                      valeur={hoteType}
+                      onChange={(type) => {
+                        if (type === 'moi') {
+                          setHoteType('moi');
+                          setHoteLabel('Moi');
+                          setHoteRefType(undefined);
+                          setHoteRefId(undefined);
+                        } else {
+                          setHoteType('autre');
+                          if (hoteLabel === 'Moi') setHoteLabel('');
+                        }
                       }}
-                      className={`min-h-[44px] px-3 rounded-lg font-semibold text-[14px] flex items-center justify-center gap-2 transition-colors ${
-                        hoteType === 'moi'
-                          ? 'bg-[var(--card)] text-[var(--ink)] shadow-sm border border-[var(--border)]'
-                          : 'text-[var(--ink-muted)]'
-                      }`}
-                    >
-                      <IconHome size={17} />
-                      <span>Chez moi</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHoteType('autre');
-                        if (hoteLabel === 'Moi') setHoteLabel('');
-                      }}
-                      className={`min-h-[44px] px-3 rounded-lg font-semibold text-[14px] flex items-center justify-center gap-2 transition-colors ${
-                        hoteType === 'autre'
-                          ? 'bg-[var(--card)] text-[var(--ink)] shadow-sm border border-[var(--border)]'
-                          : 'text-[var(--ink-muted)]'
-                      }`}
-                    >
-                      <span>Chez un proche</span>
-                    </button>
+                      options={[
+                        { id: 'moi', label: 'Chez moi', icone: 'house' },
+                        { id: 'autre', label: 'Chez un proche' },
+                      ]}
+                    />
                   </div>
 
                   {hoteType === 'autre' && (
@@ -574,7 +563,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                             setHoteRefId(undefined);
                           }}
                           placeholder="Ex. Paul & Julie, Mamie Odette…"
-                          className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary)]"
+                          className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
                         />
                       </div>
 
@@ -593,11 +582,11 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                   onClick={() => selectFoyerAsHost(f)}
                                   className={`min-h-[44px] px-3.5 rounded-xl border text-[14px] font-semibold flex items-center gap-2 transition-colors ${
                                     active
-                                      ? 'bg-[var(--surface-active)] border-[var(--primary)] text-[var(--ink)]'
+                                      ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--card)]'
                                       : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink)]'
                                   }`}
                                 >
-                                  <IconHome size={16} className="text-[var(--primary)]" />
+                                  <IconHome size={16} className={active ? '' : 'text-[var(--primary-ink)]'} />
                                   <span>{f.nom}</span>
                                 </button>
                               );
@@ -611,7 +600,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                   onClick={() => selectConviveAsHost(c)}
                                   className={`min-h-[44px] px-3.5 rounded-xl border text-[14px] font-medium transition-colors ${
                                     active
-                                      ? 'bg-[var(--surface-active)] border-[var(--primary)] text-[var(--ink)] font-semibold'
+                                      ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--card)] font-semibold'
                                       : 'bg-[var(--card)] border-[var(--border)] text-[var(--ink)]'
                                   }`}
                                 >
@@ -639,7 +628,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
                     <h2 className="font-display text-[19px] text-[var(--ink)]">Qui vient ?</h2>
-                    <span className="text-[14px] font-semibold text-[var(--primary)] tabular-nums">
+                    <span className="text-[14px] font-semibold text-[var(--primary-ink)] tabular-nums">
                       {selectedGuests.length}{' '}
                       {selectedGuests.length > 1 ? 'sélectionnés' : 'sélectionné'}
                     </span>
@@ -673,7 +662,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       onChange={(e) => setGuestSearch(e.target.value)}
                       placeholder="Filtrer un foyer ou un convive…"
                       aria-label="Filtrer les convives"
-                      className="w-full min-h-[44px] pl-10 pr-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary)]"
+                      className="w-full min-h-[44px] pl-10 pr-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
                     />
                   </div>
 
@@ -698,7 +687,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               disabled={members.length === 0}
                               className={`min-h-[56px] p-2 pr-3.5 rounded-xl border flex items-center justify-between gap-3 text-left transition-colors ${
                                 allSelected
-                                  ? 'bg-[var(--success-bg)] border-[var(--primary)]'
+                                  ? 'bg-[var(--success-bg)] border-[var(--success)]'
                                   : 'bg-[var(--surface-elevated)]/60 border-[var(--border)] hover:bg-[var(--surface-elevated)]'
                               }`}
                             >
@@ -716,7 +705,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               <div
                                 className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 ${
                                   allSelected
-                                    ? 'bg-[var(--primary)] border-[var(--primary)] text-[var(--on-primary)]'
+                                    ? 'bg-[var(--success)] border-[var(--success)] text-[var(--card)]'
                                     : 'border-[var(--outline)] bg-[var(--card)]'
                                 }`}
                                 aria-hidden="true"
@@ -755,7 +744,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               aria-pressed={checked}
                               className={`min-h-[44px] px-3.5 rounded-xl border text-[15px] font-semibold inline-flex items-center gap-2 transition-colors ${
                                 checked
-                                  ? 'bg-[var(--primary)] text-[var(--on-primary)] border-[var(--primary)]'
+                                  ? 'bg-[var(--success)] text-[var(--card)] border-[var(--success)]'
                                   : 'bg-[var(--card)] text-[var(--ink)] border-[var(--border)] hover:bg-[var(--surface-elevated)]'
                               }`}
                             >
@@ -876,7 +865,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                             {constraints.preferences.map(({ tag, guests }) => (
                               <div
                                 key={tag.id}
-                                className="px-3.5 py-2 rounded-xl bg-[var(--warning-bg)] text-[var(--warning)] text-[14px] leading-snug"
+                                className="px-3.5 py-2 rounded-xl bg-[var(--pref-bg)] text-[var(--pref)] text-[14px] leading-snug"
                               >
                                 <span className="font-bold">
                                   Préférence · {tag.libelle}
@@ -997,7 +986,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                 onClick={() => setShowAiSheet(true)}
                 className="min-h-[44px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--ink)] font-semibold text-[14px] inline-flex items-center gap-2 hover:bg-[var(--surface-active)] active:scale-[0.98] transition-transform"
               >
-                <IconPromptExport size={18} className="text-[var(--primary)]" />
+                <IconPromptExport size={18} className="text-[var(--primary-ink)]" />
                 <span>Copier pour une IA</span>
               </button>
             )}
@@ -1018,7 +1007,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] tabular-nums focus:outline-none focus:border-[var(--primary)]"
+                    className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] tabular-nums focus:outline-none focus:border-[var(--primary-ink)]"
                   />
                 </div>
 
@@ -1035,7 +1024,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                     value={titre}
                     onChange={(e) => setTitre(e.target.value)}
                     placeholder="Ex. Noël 2026, Anniversaire…"
-                    className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary)]"
+                    className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
                   />
                 </div>
               </div>
@@ -1090,7 +1079,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                             ? 'border-[var(--error)]'
                             : conflict?.isRecent
                             ? 'border-[var(--warning)]'
-                            : 'border-[var(--border)] focus:border-[var(--primary)]'
+                            : 'border-[var(--border)] focus:border-[var(--primary-ink)]'
                         }`}
                       />
 
@@ -1357,7 +1346,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                   ? 'Ce qui a bien fonctionné, ajustements pour la prochaine fois…'
                   : 'Idées de vins, courses à faire, timing…'
               }
-              className="w-full p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary)]"
+              className="w-full p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
             />
           </div>
         </section>
@@ -1402,7 +1391,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             <button
               type="button"
               onClick={() => handleSubmit('realisee')}
-              className="flex-1 min-h-[48px] px-3 rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-[0.98] transition-transform"
+              className="flex-1 min-h-[48px] px-3 rounded-xl bg-[var(--success)] text-[var(--card)] font-semibold text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-[0.98] transition-transform"
             >
               <IconCheck size={17} />
               <span>Valider réalisée</span>

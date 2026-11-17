@@ -7,25 +7,35 @@
   --duree-chrome: 600ms;
   --courbe-chrome: cubic-bezier(0.33, 0, 0.2, 1);
   --haut-systeme: max(6px, env(safe-area-inset-top));
-  --bg: #F7F6F1;
-  --card: #FEFDFB;
-  --surface-elevated: #F1EEE7;
-  --surface-active: #E7E2D2;
-  --border: #D3D1CA;
-  --outline: #817D71;
-  --ink: #1A263C;
-  --ink-muted: #4D586C;
-  --primary: #007232;
-  --on-primary: #FFFFFF;
-  --success: #007232;
-  --success-bg: #E1F2E6;
-  --warning: #9C6400;
+  /* Clair « Safran + olive » : crème chaude, encre expresso, safran pour l'action. */
+  --bg: #FBF8F3;
+  --card: #FFFFFF;
+  --surface-elevated: #F4EFE7;
+  --surface-active: #E9E1D3;
+  --border: #E8E1D6;
+  --outline: #8A7E70;
+  --ink: #2B2420;
+  --ink-muted: #5E554C;
+  --primary: #F0B429;
+  --on-primary: #2B2420;
+  --primary-ink: #8A5A00;
+  --indic: #FBE3A6;
+  --success: #4E6B1A;
+  --success-bg: #EEF8E2;
+  --pref: #2E5A9C;
+  --pref-bg: #E8EFFA;
+  --warning: #996200;
   --warning-bg: #FBF0DA;
-  --error: #A82E27;
-  --error-bg: #F9E3E0;
+  --error: #B42318;
+  --error-bg: #FDECEA;
+  /* Rouge d'allergie : réservé aux contraintes strictes et aux actions destructrices. */
+  --alerte: #B42318;
+  --on-alerte: #FFFFFF;
+  --ombre: 0 2px 10px rgb(43 36 32 / 0.08);
 }
 
 .dark {
+  /* Sombre « Nuit marine » : safran chaud et olive clair sur bleu nuit. */
   --bg: #0D1624;
   --card: #162131;
   --surface-elevated: #1F2C3F;
@@ -34,14 +44,21 @@
   --outline: #7F8BA0;
   --ink: #F4F2EA;
   --ink-muted: #B4BFCE;
-  --primary: #6EC083;
+  --primary: #F2B93B;
   --on-primary: #0D1624;
-  --success: #6EC083;
-  --success-bg: #163324;
+  --primary-ink: #F2B93B;
+  --indic: #3A3420;
+  --success: #A3DE64;
+  --success-bg: #22301F;
+  --pref: #A8C3F2;
+  --pref-bg: #1D2E4A;
   --warning: #F2C36A;
   --warning-bg: #332711;
   --error: #F38E81;
   --error-bg: #3A1D1D;
+  --alerte: #B42318;
+  --on-alerte: #FFFFFF;
+  --ombre: 0 2px 10px rgb(0 0 0 / 0.35);
 }
 
 html,
@@ -75,7 +92,7 @@ body {
 }
 
 /* Nappe : bande fixe sous la barre d'état, jamais masquée au défilement.
-   Vichy rouge tomate délavé ; reste discret pour garder les icônes lisibles. */
+   Vichy safran ; reste discret pour garder les icônes lisibles. */
 .nappe {
   position: fixed;
   top: 0;
@@ -85,15 +102,22 @@ body {
   z-index: 50;
   background-color: var(--bg);
   background-image:
-    linear-gradient(90deg, rgba(196, 58, 43, 0.22) 50%, transparent 50%),
-    linear-gradient(rgba(196, 58, 43, 0.22) 50%, transparent 50%);
+    linear-gradient(90deg, rgba(240, 180, 41, 0.4) 50%, transparent 50%),
+    linear-gradient(rgba(240, 180, 41, 0.4) 50%, transparent 50%);
   background-size: 8px 8px;
 }
 
 .dark .nappe {
   background-image:
-    linear-gradient(90deg, rgba(150, 40, 50, 0.35) 50%, transparent 50%),
-    linear-gradient(rgba(150, 40, 50, 0.35) 50%, transparent 50%);
+    linear-gradient(90deg, rgba(242, 185, 59, 0.28) 50%, transparent 50%),
+    linear-gradient(rgba(242, 185, 59, 0.28) 50%, transparent 50%);
+}
+
+/* Carte : surface posée sur le fond crème, sans bordure, ombre douce. */
+.carte {
+  background-color: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--ombre);
 }
 
 /* Nappe du bas : même bande, dans la zone de la barre de navigation Android

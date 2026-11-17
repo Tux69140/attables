@@ -86,7 +86,7 @@ export default function App() {
 
       const metaTheme = document.querySelector('meta[name="theme-color"]');
       if (metaTheme) {
-        metaTheme.setAttribute('content', isDark ? '#0D1624' : '#F7F6F1');
+        metaTheme.setAttribute('content', isDark ? '#0D1624' : '#FBF8F3');
       }
 
       signalerThemeAuxBarres(isDark);
@@ -441,13 +441,19 @@ export default function App() {
             type="button"
             onClick={() => setActiveTab('invitations')}
             aria-current={activeTab === 'invitations' ? 'page' : undefined}
-            className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 transition-colors ${
+            className={`min-h-[44px] flex flex-col items-center justify-center gap-1 transition-colors ${
               activeTab === 'invitations'
-                ? 'text-[var(--primary)] font-bold'
+                ? 'text-[var(--primary-ink)] font-bold'
                 : 'text-[var(--ink-muted)] font-semibold'
             }`}
           >
-            <IconCalendar size={22} />
+            <span
+              className={`w-14 h-7 rounded-full flex items-center justify-center transition-colors ${
+                activeTab === 'invitations' ? 'bg-[var(--indic)]' : ''
+              }`}
+            >
+              <IconCalendar size={22} />
+            </span>
             <span className="text-[13px] leading-none">Invitations</span>
           </button>
 
@@ -455,13 +461,19 @@ export default function App() {
             type="button"
             onClick={() => setActiveTab('convives')}
             aria-current={activeTab === 'convives' ? 'page' : undefined}
-            className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 transition-colors ${
+            className={`min-h-[44px] flex flex-col items-center justify-center gap-1 transition-colors ${
               activeTab === 'convives'
-                ? 'text-[var(--primary)] font-bold'
+                ? 'text-[var(--primary-ink)] font-bold'
                 : 'text-[var(--ink-muted)] font-semibold'
             }`}
           >
-            <IconUsers size={22} />
+            <span
+              className={`w-14 h-7 rounded-full flex items-center justify-center transition-colors ${
+                activeTab === 'convives' ? 'bg-[var(--indic)]' : ''
+              }`}
+            >
+              <IconUsers size={22} />
+            </span>
             <span className="text-[13px] leading-none">Convives</span>
           </button>
         </div>
