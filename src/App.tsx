@@ -519,11 +519,11 @@ export default function App() {
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        {/* Titre centré tant que la place suffit (cases latérales de 80 px, comme avant). Quand elle manque (écran étroit,
-            grand texte), la case de gauche se réduit et le titre se décentre ; au pire, les boutons passent sous lui :
-            jamais de débordement ni de chevauchement, et les boutons gardent leurs 44 px. */}
+        {/* Titre exactement centré tant que la place suffit : case gauche de 80 px = case droite nette de 80 px (88 px moins
+            la marge négative). Quand la place manque (grand texte), les boutons passent sous le titre au lieu de déborder ;
+            ils gardent leurs 44 px et ne chevauchent jamais le titre. */}
         <div className="max-w-[1080px] mx-auto px-safe min-h-14 flex flex-wrap items-center gap-x-2">
-          <div aria-hidden="true" className="flex-1 basis-0 max-w-[80px]" />
+          <div aria-hidden="true" className="flex-[0_1_80px]" />
           <div className="flex-auto flex justify-center">
             <button
               type="button"
