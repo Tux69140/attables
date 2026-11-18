@@ -156,38 +156,53 @@ export const BottomSheet: React.FC<{
 };
 
 export const UndoBanner: React.FC<{
-  message: string | null;
+  annonce: { id: string; message: string } | null;
   bottomOffsetClass?: string;
   onUndo: () => void;
   onDismiss: () => void;
-}> = ({ message, bottomOffsetClass = 'bottom-above-bar', onUndo, onDismiss }) => {
-  if (!message) return null;
-
+  onPause: () => void;
+  onReprise: () => void;
+}> = ({ annonce, bottomOffsetClass = 'bottom-above-bar', onUndo, onDismiss, onPause, onReprise }) => {
   return (
-    <div
-      className={`fixed ${bottomOffsetClass} left-4 right-4 z-40 flex justify-center pointer-events-none chrome-mouvement`}
-    >
-      <div className="pointer-events-auto w-full max-w-[600px] bg-[var(--ink)] text-[var(--bg)] rounded-2xl px-4 py-2.5 shadow-xl flex items-center justify-between gap-3 border border-[var(--outline)]/30">
-        <span className="text-[14px] font-medium truncate">{message}</span>
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={onUndo}
-            className="min-h-[44px] px-3.5 rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[14px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
-          >
-            <IconUndo size={16} />
-            <span>Annuler</span>
-          </button>
-          <button
-            type="button"
-            onClick={onDismiss}
-            aria-label="Fermer la notification"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl opacity-80 hover:opacity-100"
-          >
-            <IconClose size={18} />
-          </button>
-        </div>
+    <>
+      {/* Toujours dans le DOM : une zone vivante n'est annoncée que si elle existe avant son contenu.
+          La clé recrée le message, donc deux messages identiques sont annoncés deux fois. */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {annonce && <span key={annonce.id}>{annonce.message}</span>}
       </div>
-    </div>
+      {annonce && (
+        <div
+          className={`fixed ${bottomOffsetClass} left-4 right-4 z-40 flex justify-center pointer-events-none chrome-mouvement`}
+        >
+          <div
+            onFocus={onPause}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onReprise();
+            }}
+            className="pointer-events-auto w-full max-w-[600px] bg-[var(--ink)] text-[var(--bg)] rounded-2xl px-4 py-2.5 shadow-xl flex items-center justify-between gap-3 border border-[var(--outline)]/30"
+          >
+            <span className="text-[14px] font-medium">{annonce.message}</span>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={onUndo}
+                className="min-h-[44px] px-3.5 rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[14px] flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
+              >
+                <IconUndo size={16} />
+                <span>Annuler</span>
+              </button>
+              <button
+                type="button"
+                onClick={onDismiss}
+                aria-label="Fermer la notification"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl opacity-80 hover:opacity-100"
+              >
+                <IconClose size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

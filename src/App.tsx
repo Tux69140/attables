@@ -120,20 +120,39 @@ export default function App() {
     }
   }, [data.settings.theme]);
 
-  const showUndo = useCallback((message: string, previousSnapshot: AppData) => {
+  const DELAI_ANNULATION_MS = 7000;
+
+  const armerMinuteurUndo = useCallback(() => {
     if (undoTimerRef.current) {
       window.clearTimeout(undoTimerRef.current);
     }
+    undoTimerRef.current = window.setTimeout(() => {
+      setUndoState(null);
+      undoTimerRef.current = null;
+    }, DELAI_ANNULATION_MS);
+  }, []);
+
+  const showUndo = useCallback((message: string, previousSnapshot: AppData) => {
     setUndoState({
       id: String(Date.now()),
       message,
       snapshot: previousSnapshot,
     });
-    undoTimerRef.current = window.setTimeout(() => {
-      setUndoState(null);
+    armerMinuteurUndo();
+  }, [armerMinuteurUndo]);
+
+  // Le focus entre dans le bandeau : le minuteur s'arrête (WCAG 2.2.1).
+  const pauseUndo = useCallback(() => {
+    if (undoTimerRef.current) {
+      window.clearTimeout(undoTimerRef.current);
       undoTimerRef.current = null;
-    }, 7000);
+    }
   }, []);
+
+  // Le focus en sort : un délai complet repart, si le bandeau est toujours là.
+  const repriseUndo = useCallback(() => {
+    if (undoState) armerMinuteurUndo();
+  }, [undoState, armerMinuteurUndo]);
 
   const handleUndo = useCallback(() => {
     if (!undoState) return;
@@ -394,67 +413,54 @@ export default function App() {
     );
   }
 
-  // Full-screen Editor view
-  if (editorTarget) {
-    return (
-      <>
-        <InvitationEditor
-          existing={editorTarget.mode === 'edit' ? editorTarget.invitation : undefined}
-          initialDraft={editorTarget.mode === 'new' ? editorTarget.draft : undefined}
-          allInvitations={data.invitations}
-          foyers={data.foyers}
-          convives={data.convives}
-          convivesById={convivesById}
-          contraintesById={contraintesById}
-          prescriptionMois={data.settings.prescriptionMois}
-          plats={data.plats}
-          onDemanderNouveauConvive={demanderNouveauConvive}
-          onSave={handleSaveInvitation}
-          onReinvite={handleReinvite}
-          onDelete={handleDeleteInvitation}
-          onCancel={() => setEditorTarget(null)}
-        />
-        {feuilleAjouter}
-        <UndoBanner
-          message={undoState?.message ?? null}
-          onUndo={handleUndo}
-          onDismiss={dismissUndo}
-        />
-      </>
-    );
-  }
+  // Vue plein écran de l'éditeur
+  const vueEditeur = editorTarget && (
+    <>
+      <InvitationEditor
+        existing={editorTarget.mode === 'edit' ? editorTarget.invitation : undefined}
+        initialDraft={editorTarget.mode === 'new' ? editorTarget.draft : undefined}
+        allInvitations={data.invitations}
+        foyers={data.foyers}
+        convives={data.convives}
+        convivesById={convivesById}
+        contraintesById={contraintesById}
+        prescriptionMois={data.settings.prescriptionMois}
+        plats={data.plats}
+        onDemanderNouveauConvive={demanderNouveauConvive}
+        onSave={handleSaveInvitation}
+        onReinvite={handleReinvite}
+        onDelete={handleDeleteInvitation}
+        onCancel={() => setEditorTarget(null)}
+      />
+      {feuilleAjouter}
+    </>
+  );
 
-  // Full-screen Settings view
-  if (settingsOpen) {
-    return (
-      <>
-        <SettingsScreen
-          data={data}
-          onChangeTheme={handleChangeTheme}
-          onChangePrescriptionMois={handleChangePrescriptionMois}
-          onSaveTag={handleSaveTag}
-          onDeleteTag={handleDeleteTag}
-          onRestoreBackup={handleRestoreBackup}
-          onClearAllData={handleClearAllData}
-          onResetSampleData={handleResetSampleData}
-          resteDesExemples={resteDesExemples(data)}
-          onEffacerExemples={handleEffacerExemples}
-          onRevoirPresentation={() => {
-            setSettingsOpen(false);
-            setRevoirAccueil(true);
-          }}
-          onClose={() => setSettingsOpen(false)}
-        />
-        <UndoBanner
-          message={undoState?.message ?? null}
-          onUndo={handleUndo}
-          onDismiss={dismissUndo}
-        />
-      </>
-    );
-  }
+  // Vue plein écran des Réglages
+  const vueReglages = settingsOpen && (
+    <>
+      <SettingsScreen
+        data={data}
+        onChangeTheme={handleChangeTheme}
+        onChangePrescriptionMois={handleChangePrescriptionMois}
+        onSaveTag={handleSaveTag}
+        onDeleteTag={handleDeleteTag}
+        onRestoreBackup={handleRestoreBackup}
+        onClearAllData={handleClearAllData}
+        onResetSampleData={handleResetSampleData}
+        resteDesExemples={resteDesExemples(data)}
+        onEffacerExemples={handleEffacerExemples}
+        onRevoirPresentation={() => {
+          setSettingsOpen(false);
+          setRevoirAccueil(true);
+        }}
+        onClose={() => setSettingsOpen(false)}
+      />
+    </>
+  );
 
-  return (
+  // Vue à onglets
+  const vueOnglets = (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)] flex flex-col">
       {/* Compact Android Top Bar */}
       <header
@@ -593,14 +599,27 @@ export default function App() {
           ))}
         </div>
       </nav>
+    </div>
+  );
 
-      {/* Temporary Undo Banner positioned cleanly above floating CTAs */}
+  // Un seul bandeau « Annuler », monté quelle que soit la vue : sa zone d'annonce
+  // reste dans le DOM, donc le message est annoncé même quand la vue change dans le même geste.
+  const annonce = undoState && { id: undoState.id, message: undoState.message };
+  const decalageBandeau = editorTarget || settingsOpen
+    ? undefined
+    : chromeVisible ? 'bottom-above-fab' : 'bottom-safe-gap';
+
+  return (
+    <>
+      {editorTarget ? vueEditeur : settingsOpen ? vueReglages : vueOnglets}
       <UndoBanner
-        message={undoState?.message ?? null}
-        bottomOffsetClass={chromeVisible ? 'bottom-above-fab' : 'bottom-safe-gap'}
+        annonce={annonce}
+        bottomOffsetClass={decalageBandeau}
         onUndo={handleUndo}
         onDismiss={dismissUndo}
+        onPause={pauseUndo}
+        onReprise={repriseUndo}
       />
-    </div>
+    </>
   );
 }

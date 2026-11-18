@@ -46,7 +46,7 @@ Le guide complet Android/Debian (SDK/NDK, icônes, keystore, tag, `fdroid build`
 
 **Données d'exemple** (`src/utils/exemples.ts`) : reconnues par leurs identifiants fixes (`createSampleData`) ; `resteDesExemples` affiche le bandeau d'invitation à les effacer, `effacerExemples` les retire sans toucher aux données de l'utilisateur (avec annulation).
 
-**Annulation** : les actions destructrices (suppression, passage en réalisée, restauration, reset) capturent le `data` précédent comme snapshot et appellent `showUndo(message, snapshot)` ; le bandeau `UndoBanner` restaure le snapshot pendant 7 s. Les nouvelles actions destructrices doivent suivre ce schéma.
+**Annulation** : les actions destructrices (suppression, passage en réalisée, restauration, reset) capturent le `data` précédent comme snapshot et appellent `showUndo(message, snapshot)` ; le bandeau `UndoBanner` restaure le snapshot pendant 7 s. Un seul `UndoBanner`, monté par `App` quelle que soit la vue ; sa zone `role="status"` reste dans le DOM ; le minuteur s'arrête tant que le focus est dans le bandeau. Les nouvelles actions destructrices doivent suivre ce schéma.
 
 **Logique métier** (`src/utils/dishes.ts`, fonctions pures) :
 - Seules les invitations `statut === 'realisee'` alimentent la mémoire des plats servis (`getDishesServedToGuests`).
