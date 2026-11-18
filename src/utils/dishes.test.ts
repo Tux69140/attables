@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Invitation, MenuCourses, PlatFiche } from '../types/models';
-import { getDishSuggestions } from './dishes';
+import { getDishSuggestions, getElapsedTimeInfo } from './dishes';
 
 const inv = (id: string, menu: MenuCourses, statut: Invitation['statut'] = 'realisee'): Invitation => ({
   id,
@@ -36,4 +36,17 @@ test('pas de doublon fiche / invitation', () => {
   const res = getDishSuggestions(invitations, 'mousse', 'dessert', [mousse]);
   assert.equal(res.length, 1);
   assert.equal(res[0].idee, false);
+});
+
+test('getElapsedTimeInfo compte les jours civils malgré le passage à l’heure d’été', () => {
+  const tz = process.env.TZ;
+  process.env.TZ = 'Europe/Paris';
+  try {
+    assert.equal(getElapsedTimeInfo('2026-03-28', '2026-03-30').daysAgo, 2);
+    assert.equal(getElapsedTimeInfo('2026-03-29', '2026-03-30').label, 'il y a 1 jour');
+    assert.equal(getElapsedTimeInfo('2026-10-24', '2026-10-26').daysAgo, 2);
+  } finally {
+    if (tz === undefined) delete process.env.TZ;
+    else process.env.TZ = tz;
+  }
 });

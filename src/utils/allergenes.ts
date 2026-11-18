@@ -135,9 +135,17 @@ export function choixAllergenes(contraintes: ContrainteTag[]): {
   };
 }
 
-/** Pictogramme d'une contrainte : choisi, sinon celui de son unique allergène lié, sinon l'étiquette. */
+/** Pictogrammes par défaut des contraintes de départ sans allergène lié. */
+const ICONE_PAR_DEFAUT: Partial<Record<string, NomIcone>> = {
+  'tag-vegetarien': 'leaf',
+  'tag-vegan': 'sprout',
+};
+
+/** Pictogramme d'une contrainte : choisi, sinon celui par défaut de son identifiant, sinon celui de son unique allergène lié, sinon l'étiquette. */
 export function iconeContrainte(tag: ContrainteTag): NomIcone {
   if (tag.icone) return tag.icone;
+  const parDefaut = ICONE_PAR_DEFAUT[tag.id];
+  if (parDefaut) return parDefaut;
   if (tag.allergenes.length === 1) {
     const lie = ALLERGENES.find((a) => a.id === tag.allergenes[0]);
     if (lie) return lie.icone;

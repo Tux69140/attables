@@ -11,7 +11,7 @@ function jourUtc(dateIso: string): number {
   return Date.UTC(y, m - 1, d);
 }
 
-const ecartJours = (dateIso: string, aujourdHui: string): number =>
+export const ecartJours = (dateIso: string, aujourdHui: string): number =>
   Math.round((jourUtc(dateIso) - jourUtc(aujourdHui)) / 86_400_000);
 
 /** « aujourd’hui », « demain », « dans 11 jours », « hier », « il y a 2 jours ». */

@@ -80,7 +80,7 @@ test('choixAllergenes', () => {
 test('iconeContrainte', () => {
   assert.equal(iconeContrainte({ ...coriandre, icone: 'ail' }), 'ail');
   assert.equal(iconeContrainte(parId.get('tag-arachides')!), 'arachide');
-  assert.equal(iconeContrainte(parId.get('tag-vegetarien')!), 'tag');
+  assert.equal(iconeContrainte(parId.get('tag-vegetarien')!), 'leaf');
   assert.equal(iconeContrainte(coriandre), 'tag');
 });
 
@@ -95,4 +95,13 @@ test('resumeAllergiesStrictes : deux premières puis le reste', () => {
     reste: 2,
   });
   assert.deepEqual(resumeAllergiesStrictes(strict.slice(0, 1)), { texte: 'Arachides (Léa)', reste: 0 });
+});
+
+test('Végétarien et Végan ont un pictogramme par défaut, l’icône choisie l’emporte', () => {
+  const defaut = getDefaultContraintes();
+  const vege = defaut.find((t) => t.id === 'tag-vegetarien')!;
+  const vegan = defaut.find((t) => t.id === 'tag-vegan')!;
+  assert.equal(iconeContrainte(vege), 'leaf');
+  assert.equal(iconeContrainte(vegan), 'sprout');
+  assert.equal(iconeContrainte({ ...vegan, icone: 'carrot' }), 'carrot');
 });

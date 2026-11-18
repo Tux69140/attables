@@ -10,6 +10,7 @@ import {
   MenuCourses,
   PlatFiche,
 } from '../types/models';
+import { ecartJours } from './dates';
 
 /**
  * Forces a capital letter at the start of the dish name while preserving
@@ -99,8 +100,7 @@ export function getElapsedTimeInfo(dateIso: string, aujourdHui: string = getToda
   const [ay, am, ad] = aujourdHui.split('-').map(Number);
   const today = new Date(ay, am - 1, ad);
 
-  const diffMs = today.getTime() - target.getTime();
-  const daysAgo = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+  const daysAgo = Math.max(0, -ecartJours(dateIso, aujourdHui));
 
   let monthsAgo =
     (today.getFullYear() - target.getFullYear()) * 12 +
