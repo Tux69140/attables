@@ -24,23 +24,42 @@ export function creerPileRetour(historique: HistoriqueMinimal) {
   // Couches ouvertes pendant qu'un de nos `back()` est en cours : leur entrée attend qu'il
   // soit fait, sinon ce recul tomberait sur elle et désalignerait l'historique.
   let enAttente: string[] = [];
+  // Couches fermées par l'interface alors que leur entrée n'était pas la dernière (une couche fermée
+  // en même temps qu'une autre, ex. éditeur et confirmation de suppression). Leur entrée est encore
+  // dans l'historique : on la retire dès que le recul qui la découvre est fait.
+  const orphelines = new Set<string>();
 
   const pousser = (id: string) => {
     const etat = historique.state && typeof historique.state === 'object' ? historique.state : {};
     historique.pushState({ ...etat, attablesLayerId: id }, '');
   };
 
+  const idCourant = () => (historique.state as { attablesLayerId?: string } | null)?.attablesLayerId;
+
+  // Si l'entrée courante est celle d'une couche déjà fermée, on recule encore.
+  function purgerOrpheline(): void {
+    const id = idCourant();
+    if (id !== undefined && orphelines.delete(id)) {
+      retoursIgnores += 1;
+      historique.back();
+    }
+  }
+
   function surPopState(): void {
     if (retoursIgnores > 0) {
       retoursIgnores -= 1;
       if (retoursIgnores === 0) {
-        const ids = enAttente;
-        enAttente = [];
-        ids.forEach(pousser);
+        purgerOrpheline();
+        if (retoursIgnores === 0) {
+          const ids = enAttente;
+          enAttente = [];
+          ids.forEach(pousser);
+        }
       }
       return;
     }
     pile.pop()?.onBack();
+    if (retoursIgnores === 0) purgerOrpheline();
   }
 
   function empiler(onBack: () => void): string {
@@ -59,10 +78,12 @@ export function creerPileRetour(historique: HistoriqueMinimal) {
       enAttente = enAttente.filter((x) => x !== id); // jamais entrée dans l'historique
       return;
     }
-    const etat = historique.state as { attablesLayerId?: string } | null;
-    if (etat?.attablesLayerId === id) {
+    const courant = idCourant();
+    if (courant === id) {
       retoursIgnores += 1;
       historique.back();
+    } else if (courant !== undefined) {
+      orphelines.add(id);
     }
   }
 

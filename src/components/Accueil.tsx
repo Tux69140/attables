@@ -89,19 +89,39 @@ export const Accueil: React.FC<{
   onCommencer: () => void;
   onVisiter: () => void;
   onFermer: () => void;
-}> = ({ carnetVide, onCommencer, onVisiter, onFermer }) => {
+  /** « Revoir la présentation » : Retour sur l'écran 1 revient aux Réglages. Absent au premier lancement (Retour quitte l'appli). */
+  onRetourDebut?: () => void;
+}> = ({ carnetVide, onCommencer, onVisiter, onFermer, onRetourDebut }) => {
   const piste = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const titres = useRef<(HTMLHeadingElement | null)[]>([]);
 
-  // Le focus suit l'écran courant : son titre, sans faire défiler la piste.
+  // Écran visé par un défilement lancé par `aller` et pas encore atteint (null = aucun).
+  const cible = useRef<number | null>(null);
+  const delaiCible = useRef<number | undefined>(undefined);
+  const lacherCible = () => {
+    window.clearTimeout(delaiCible.current);
+    cible.current = null;
+  };
+  useEffect(() => lacherCible, []);
+
+  // Le focus suit l'écran courant : son titre, sans faire défiler la piste. Si le focus est déjà
+  // dans cet écran (Tab vers un écran hors champ, qui a fait défiler la piste), on n'y touche pas.
   useEffect(() => {
-    titres.current[index]?.focus({ preventScroll: true });
+    const titre = titres.current[index];
+    if (!titre) return;
+    const actif = document.activeElement;
+    if (actif && actif !== document.body && titre.closest('section')?.contains(actif)) return;
+    titre.focus({ preventScroll: true });
   }, [index]);
 
   const aller = (i: number) => {
     const el = piste.current;
     if (!el) return;
+    // Pendant le défilement lissé, les écrans intermédiaires ne doivent ni changer `index` ni prendre le focus.
+    window.clearTimeout(delaiCible.current);
+    cible.current = i;
+    delaiCible.current = window.setTimeout(lacherCible, 1000);
     const reduit = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     el.scrollTo({ left: i * el.clientWidth, behavior: reduit ? 'auto' : 'smooth' });
     setIndex(i);
@@ -111,13 +131,21 @@ export const Accueil: React.FC<{
     const el = piste.current;
     if (!el || el.clientWidth === 0) return;
     const i = Math.round(el.scrollLeft / el.clientWidth);
+    if (cible.current !== null) {
+      if (i === cible.current) lacherCible();
+      return;
+    }
     if (i !== index) setIndex(i);
   };
 
   return (
     <div className="fixed inset-0 z-[70] bg-[var(--bg)] text-[var(--ink)] flex flex-col pt-safe">
       <div className="nappe" aria-hidden="true" />
-      {index > 0 && <CoucheRetour key={index} onRetour={() => aller(index - 1)} />}
+      {index > 0 ? (
+        <CoucheRetour key={index} onRetour={() => aller(index - 1)} />
+      ) : (
+        onRetourDebut && <CoucheRetour key="debut" onRetour={onRetourDebut} />
+      )}
       <div className="h-14 shrink-0 max-w-[560px] w-full mx-auto px-safe flex items-center justify-end">
         {index < 2 && (
           <button
@@ -133,6 +161,7 @@ export const Accueil: React.FC<{
       <div
         ref={piste}
         onScroll={surDefilement}
+        onPointerDown={lacherCible}
         className="flex-1 flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory [scrollbar-width:none]"
         aria-roledescription="carrousel"
       >

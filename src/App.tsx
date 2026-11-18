@@ -136,6 +136,11 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // Plus d'invitation : la recherche n'a plus d'objet, la loupe disparaît (et son entrée d'historique avec elle).
+  useEffect(() => {
+    if (data.invitations.length === 0) setRecherche(null);
+  }, [data.invitations.length]);
+
   // Persist every data update locally
   useEffect(() => {
     saveAppData(data);
@@ -459,6 +464,14 @@ export default function App() {
           setData(marquerVu);
           setRevoirAccueil(false);
         }}
+        onRetourDebut={
+          revoirAccueil
+            ? () => {
+                setRevoirAccueil(false);
+                ouvrirVue('reglages');
+              }
+            : undefined
+        }
       />
     );
   }
