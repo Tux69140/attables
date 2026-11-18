@@ -188,3 +188,27 @@ test('une couche ouverte pendant la purge des entrées orphelines garde une entr
   assert.deepEqual(fermetures, ['c', 'base']);
   assert.equal(h.historique.state, null);
 });
+
+test('Retour utilisateur avec une orpheline sous la couche du dessus', async () => {
+  const h = fauxHistorique();
+  const pile = creerPileRetour(h.historique);
+  h.brancher(pile.surPopState);
+  const fermetures: string[] = [];
+  pile.empiler(() => fermetures.push('base'));
+  const milieu = pile.empiler(() => fermetures.push('milieu'));
+  pile.empiler(() => fermetures.push('dessus'));
+  await h.attendre();
+
+  pile.retirer(milieu); // fermée par l'interface alors qu'elle n'est pas au sommet : entrée orpheline
+  await h.attendre();
+  assert.deepEqual(fermetures, []);
+
+  h.historique.back(); // Retour utilisateur : ferme « dessus » seulement
+  await h.attendre();
+  assert.deepEqual(fermetures, ['dessus']);
+
+  h.historique.back(); // un seul Retour par couche visible : pas de Retour mort sur l'orpheline
+  await h.attendre();
+  assert.deepEqual(fermetures, ['dessus', 'base']);
+  assert.equal(h.historique.state, null);
+});
