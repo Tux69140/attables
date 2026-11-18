@@ -97,7 +97,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   const isFrozen = isRealisee && !unlockedEdit;
 
   const [date, setDate] = useState(source?.date ?? getTodayIso());
-  const chromeVisible = useAutoHideChrome(existing?.id ?? (initialDraft ? 'reinvite' : 'new'));
+  const { visible: chromeVisible } = useAutoHideChrome(existing?.id ?? (initialDraft ? 'reinvite' : 'new'));
   const [titre, setTitre] = useState(source?.titre ?? '');
   const [note, setNote] = useState(source?.note ?? '');
   const [hoteType, setHoteType] = useState<HoteType>(source?.hoteType ?? 'moi');

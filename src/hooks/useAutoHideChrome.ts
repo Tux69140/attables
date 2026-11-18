@@ -1,17 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Retracts top/bottom chrome when scrolling down and reveals it on a slight scroll up.
+ * `recaler()` force les barres visibles et prend le défilement actuel comme référence
+ * (à appeler après avoir restauré un défilement).
  */
-export function useAutoHideChrome(resetKey?: string | number | boolean): boolean {
+export function useAutoHideChrome(
+  resetKey?: string | number | boolean
+): { visible: boolean; recaler: () => void } {
   const [visible, setVisible] = useState(true);
   const lastYRef = useRef(0);
   const tickingRef = useRef(false);
 
-  useEffect(() => {
+  const recaler = useCallback(() => {
     setVisible(true);
     lastYRef.current = typeof window !== 'undefined' ? window.scrollY : 0;
-  }, [resetKey]);
+  }, []);
+
+  useEffect(() => {
+    recaler();
+  }, [resetKey, recaler]);
 
   useEffect(() => {
     lastYRef.current = window.scrollY;
@@ -43,5 +51,5 @@ export function useAutoHideChrome(resetKey?: string | number | boolean): boolean
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  return visible;
+  return { visible, recaler };
 }

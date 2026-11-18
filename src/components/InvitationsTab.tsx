@@ -3,7 +3,7 @@
  * Copyright (C) 2026 Stéphane MICHEL <stephane@biovibralyon.fr>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { COURSE_KEYS, ContrainteTag, Convive, Invitation, PlatFiche } from '../types/models';
 import { trierAVenir } from '../utils/dates';
@@ -60,6 +60,15 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   const [hote, setHote] = useState<Hote>('tous');
   const aujourdHui = getTodayIso();
   useAndroidBack(recherche !== null, () => onRecherche(null));
+
+  // Le champ ne prend le focus qu'à l'ouverture par la loupe (null → ''), jamais au remontage
+  // (retour de l'éditeur : le focus revient à la carte, sans clavier).
+  const champRecherche = useRef<HTMLInputElement>(null);
+  const recherchePrecedente = useRef(recherche);
+  useEffect(() => {
+    if (recherchePrecedente.current === null && recherche === '') champRecherche.current?.focus();
+    recherchePrecedente.current = recherche;
+  }, [recherche]);
 
   const q = normalizeForCompare(recherche ?? '');
 
@@ -137,7 +146,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
           <input
             type="text"
             enterKeyHint="search"
-            autoFocus
+            ref={champRecherche}
             value={recherche}
             onChange={(e) => onRecherche(e.target.value)}
             placeholder="Un titre, un plat ou un convive…"
@@ -222,6 +231,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
             <button
               type="button"
               tabIndex={chromeVisible ? 0 : -1}
+              data-focus-cle="preparer-invitation"
               onClick={onOpenNew}
               className={`${
                 chromeVisible ? 'pointer-events-auto' : 'pointer-events-none'

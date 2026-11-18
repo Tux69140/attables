@@ -3,7 +3,7 @@
  * Copyright (C) 2026 Stéphane MICHEL <stephane@biovibralyon.fr>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { signalerThemeAuxBarres } from './services/barresSysteme';
 import { Accueil } from './components/Accueil';
 import { BandeauExemples } from './components/BandeauExemples';
@@ -18,6 +18,7 @@ import { SettingsScreen } from './components/SettingsModal';
 import { UndoBanner } from './components/SharedUI';
 import { useAndroidBack } from './hooks/useAndroidBack';
 import { useAutoHideChrome } from './hooks/useAutoHideChrome';
+import { memoriserCleFocus, rendreFocus } from './hooks/focusVues';
 import {
   createEmptyData,
   createSampleData,
@@ -44,16 +45,23 @@ import {
 
 type MainTab = 'invitations' | 'convives' | 'plats';
 
+type CibleEditeur =
+  | { mode: 'new'; draft?: Partial<Invitation> }
+  | { mode: 'edit'; invitation: Invitation };
+
+/** Où l'on était sur les onglets avant d'ouvrir l'éditeur ou les Réglages. */
+interface PlaceMemorisee {
+  onglet: MainTab;
+  y: number;
+  cle: string | null;
+}
+
 export default function App() {
   const [data, setData] = useState<AppData>(() => loadAppData());
   const [activeTab, setActiveTab] = useState<MainTab>('invitations');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [bandeauMasque, setBandeauMasque] = useState(false);
-  const [editorTarget, setEditorTarget] = useState<
-    | { mode: 'new'; draft?: Partial<Invitation> }
-    | { mode: 'edit'; invitation: Invitation }
-    | null
-  >(null);
+  const [editorTarget, setEditorTarget] = useState<CibleEditeur | null>(null);
 
   const [undoState, setUndoState] = useState<UndoActionState | null>(null);
   const [ajout, setAjout] = useState<EtatAjout>(null);
@@ -65,13 +73,47 @@ export default function App() {
   // Thème sombre effectif (réglage, ou système en mode « Appareil ») : teintes calculées en JS.
   const [sombre, setSombre] = useState(false);
   const undoTimerRef = useRef<number | null>(null);
-  const chromeVisible = useAutoHideChrome(
+  const { visible: chromeVisible, recaler } = useAutoHideChrome(
     `${activeTab}-${Boolean(editorTarget)}-${settingsOpen}`
   );
+  const placeRef = useRef<PlaceMemorisee | null>(null);
+  const vueOuverte = Boolean(editorTarget) || settingsOpen;
+  const accueilAffiche = !data.settings.accueilVu || revoirAccueil;
 
+  // Le défilement est restauré à la main : le navigateur ne doit pas s'en mêler.
+  useEffect(() => {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  }, []);
+
+  // Changer d'onglet repart du haut (le retour de l'éditeur ou des Réglages restaure la place, ci-dessous).
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [activeTab, settingsOpen]);
+  }, [activeTab]);
+
+  // Ouvre l'éditeur ou les Réglages en mémorisant la place sur les onglets. Si une vue plein écran
+  // est déjà ouverte (« Réinviter » depuis l'éditeur), la mémoire prise à la sortie de la liste est gardée.
+  const ouvrirVue = (vue: CibleEditeur | 'reglages') => {
+    if (!vueOuverte) {
+      placeRef.current = { onglet: activeTab, y: window.scrollY, cle: memoriserCleFocus() };
+    }
+    window.scrollTo(0, 0);
+    if (vue === 'reglages') setSettingsOpen(true);
+    else setEditorTarget(vue);
+  };
+
+  // Retour sur les onglets, quelle qu'en soit la cause : place, barres, puis focus.
+  useLayoutEffect(() => {
+    if (vueOuverte) return;
+    const place = placeRef.current;
+    if (!place) return;
+    placeRef.current = null;
+    // La présentation reprend la main (« Revoir la présentation ») ou l'onglet a changé : rien à restaurer.
+    if (accueilAffiche || place.onglet !== activeTab) return;
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo(0, Math.min(place.y, max));
+    recaler();
+    rendreFocus(place.cle);
+  }, [vueOuverte]);
 
   useAndroidBack(
     activeTab !== 'invitations' && !editorTarget && !settingsOpen,
@@ -216,7 +258,7 @@ export default function App() {
   };
 
   const handleReinvite = (inv: Invitation) => {
-    setEditorTarget({
+    ouvrirVue({
       mode: 'new',
       draft: {
         date: getTodayIso(),
@@ -227,7 +269,6 @@ export default function App() {
         convivesIds: [...inv.convivesIds],
       },
     });
-    window.scrollTo({ top: 0 });
   };
 
   // Foyer handlers
@@ -349,7 +390,7 @@ export default function App() {
   };
 
   const handlePreparerAvecPlat = (libelle: string, course: CourseKey) => {
-    setEditorTarget({ mode: 'new', draft: { menu: { [course]: libelle } } });
+    ouvrirVue({ mode: 'new', draft: { menu: { [course]: libelle } } });
   };
 
   const handleEffacerExemples = () => {
@@ -384,7 +425,7 @@ export default function App() {
   );
 
   // Présentation : nouvelle installation, ou revue depuis les Réglages
-  if (!data.settings.accueilVu || revoirAccueil) {
+  if (accueilAffiche) {
     const marquerVu = (prev: AppData): AppData => ({ ...prev, settings: { ...prev.settings, accueilVu: true } });
     return (
       <Accueil
@@ -492,7 +533,8 @@ export default function App() {
             )}
             <button
               type="button"
-              onClick={() => setSettingsOpen(true)}
+              data-focus-cle="reglages"
+              onClick={() => ouvrirVue('reglages')}
               aria-label="Réglages"
               className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink)] hover:bg-[var(--surface-elevated)] active:scale-95 transition-transform"
             >
@@ -520,8 +562,8 @@ export default function App() {
             chromeVisible={chromeVisible}
             recherche={recherche}
             onRecherche={setRecherche}
-            onOpenNew={() => setEditorTarget({ mode: 'new' })}
-            onOpenEdit={(invitation) => setEditorTarget({ mode: 'edit', invitation })}
+            onOpenNew={() => ouvrirVue({ mode: 'new' })}
+            onOpenEdit={(invitation) => ouvrirVue({ mode: 'edit', invitation })}
             onMarkRealisee={handleMarkRealisee}
             parcours={etatParcours(data)}
             resumeProches={resumeProches(data)}

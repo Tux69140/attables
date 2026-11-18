@@ -88,7 +88,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onClose,
 }) => {
   const [section, setSection] = useState<SettingsSection>('root');
-  const chromeVisible = useAutoHideChrome(`settings-${section}`);
+  const { visible: chromeVisible } = useAutoHideChrome(`settings-${section}`);
 
   const [newTagLabel, setNewTagLabel] = useState('');
   const [newTagNiveau, setNewTagNiveau] = useState<ContrainteNiveau>('strict');

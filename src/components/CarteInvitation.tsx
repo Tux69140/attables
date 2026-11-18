@@ -54,6 +54,7 @@ export const CarteInvitation: React.FC<{
     <article className="carte overflow-hidden">
       <button
         type="button"
+        data-focus-cle={`inv-${inv.id}`}
         onClick={onOuvrir}
         className="w-full text-left flex flex-col focus-visible:outline-2 focus-visible:outline-[var(--primary-ink)] active:bg-[var(--surface-active)]/40 transition-colors"
       >
@@ -136,6 +137,7 @@ export const CarteRealisee: React.FC<{
   return (
     <button
       type="button"
+      data-focus-cle={`inv-${inv.id}`}
       onClick={onOuvrir}
       className="carte w-full text-left px-4 py-3 flex items-center gap-3 focus-visible:outline-2 focus-visible:outline-[var(--primary-ink)] active:bg-[var(--surface-active)]/40 transition-colors"
     >
