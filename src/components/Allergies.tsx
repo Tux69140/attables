@@ -27,9 +27,9 @@ export const BandeauAllergies: React.FC<{
       type="button"
       onClick={onToucher}
       style={{ top: enteteVisible ? 'calc(3.5rem + var(--haut-systeme))' : 'var(--haut-systeme)' }}
-      className="sticky z-20 -mx-4 px-4 py-2 bg-[var(--alerte)] text-[var(--on-alerte)] text-[14px] font-bold text-left flex items-start gap-2 shadow-md chrome-mouvement"
+      className="sticky z-20 -mx-4 px-4 py-2 min-h-[44px] bg-[var(--alerte)] text-[var(--on-alerte)] text-[14px] font-bold text-left flex items-center gap-2 shadow-md chrome-mouvement"
     >
-      <IconAlert size={17} className="shrink-0 mt-px" />
+      <IconAlert size={17} className="shrink-0" />
       <span className="sr-only">Allergies strictes : </span>
       <span className="leading-snug">
         {strict.map(({ tag, guests }) => `${tag.libelle} — ${prenoms(guests)}`).join(' · ')}

@@ -98,7 +98,7 @@ export function Puces<T extends string>({
             type="button"
             aria-pressed={choisie}
             onClick={() => onChange(option.id)}
-            className={`min-h-[40px] px-3.5 rounded-full border text-[14px] font-semibold flex items-center gap-1.5 transition-colors ${
+            className={`min-h-[44px] px-3.5 rounded-full border text-[14px] font-semibold flex items-center gap-1.5 transition-colors ${
               choisie
                 ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--card)]'
                 : 'bg-[var(--card)] border-[var(--border)] text-[var(--ink)]'

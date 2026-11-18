@@ -88,7 +88,7 @@ export const FichePlat: React.FC<{
               <button
                 type="button"
                 onClick={onAllergenes}
-                className="min-h-[40px] px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)]"
+                className="min-h-[44px] px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)]"
               >
                 {plat.allergenes.length > 0 ? 'Modifier' : 'Renseigner'}
               </button>

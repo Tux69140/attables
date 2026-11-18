@@ -90,7 +90,7 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
               <button
                 type="button"
                 onClick={() => onOuvrirPlat(proche.cle)}
-                className="min-h-[36px] font-semibold text-[var(--primary-ink)] underline underline-offset-2"
+                className="relative min-h-[36px] font-semibold text-[var(--primary-ink)] underline underline-offset-2 after:absolute after:-inset-y-1 after:inset-x-0 after:content-['']"
               >
                 Voir ce plat
               </button>
@@ -110,7 +110,7 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
                 type="button"
                 aria-pressed={choisi}
                 onClick={() => basculer(k)}
-                className={`min-h-[40px] px-3.5 rounded-full border text-[14px] font-semibold flex items-center gap-1.5 transition-colors ${
+                className={`min-h-[44px] px-3.5 rounded-full border text-[14px] font-semibold flex items-center gap-1.5 transition-colors ${
                   choisi
                     ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--card)]'
                     : 'bg-[var(--card)] border-[var(--border)] text-[var(--ink)]'

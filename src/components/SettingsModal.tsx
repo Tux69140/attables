@@ -232,7 +232,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <button
                 type="button"
                 onClick={() => toggleTagNiveau(tag)}
-                className={`min-h-[34px] px-2.5 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
+                className={`min-h-[44px] px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
                   isStrict ? 'bg-[var(--error-bg)] text-[var(--error)]' : 'bg-[var(--pref-bg)] text-[var(--pref)]'
                 }`}
                 title="Appuyer pour basculer Allergie stricte / Préférence"
@@ -761,7 +761,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <strong className="text-[var(--ink)]">Contact :</strong>{' '}
                   <a
                     href="mailto:stephane@biovibralyon.fr"
-                    className="text-[var(--primary-ink)] font-semibold underline underline-offset-2"
+                    className="relative text-[var(--primary-ink)] font-semibold underline underline-offset-2 after:absolute after:-inset-y-3 after:inset-x-0 after:content-['']"
                   >
                     stephane@biovibralyon.fr
                   </a>

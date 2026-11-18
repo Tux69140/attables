@@ -102,7 +102,7 @@ export const LigneDerniereEtape: React.FC<{ onFermer: () => void }> = ({ onFerme
       type="button"
       onClick={onFermer}
       aria-label="Masquer ce rappel"
-      className="min-h-[36px] min-w-[36px] -mt-1 flex items-center justify-center rounded-xl text-[var(--ink-muted)]"
+      className="min-h-[44px] min-w-[44px] -my-1.5 flex items-center justify-center rounded-xl text-[var(--ink-muted)]"
     >
       <IconClose size={18} />
     </button>

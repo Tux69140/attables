@@ -452,7 +452,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
               <button
                 type="button"
                 onClick={() => setUnlockedEdit(true)}
-                className="min-h-[38px] px-3 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] text-[13px] font-semibold text-[var(--ink-muted)] hover:text-[var(--ink)] shrink-0"
+                className="min-h-[44px] px-3 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] text-[13px] font-semibold text-[var(--ink-muted)] hover:text-[var(--ink)] shrink-0"
               >
                 Corriger
               </button>
@@ -473,7 +473,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       key={g.id}
                       type="button"
                       onClick={() => setSelectedGuestDetail(g)}
-                      className="min-h-[38px] px-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)] hover:bg-[var(--surface-active)] transition-colors"
+                      className="min-h-[44px] min-w-[44px] px-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)] hover:bg-[var(--surface-active)] transition-colors"
                     >
                       {g.nomAffiche}
                     </button>
@@ -493,7 +493,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                 <button
                   type="button"
                   onClick={() => setUnlockedEdit(false)}
-                  className="min-h-[36px] px-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--ink)] font-semibold text-[13px] shrink-0"
+                  className="min-h-[44px] px-3 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--ink)] font-semibold text-[13px] shrink-0"
                 >
                   Reverrouiller
                 </button>
@@ -800,7 +800,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                         key={g.id}
                         type="button"
                         onClick={() => setSelectedGuestDetail(g)}
-                        className="min-h-[36px] px-2.5 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)] hover:bg-[var(--surface-active)] transition-colors"
+                        className="min-h-[44px] min-w-[44px] px-2.5 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)] hover:bg-[var(--surface-active)] transition-colors"
                         title={`Voir les plats déjà servis à ${g.nomAffiche}`}
                       >
                         {g.nomAffiche}
@@ -1155,7 +1155,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                 type="button"
                                 onClick={() => toggleCourseVerdict(courseKey, id)}
                                 aria-pressed={active}
-                                className={`min-h-[38px] px-3 rounded-lg border text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
+                                className={`min-h-[44px] px-3 rounded-lg border text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
                                   active
                                     ? activeCls
                                     : 'bg-[var(--card)] border-[var(--border)] text-[var(--ink-muted)]'
@@ -1219,7 +1219,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               type="button"
                               onClick={() => toggleCourseVerdict(courseKey, id)}
                               aria-pressed={active}
-                              className={`min-h-[38px] px-3 rounded-lg border text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
+                              className={`min-h-[44px] px-3 rounded-lg border text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
                                 active
                                   ? activeCls
                                   : 'bg-[var(--card)] border-[var(--border)] text-[var(--ink-muted)]'
@@ -1443,7 +1443,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                   key={t}
                   type="button"
                   onClick={() => setAiOptions((o) => ({ ...o, mealType: t }))}
-                  className={`min-h-[42px] px-2 rounded-lg text-[13px] font-semibold transition-colors ${
+                  className={`min-h-[44px] px-2 rounded-lg text-[13px] font-semibold transition-colors ${
                     aiOptions.mealType === t
                       ? 'bg-[var(--card)] text-[var(--ink)] border border-[var(--border)] shadow-sm'
                       : 'text-[var(--ink-muted)]'
