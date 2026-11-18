@@ -183,6 +183,7 @@ export const PlatsTab: React.FC<{
 
   return (
     <div className="flex flex-col gap-4 pb-28">
+      <h1 className="sr-only" tabIndex={-1} data-titre-vue>Plats</h1>
       <div className="relative">
         <IconSearch size={19} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] pointer-events-none" />
         <input
@@ -258,7 +259,15 @@ export const PlatsTab: React.FC<{
                   <h2 id={`plats-${k}`} className="font-display text-[20px] text-[var(--ink)] flex items-center gap-2 px-0.5">
                     <Icone nom={ICONE_SERVICE[k]} size={20} className="text-[var(--primary-ink)]" />
                     {COURSE_LABELS[k]}
-                    <span className="font-sans text-[14px] text-[var(--ink-muted)] tabular-nums">{groupe.length}</span>
+                    <span
+                      aria-hidden="true"
+                      className="font-sans text-[13px] font-bold leading-none px-2 py-1 rounded-full bg-[var(--surface-elevated)] text-[var(--ink-muted)] tabular-nums"
+                    >
+                      {groupe.length}
+                    </span>
+                    <span className="sr-only">
+                      , {groupe.length} {groupe.length > 1 ? 'plats' : 'plat'}
+                    </span>
                   </h2>
                   <ul className="carte overflow-hidden divide-y divide-[var(--border)]/70">
                     {groupe.map((p) => (

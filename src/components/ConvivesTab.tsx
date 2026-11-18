@@ -212,6 +212,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
 
   return (
     <div className="flex flex-col gap-4 pb-36">
+      <h1 className="sr-only" tabIndex={-1} data-titre-vue>Convives</h1>
       {/* Search bar */}
       <div className="relative">
         <IconSearch

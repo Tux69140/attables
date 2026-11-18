@@ -391,7 +391,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           >
             <IconArrowLeft size={22} />
           </button>
-          <h1 className="font-display text-[20px] text-[var(--ink)] text-center truncate px-1">
+          <h1 tabIndex={-1} data-titre-vue className="font-display text-[20px] text-[var(--ink)] text-center truncate px-1">
             {isRealisee
               ? 'Repas réalisé'
               : existing
