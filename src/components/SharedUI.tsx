@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
+import { usePiegeFocus } from '../hooks/usePiegeFocus';
 import { FoyerColorId, FoyerPictoId, getFoyerColorHex } from '../types/models';
 import { FoyerPictoIcon, IconClose, IconUndo } from './Icons';
 
@@ -40,7 +41,10 @@ export const ConfirmModal: React.FC<{
   onConfirm,
   onCancel,
 }) => {
+  const panneau = useRef<HTMLDivElement>(null);
+  const titreRef = useRef<HTMLHeadingElement>(null);
   useAndroidBack(open, onCancel);
+  usePiegeFocus(open, panneau, titreRef);
 
   useEffect(() => {
     if (!open) return;
@@ -62,13 +66,16 @@ export const ConfirmModal: React.FC<{
       onClick={onCancel}
     >
       <div
+        ref={panneau}
         className="w-full sm:max-w-md bg-[var(--card)] border border-[var(--border)] rounded-t-3xl sm:rounded-2xl p-5 pb-safe shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-[var(--border)] mx-auto mb-4 sm:hidden" />
         <h2
           id="confirm-modal-title"
-          className="font-display text-xl text-[var(--ink)] leading-snug"
+          ref={titreRef}
+          tabIndex={-1}
+          className="font-display text-xl text-[var(--ink)] leading-snug focus:outline-none"
         >
           {title}
         </h2>
@@ -107,7 +114,10 @@ export const BottomSheet: React.FC<{
   zClass?: string;
   children: React.ReactNode;
 }> = ({ open, title, onClose, zClass = 'z-50', children }) => {
+  const panneau = useRef<HTMLDivElement>(null);
+  const titreRef = useRef<HTMLHeadingElement>(null);
   useAndroidBack(open, onClose);
+  usePiegeFocus(open, panneau, titreRef);
 
   useEffect(() => {
     if (!open) return;
@@ -129,6 +139,7 @@ export const BottomSheet: React.FC<{
       onClick={onClose}
     >
       <div
+        ref={panneau}
         className="w-full sm:max-w-lg max-h-[88vh] flex flex-col bg-[var(--card)] border-t sm:border border-[var(--border)] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -136,7 +147,11 @@ export const BottomSheet: React.FC<{
           <div className="w-10 h-1 rounded-full bg-[var(--border)] mx-auto mb-2 sm:hidden" />
           <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
             <div className="w-[44px]" aria-hidden="true" />
-            <h2 className="font-display text-xl text-[var(--ink)] text-center truncate">
+            <h2
+              ref={titreRef}
+              tabIndex={-1}
+              className="font-display text-xl text-[var(--ink)] text-center truncate focus:outline-none"
+            >
               {title}
             </h2>
             <button
