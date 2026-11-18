@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
+import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import { COURSE_KEYS, ContrainteTag, Convive, Invitation, PlatFiche } from '../types/models';
 import { trierAVenir } from '../utils/dates';
 import { getTodayIso, normalizeForCompare } from '../utils/dishes';
@@ -71,6 +72,9 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   // Le champ ne prend le focus qu'à l'ouverture par la loupe (null → ''), jamais au remontage
   // (retour de l'éditeur : le focus revient à la carte, sans clavier).
   const champRecherche = useRef<HTMLInputElement>(null);
+  // Hauteur réelle du bouton flottant (son libellé passe à la ligne en grand texte) : le bandeau « Annuler » se place au-dessus.
+  const boutonFlottant = useRef<HTMLDivElement>(null);
+  useHauteurMesuree(boutonFlottant, '--hauteur-fab');
   const recherchePrecedente = useRef(recherche);
   useEffect(() => {
     if (recherchePrecedente.current === null && recherche === '') champRecherche.current?.focus();
@@ -104,7 +108,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   // Aucune invitation : seulement le guide (rien à filtrer ni à chercher).
   if (parcours.affichage === 'complet') {
     return (
-      <div className="flex flex-col gap-4 pb-28">
+      <div className="flex flex-col gap-4 pb-below-nav">
         <h1 className="sr-only" tabIndex={-1} data-titre-vue>Invitations</h1>
         <ParcoursGuide
           etat={parcours}
@@ -143,7 +147,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   const grille = (enfants: React.ReactNode) => <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{enfants}</div>;
 
   return (
-    <div className="flex flex-col gap-4 pb-28">
+    <div className="flex flex-col gap-4 pb-below-fab">
       <h1 className="sr-only" tabIndex={-1} data-titre-vue>Invitations</h1>
       {parcours.affichage === 'ligne' && !ligneParcoursFermee && <LigneDerniereEtape onFermer={onFermerLigneParcours} />}
 
@@ -229,6 +233,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
       {/* Bouton flottant : dès qu'une invitation existe (avant, le guide porte le bouton) */}
       {invitations.length > 0 && (
         <div
+          ref={boutonFlottant}
           aria-hidden={!chromeVisible}
           className={`fixed bottom-above-nav left-0 right-0 z-30 pointer-events-none flex justify-center px-safe chrome-mouvement ${
             chromeVisible ? 'translate-y-0 opacity-100' : 'translate-y-[160px] opacity-0'
@@ -245,7 +250,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
               } min-h-[50px] px-5 rounded-2xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] shadow-lg flex items-center gap-2 active:scale-[0.97] transition-transform`}
             >
               <IconPlus size={20} />
-              <span className="whitespace-nowrap">Préparer une invitation</span>
+              <span className="text-center">Préparer une invitation</span>
             </button>
           </div>
         </div>

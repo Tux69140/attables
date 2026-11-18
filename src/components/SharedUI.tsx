@@ -150,7 +150,7 @@ export const BottomSheet: React.FC<{
             <h2
               ref={titreRef}
               tabIndex={-1}
-              className="font-display text-xl text-[var(--ink)] text-center truncate focus:outline-none"
+              className="font-display text-xl text-[var(--ink)] text-center break-words min-w-0 focus:outline-none"
             >
               {title}
             </h2>

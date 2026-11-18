@@ -62,7 +62,7 @@ export const CarteInvitation: React.FC<{
           <div className="px-4 py-2 bg-[var(--alerte)] text-[var(--on-alerte)] text-[14px] font-bold flex items-center gap-2">
             <IconAlert size={16} className="shrink-0" />
             <span className="sr-only">Allergies strictes : </span>
-            <span className="truncate flex-1">{allergies.texte}</span>
+            <span className="break-words min-w-0 flex-1">{allergies.texte}</span>
             {allergies.reste > 0 && (
               <span className="shrink-0 px-1.5 rounded-full bg-white/20 tabular-nums">+{allergies.reste}</span>
             )}
@@ -92,7 +92,7 @@ export const CarteInvitation: React.FC<{
                         <span className="sr-only">contient un allergène d’un convive, </span>
                       </>
                     )}
-                    <span className={`truncate ${alerte ? 'font-semibold text-[var(--alerte)]' : ''}`}>{plat}</span>
+                    <span className={`break-words min-w-0 ${alerte ? 'font-semibold text-[var(--alerte)]' : ''}`}>{plat}</span>
                   </li>
                 );
               })}
@@ -142,8 +142,8 @@ export const CarteRealisee: React.FC<{
       className="carte w-full text-left px-4 py-3 flex items-center gap-3 focus-visible:outline-2 focus-visible:outline-[var(--primary-ink)] active:bg-[var(--surface-active)]/40 transition-colors"
     >
       <span className="min-w-0 flex-1">
-        <span className="block font-display text-[18px] leading-snug text-[var(--ink)] truncate">{titreInvitation(inv)}</span>
-        <span className="block text-[14px] text-[var(--ink-muted)] truncate">
+        <span className="block font-display text-[18px] leading-snug text-[var(--ink)] break-words min-w-0">{titreInvitation(inv)}</span>
+        <span className="block text-[14px] text-[var(--ink-muted)] break-words min-w-0">
           {date} · {lieu(inv)} · {qui}
         </span>
       </span>

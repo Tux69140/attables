@@ -27,7 +27,7 @@ export const FormulaireFoyer: React.FC<{ foyer?: Foyer; onEnregistrer: (f: Foyer
     <form onSubmit={enregistrer} className="flex flex-col gap-4">
       <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--border)]">
         <FoyerTile color={couleur} picto={picto} sizePx={44} />
-        <div className="text-[16px] font-semibold text-[var(--ink)] truncate">{nom.trim() || 'Aperçu du pavé'}</div>
+        <div className="text-[16px] font-semibold text-[var(--ink)] break-words min-w-0">{nom.trim() || 'Aperçu du pavé'}</div>
       </div>
 
       <div>
@@ -87,7 +87,7 @@ export const FormulaireFoyer: React.FC<{ foyer?: Foyer; onEnregistrer: (f: Foyer
                 }`}
               >
                 <FoyerPictoIcon picto={p.id} size={20} />
-                <span className="text-[13px] font-medium truncate max-w-full">{p.label}</span>
+                <span className="text-[13px] font-medium break-words min-w-0 max-w-full">{p.label}</span>
               </button>
             );
           })}

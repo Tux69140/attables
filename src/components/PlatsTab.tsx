@@ -157,7 +157,7 @@ export const PlatsTab: React.FC<{
       >
         <span className="min-w-0 flex flex-col gap-0.5">
           <span className="text-[16px] font-bold text-[var(--ink)] flex items-center gap-1.5">
-            <span className="truncate">{plat.libelle}</span>
+            <span className="break-words min-w-0">{plat.libelle}</span>
             {plat.coupDeCoeur && (
               <>
                 <IconHeart size={15} filled className="text-[var(--success)] shrink-0" />
@@ -165,7 +165,7 @@ export const PlatsTab: React.FC<{
               </>
             )}
           </span>
-          {sousLigne && <span className="text-[14px] text-[var(--ink-muted)] truncate">{sousLigne}</span>}
+          {sousLigne && <span className="text-[14px] text-[var(--ink-muted)] break-words min-w-0">{sousLigne}</span>}
           {plat.allergenes.length > 0 && (
             <span className="flex flex-wrap gap-1.5 text-[var(--ink-muted)]" aria-label="Allergènes renseignés">
               {plat.allergenes.map((id) => {
@@ -182,7 +182,7 @@ export const PlatsTab: React.FC<{
   };
 
   return (
-    <div className="flex flex-col gap-4 pb-28">
+    <div className="flex flex-col gap-4 pb-below-nav">
       <h1 className="sr-only" tabIndex={-1} data-titre-vue>Plats</h1>
       <div className="relative">
         <IconSearch size={19} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] pointer-events-none" />

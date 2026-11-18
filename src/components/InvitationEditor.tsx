@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   COURSE_KEYS,
   COURSE_LABELS,
@@ -54,6 +54,7 @@ import { Icone } from './Icone';
 import { BottomSheet, ConfirmModal, FoyerTile } from './SharedUI';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
+import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import { focaliserTitreVue } from '../hooks/focusVues';
 
 interface InvitationEditorProps {
@@ -98,6 +99,11 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
   const [date, setDate] = useState(source?.date ?? getTodayIso());
   const { visible: chromeVisible } = useAutoHideChrome(existing?.id ?? (initialDraft ? 'reinvite' : 'new'));
+  // Hauteurs réelles de l'en-tête et de la barre d'actions (grand texte) : voir useHauteurMesuree.
+  const enteteRef = useRef<HTMLElement>(null);
+  const barreRef = useRef<HTMLDivElement>(null);
+  useHauteurMesuree(enteteRef, '--hauteur-entete');
+  useHauteurMesuree(barreRef, '--hauteur-barre');
   const [titre, setTitre] = useState(source?.titre ?? '');
   const [note, setNote] = useState(source?.note ?? '');
   const [hoteType, setHoteType] = useState<HoteType>(source?.hoteType ?? 'moi');
@@ -383,11 +389,12 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       {/* Top App Bar */}
       <header
+        ref={enteteRef}
         className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-safe h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
+        <div className="max-w-[1080px] mx-auto px-safe min-h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
           <button
             type="button"
             onClick={onCancel}
@@ -396,7 +403,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           >
             <IconArrowLeft size={22} />
           </button>
-          <h1 tabIndex={-1} data-titre-vue className="focus:outline-none font-display text-[20px] text-[var(--ink)] text-center truncate px-1">
+          <h1 tabIndex={-1} data-titre-vue className="focus:outline-none font-display text-[20px] text-[var(--ink)] text-center break-words min-w-0 px-1">
             {isRealisee
               ? 'Repas réalisé'
               : existing
@@ -427,7 +434,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
         />
         {isFrozen ? (
           /* FROZEN REALISED SUMMARY (Date, Titre, Hôte, Convives read-only; notes & verdicts editable) */
-          <section id="la-tablee" className="carte p-4 flex flex-col gap-3.5 scroll-mt-32">
+          <section id="la-tablee" className="carte p-4 flex flex-col gap-3.5 ancre-sous-entete">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[14px] text-[var(--ink-muted)] tabular-nums">
@@ -486,8 +493,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
         ) : (
           <>
             {isRealisee && unlockedEdit && (
-              <div className="px-3.5 py-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-between gap-2 text-[14px]">
-                <span className="text-[var(--ink-muted)]">
+              <div className="px-3.5 py-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-[14px]">
+                <span className="flex-1 basis-0 text-[var(--ink-muted)]">
                   Mode correction activé pour ce repas réalisé.
                 </span>
                 <button
@@ -510,7 +517,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
               >
                 <div className="min-w-0">
                   <h2 className="font-display text-[19px] text-[var(--ink)]">Qui reçoit ?</h2>
-                  <p className="text-[14px] text-[var(--ink-muted)] truncate flex items-center gap-1.5">
+                  <p className="text-[14px] text-[var(--ink-muted)] break-words min-w-0 flex items-center gap-1.5">
                     <IconHome size={14} className="text-[var(--primary-ink)] shrink-0" />
                     <span>
                       {hoteType === 'moi'
@@ -641,7 +648,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                     </span>
                   </div>
                   {!guestsOpen && (
-                    <p className="text-[14px] text-[var(--ink-muted)] truncate">
+                    <p className="text-[14px] text-[var(--ink-muted)] break-words min-w-0">
                       {selectedGuests.length > 0
                         ? selectedGuests.map((g) => g.nomAffiche).join(', ')
                         : 'Touchez pour choisir les convives'}
@@ -702,7 +709,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               <div className="flex items-center gap-3 min-w-0">
                                 <FoyerTile color={f.couleur} picto={f.picto} sizePx={44} />
                                 <div className="min-w-0">
-                                  <div className="text-[15px] font-semibold text-[var(--ink)] truncate">
+                                  <div className="text-[15px] font-semibold text-[var(--ink)] break-words min-w-0">
                                     {f.nom}
                                   </div>
                                   <div className="text-[13px] text-[var(--ink-muted)] tabular-nums">
@@ -786,7 +793,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             </section>
 
             {/* 3. LA TABLÉE : contraintes réunies, toujours dépliées */}
-            <section id="la-tablee" aria-labelledby="titre-tablee" className="carte p-4 flex flex-col gap-3 scroll-mt-32">
+            <section id="la-tablee" aria-labelledby="titre-tablee" className="carte p-4 flex flex-col gap-3 ancre-sous-entete">
               <h2 id="titre-tablee" className="font-display text-[19px] text-[var(--ink)]">La tablée</h2>
               {selectedGuests.length === 0 ? (
                 <p className="text-[15px] text-[var(--ink-muted)]">
@@ -1050,7 +1057,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                         <span className="sr-only">Allergène d’un convive : </span>
                                       </>
                                     )}
-                                    <span className="font-medium text-[var(--ink)] truncate">{sug.label}</span>
+                                    <span className="font-medium text-[var(--ink)] break-words min-w-0">{sug.label}</span>
                                     {sugFiche?.allergenes.map((id) => {
                                       const ref = ALLERGENES.find((a) => a.id === id);
                                       const perso = contraintesById.get(id);
@@ -1272,7 +1279,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       }`}
                     >
                       <Icon size={15} />
-                      <span className="truncate">{label}</span>
+                      <span className="break-words min-w-0">{label}</span>
                     </button>
                   );
                 })}
@@ -1306,17 +1313,18 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
       {/* Bottom Action Bar */}
       <div
+        ref={barreRef}
         className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] pb-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         {isRealisee ? (
-          <div className="max-w-[1080px] mx-auto px-safe py-3 flex items-center gap-2.5">
+          <div className="max-w-[1080px] mx-auto px-safe py-3 flex flex-wrap items-center gap-2.5">
             {existing && onReinvite && (
               <button
                 type="button"
                 onClick={() => onReinvite(existing)}
-                className="flex-1 min-h-[48px] px-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)] font-semibold text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-[0.98] transition-transform"
+                className="flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
               >
                 <IconRepeat size={17} />
                 <span>Réinviter ce groupe</span>
@@ -1325,25 +1333,25 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             <button
               type="button"
               onClick={() => handleSubmit('realisee')}
-              className="flex-1 min-h-[48px] px-3 rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-[0.98] transition-transform"
+              className="flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
             >
               <IconCheck size={17} />
               <span>Enregistrer</span>
             </button>
           </div>
         ) : (
-          <div className="max-w-[1080px] mx-auto px-safe py-3 flex items-center gap-2.5">
+          <div className="max-w-[1080px] mx-auto px-safe py-3 flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               onClick={() => handleSubmit('prevue')}
-              className="flex-1 min-h-[48px] px-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)] font-semibold text-[14px] whitespace-nowrap active:scale-[0.98] transition-transform"
+              className="flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)] font-semibold text-[14px] active:scale-[0.98] transition-transform"
             >
               Enregistrer prévue
             </button>
             <button
               type="button"
               onClick={() => handleSubmit('realisee')}
-              className="flex-1 min-h-[48px] px-3 rounded-xl bg-[var(--success)] text-[var(--card)] font-semibold text-[14px] flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-[0.98] transition-transform"
+              className="flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl bg-[var(--success)] text-[var(--card)] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
             >
               <IconCheck size={17} />
               <span>Valider réalisée</span>

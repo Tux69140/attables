@@ -5,6 +5,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
+import kotlin.math.roundToInt
 
 class MainActivity : TauriActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +24,9 @@ class MainActivity : TauriActivity() {
   // window.ipc de Tauri, ajouté encore plus tard dans la même séquence) : pas de rechargement requis.
   override fun onWebViewCreate(webView: WebView) {
     super.onWebViewCreate(webView)
+    // Suit la taille de police d'Android (réglage Affichage), sans plafond ; à préserver si gen/android est régénéré.
+    // fontScale n'est pas dans configChanges : l'activité est recréée au changement du réglage, la valeur est relue.
+    webView.settings.textZoom = (resources.configuration.fontScale * 100).roundToInt()
     webView.addJavascriptInterface(PontBarresSysteme(), "AttablesAndroid")
   }
 

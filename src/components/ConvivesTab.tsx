@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
+import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import {
   COURSE_LABELS,
   ContrainteTag,
@@ -69,6 +70,9 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   sombre,
 }) => {
   const [search, setSearch] = useState('');
+  // Hauteur réelle du bouton flottant : le bandeau « Annuler » se place au-dessus.
+  const boutonFlottant = useRef<HTMLDivElement>(null);
+  useHauteurMesuree(boutonFlottant, '--hauteur-fab');
   const [filtre, setFiltre] = useState<'tous' | 'allergies'>('tous');
   const [menuFoyer, setMenuFoyer] = useState<Foyer | null>(null);
   const aAllergie = (c: Convive) =>
@@ -182,7 +186,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
           {guest.nomAffiche.trim().charAt(0).toUpperCase()}
         </span>
         <span className="min-w-0 flex-1 flex flex-col gap-1">
-          <span className="text-[16px] font-bold text-[var(--ink)] truncate">{guest.nomAffiche}</span>
+          <span className="text-[16px] font-bold text-[var(--ink)] break-words min-w-0">{guest.nomAffiche}</span>
           {tags.length === 0 && !note ? (
             <span className="text-[14px] text-[var(--ink-muted)]">Aucune contrainte</span>
           ) : (
@@ -211,7 +215,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-4 pb-36">
+    <div className="flex flex-col gap-4 pb-below-fab-large">
       <h1 className="sr-only" tabIndex={-1} data-titre-vue>Convives</h1>
       {/* Search bar */}
       <div className="relative">
@@ -278,7 +282,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
                 <div className="flex items-center gap-3 min-w-0">
                   <FoyerTile color={foyer.couleur} picto={foyer.picto} sizePx={44} />
                   <div className="min-w-0">
-                    <h3 className="font-display text-[19px] text-[var(--ink)] truncate">{foyer.nom}</h3>
+                    <h3 className="font-display text-[19px] text-[var(--ink)] break-words min-w-0">{foyer.nom}</h3>
                     <span className="text-[13px] text-[var(--ink-muted)] tabular-nums">
                       {totalMembers} {totalMembers > 1 ? 'membres' : 'membre'}
                     </span>
@@ -353,6 +357,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
 
       {/* Floating Action Buttons (auto-hide on scroll down, reappear on slight scroll up) */}
       <div
+        ref={boutonFlottant}
         aria-hidden={!chromeVisible}
         className={`fixed bottom-above-nav left-0 right-0 z-30 pointer-events-none flex justify-center px-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0 opacity-100' : 'translate-y-[160px] opacity-0'
@@ -393,7 +398,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         {viewedConvive && (
           <div className="flex flex-col gap-5">
             {/* Quick edit / delete actions */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => openEditConvive(viewedConvive)}

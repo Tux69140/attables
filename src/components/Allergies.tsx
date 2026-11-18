@@ -5,10 +5,11 @@
  *
  * Affichage des contraintes d'une tablée, avec une formulation unique « Allergène — Prénom(s) ».
  */
-import React from 'react';
+import React, { useRef } from 'react';
 import type { ContrainteTag, Convive } from '../types/models';
 import { type ConflitAllergene, iconeContrainte } from '../utils/allergenes';
 import type { AggregatedConstraints } from '../utils/dishes';
+import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import { Icone } from './Icone';
 import { IconAlert, IconCheck, IconEdit } from './Icons';
 
@@ -22,12 +23,29 @@ export const BandeauAllergies: React.FC<{
   enteteVisible?: boolean;
 }> = ({ strict, onToucher, enteteVisible = true }) => {
   if (strict.length === 0) return null;
+  return <BandeauAllergiesVisible strict={strict} onToucher={onToucher} enteteVisible={enteteVisible} />;
+};
+
+// Composant à part : le bandeau n'existe que s'il y a des allergies, et sa hauteur (qui grandit avec le texte et le nombre
+// d'allergies, jamais tronquée) est mesurée pour que l'ancre « La tablée » s'arrête sous lui.
+const BandeauAllergiesVisible: React.FC<{
+  strict: AggregatedConstraints['strict'];
+  onToucher: () => void;
+  enteteVisible: boolean;
+}> = ({ strict, onToucher, enteteVisible }) => {
+  const ref = useRef<HTMLButtonElement>(null);
+  useHauteurMesuree(ref, '--hauteur-bandeau');
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onToucher}
-      style={{ top: enteteVisible ? 'calc(3.5rem + var(--haut-systeme))' : 'var(--haut-systeme)' }}
-      className="sticky z-20 -mx-4 px-4 py-2 min-h-[44px] bg-[var(--alerte)] text-[var(--on-alerte)] text-[14px] font-bold text-left flex items-center gap-2 shadow-md chrome-mouvement"
+      style={{
+        top: enteteVisible
+          ? 'calc(var(--hauteur-entete, calc(3.5rem + var(--haut-systeme) + 1px)) - 1px)'
+          : 'var(--haut-systeme)',
+      }}
+      className="sticky z-20 bandeau-pleine-largeur py-2 min-h-[44px] bg-[var(--alerte)] text-[var(--on-alerte)] text-[14px] font-bold text-left flex items-center gap-2 shadow-md chrome-mouvement"
     >
       <IconAlert size={17} className="shrink-0" />
       <span className="sr-only">Allergies strictes : </span>

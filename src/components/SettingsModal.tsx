@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
+import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import { focaliserTitreVue, rendreFocus } from '../hooks/focusVues';
 import { URL_NOTES_DE_VERSION, ouvrirLien } from '../services/liens';
 import { migrateAndValidateAppData } from '../services/storage';
@@ -89,6 +90,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 }) => {
   const [section, setSection] = useState<SettingsSection>('root');
   const { visible: chromeVisible } = useAutoHideChrome(`settings-${section}`);
+  // Hauteur réelle de l'en-tête (grand texte) : voir useHauteurMesuree.
+  const enteteRef = useRef<HTMLElement>(null);
+  useHauteurMesuree(enteteRef, '--hauteur-entete');
 
   const [newTagLabel, setNewTagLabel] = useState('');
   const [newTagNiveau, setNewTagNiveau] = useState<ContrainteNiveau>('strict');
@@ -284,11 +288,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       {/* Centered-title 3-zone Top Bar */}
       <header
+        ref={enteteRef}
         className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-safe h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
+        <div className="max-w-[1080px] mx-auto px-safe min-h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
           <button
             type="button"
             onClick={handleBack}
@@ -297,7 +302,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           >
             <IconArrowLeft size={22} />
           </button>
-          <h1 tabIndex={-1} data-titre-vue className="focus:outline-none font-display text-[20px] text-[var(--ink)] text-center truncate px-1">
+          <h1 tabIndex={-1} data-titre-vue className="focus:outline-none font-display text-[20px] text-[var(--ink)] text-center break-words min-w-0 px-1">
             {SECTION_TITLES[section]}
           </h1>
           <button
@@ -329,7 +334,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <div className="text-[16px] font-semibold text-[var(--ink)]">
                     Apparence
                   </div>
-                  <div className="text-[14px] text-[var(--ink-muted)] truncate">
+                  <div className="text-[14px] text-[var(--ink-muted)] break-words min-w-0">
                     {themeSummaryLabel}
                   </div>
                 </div>
@@ -351,7 +356,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <div className="text-[16px] font-semibold text-[var(--ink)]">
                     Mémoire des plats
                   </div>
-                  <div className="text-[14px] text-[var(--ink-muted)] truncate tabular-nums">
+                  <div className="text-[14px] text-[var(--ink-muted)] break-words min-w-0 tabular-nums">
                     Alerte forte sous {data.settings.prescriptionMois} mois
                   </div>
                 </div>
@@ -373,7 +378,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <div className="text-[16px] font-semibold text-[var(--ink)]">
                     Contraintes alimentaires
                   </div>
-                  <div className="text-[14px] text-[var(--ink-muted)] truncate tabular-nums">
+                  <div className="text-[14px] text-[var(--ink-muted)] break-words min-w-0 tabular-nums">
                     {data.contraintes.length} tags · {strictTags.length} allergies strictes
                   </div>
                 </div>
@@ -395,7 +400,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <div className="text-[16px] font-semibold text-[var(--ink)]">
                     Sauvegarde & Données
                   </div>
-                  <div className="text-[14px] text-[var(--ink-muted)] truncate tabular-nums">
+                  <div className="text-[14px] text-[var(--ink-muted)] break-words min-w-0 tabular-nums">
                     {data.invitations.length} invitations · {data.convives.length} convives ·{' '}
                     {data.foyers.length} foyers
                   </div>
@@ -418,7 +423,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <div className="text-[16px] font-semibold text-[var(--ink)]">
                     À propos & Vie privée
                   </div>
-                  <div className="text-[14px] text-[var(--ink-muted)] truncate">
+                  <div className="text-[14px] text-[var(--ink-muted)] break-words min-w-0">
                     Version 0.3.0 · GPL v3.0 · BioVibraLyon
                   </div>
                 </div>
@@ -437,7 +442,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 </div>
                 <div className="min-w-0">
                   <div className="text-[16px] font-semibold text-[var(--ink)]">Revoir la présentation</div>
-                  <div className="text-[14px] text-[var(--ink-muted)] truncate">Comment marche Attablés, en trois écrans</div>
+                  <div className="text-[14px] text-[var(--ink-muted)] break-words min-w-0">Comment marche Attablés, en trois écrans</div>
                 </div>
               </div>
               <IconChevronRight size={19} className="text-[var(--ink-muted)] shrink-0" />
@@ -729,7 +734,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <section className="carte p-5 flex flex-col gap-2.5">
               <div>
                 <h2 className="font-display text-[24px] text-[var(--ink)]">Attablés</h2>
-                <p className="text-[15px] font-semibold text-[var(--ink-muted)] tabular-nums">
+                <p className="text-[15px] font-semibold text-[var(--ink-muted)] tabular-nums break-words">
                   Version 0.3.0 · attables.biovibralyon.fr
                 </p>
               </div>
@@ -761,7 +766,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <strong className="text-[var(--ink)]">Contact :</strong>{' '}
                   <a
                     href="mailto:stephane@biovibralyon.fr"
-                    className="relative text-[var(--primary-ink)] font-semibold underline underline-offset-2 after:absolute after:-inset-y-3 after:inset-x-0 after:content-['']"
+                    className="relative break-words text-[var(--primary-ink)] font-semibold underline underline-offset-2 after:absolute after:-inset-y-3 after:inset-x-0 after:content-['']"
                   >
                     stephane@biovibralyon.fr
                   </a>

@@ -18,6 +18,7 @@ import { SettingsScreen } from './components/SettingsModal';
 import { UndoBanner } from './components/SharedUI';
 import { useAndroidBack } from './hooks/useAndroidBack';
 import { useAutoHideChrome } from './hooks/useAutoHideChrome';
+import { useHauteurMesuree } from './hooks/useHauteurMesuree';
 import { memoriserCleFocus, rendreFocus } from './hooks/focusVues';
 import {
   createEmptyData,
@@ -75,6 +76,11 @@ export default function App() {
   const [hoteInvitations, setHoteInvitations] = useState<Hote>('tous');
   // Thème sombre effectif (réglage, ou système en mode « Appareil ») : teintes calculées en JS.
   const [sombre, setSombre] = useState(false);
+  // Hauteurs réelles de l'en-tête et de la barre du bas (grand texte) : voir useHauteurMesuree.
+  const enteteRef = useRef<HTMLElement>(null);
+  const barreRef = useRef<HTMLElement>(null);
+  useHauteurMesuree(enteteRef, '--hauteur-entete');
+  useHauteurMesuree(barreRef, '--hauteur-barre');
   const undoTimerRef = useRef<number | null>(null);
   const { visible: chromeVisible, recaler } = useAutoHideChrome(
     `${activeTab}-${Boolean(editorTarget)}-${settingsOpen}`
@@ -508,21 +514,27 @@ export default function App() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)] flex flex-col">
       {/* Compact Android Top Bar */}
       <header
+        ref={enteteRef}
         className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-safe h-14 grid grid-cols-[88px_1fr_88px] items-center gap-2">
-          <div aria-hidden="true" />
-          <button
-            type="button"
-            onClick={handleGoHome}
-            aria-label="Retour à l'accueil Attablés"
-            className="justify-self-center min-h-[44px] px-3 rounded-xl font-display text-[24px] tracking-tight text-[var(--ink)] whitespace-nowrap flex items-center justify-center hover:bg-[var(--surface-elevated)] active:scale-[0.98] transition-all"
-          >
-            Attablés
-          </button>
-          <div className="justify-self-end -mr-2 flex items-center">
+        {/* Titre centré tant que la place suffit (cases latérales de 80 px, comme avant). Quand elle manque (écran étroit,
+            grand texte), la case de gauche se réduit et le titre se décentre ; au pire, les boutons passent sous lui :
+            jamais de débordement ni de chevauchement, et les boutons gardent leurs 44 px. */}
+        <div className="max-w-[1080px] mx-auto px-safe min-h-14 flex flex-wrap items-center gap-x-2">
+          <div aria-hidden="true" className="flex-1 basis-0 max-w-[80px]" />
+          <div className="flex-auto flex justify-center">
+            <button
+              type="button"
+              onClick={handleGoHome}
+              aria-label="Retour à l'accueil Attablés"
+              className="min-h-[44px] px-3 rounded-xl font-display text-[24px] tracking-tight text-[var(--ink)] flex items-center justify-center hover:bg-[var(--surface-elevated)] active:scale-[0.98] transition-all"
+            >
+              Attablés
+            </button>
+          </div>
+          <div className="w-[88px] shrink-0 ml-auto -mr-2 flex items-center justify-end">
             {activeTab === 'invitations' && data.invitations.length > 0 && (
               <button
                 type="button"
@@ -614,12 +626,13 @@ export default function App() {
 
       {/* Android Bottom Navigation Bar */}
       <nav
+        ref={barreRef}
         aria-label="Navigation principale"
         className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] pb-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="max-w-[1080px] mx-auto px-inset grid grid-cols-3 h-16">
+        <div className="max-w-[1080px] mx-auto px-inset min-h-16 flex flex-wrap">
           {(
             [
               { id: 'invitations', label: 'Invitations', icone: 'calendar-days' },
@@ -632,7 +645,7 @@ export default function App() {
               type="button"
               onClick={() => setActiveTab(id)}
               aria-current={activeTab === id ? 'page' : undefined}
-              className={`min-h-[44px] flex flex-col items-center justify-center gap-1 transition-colors ${
+              className={`min-h-[44px] px-1 flex-1 basis-0 min-w-fit flex flex-col items-center justify-center gap-1 transition-colors ${
                 activeTab === id ? 'text-[var(--primary-ink)] font-bold' : 'text-[var(--ink-muted)] font-semibold'
               }`}
             >
@@ -643,7 +656,7 @@ export default function App() {
               >
                 <Icone nom={icone} size={22} />
               </span>
-              <span className="text-[13px] leading-none">{label}</span>
+              <span className="text-[13px] leading-none text-center">{label}</span>
             </button>
           ))}
         </div>

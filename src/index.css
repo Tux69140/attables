@@ -133,7 +133,8 @@ body {
  * Android affiche la WebView sous les barres système (edge-to-edge) : l'en-tête
  * (3.5rem + .pt-safe) et la barre d'onglets (4rem + .pb-safe) grandissent de la
  * hauteur de ces barres. Tout ce qui se positionne par rapport à eux doit donc
- * ajouter les mêmes marges (--haut-systeme en haut, env(safe-area-inset-*) ailleurs).
+ * ajouter les mêmes marges (--haut-systeme en haut, env(safe-area-inset-*) ailleurs), et lire leur
+ * hauteur mesurée plutôt que 3.5rem / 4rem (voir « Hauteurs mesurées » plus bas : grand texte).
  * --haut-systeme vaut au moins 6px : en navigateur (marge nulle) la nappe reste
  * visible et le haut gagne 6px par rapport aux anciennes valeurs.
  */
@@ -147,8 +148,15 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/*
+ * Hauteurs mesurées : useHauteurMesuree écrit sur <html> la hauteur réelle (offsetHeight, bordure de 1px comprise)
+ * de l'en-tête (--hauteur-entete), de la barre du bas ou d'actions (--hauteur-barre), du bouton flottant
+ * (--hauteur-fab) et du bandeau d'allergies (--hauteur-bandeau). En grand texte, elles dépassent les valeurs
+ * d'origine. Sans variable (jamais montée), chaque classe garde exactement sa valeur d'origine, donnée en repli
+ * de var() ; les « 1px » compensent la bordure comptée dans la mesure (l'écart d'origine part du bord intérieur).
+ */
 .pt-below-header {
-  padding-top: calc(4.5rem + var(--haut-systeme));
+  padding-top: calc(var(--hauteur-entete, calc(3.5rem + var(--haut-systeme) + 1px)) + 0.9375rem);
 }
 
 .pb-inset {
@@ -159,28 +167,59 @@ body {
   padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
 }
 
+/* Éditeur : la barre d'actions (4.5rem + .pb-safe) et 3rem de marge sous le contenu. */
 .pb-below-bar {
-  padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--hauteur-barre, calc(5rem + env(safe-area-inset-bottom) + 1px)) + 2.9375rem);
+}
+
+/* Fin des listes des onglets : sous la barre du bas (7rem à l'origine) et, avec un bouton flottant,
+   sous celui-ci aussi (le bouton recouvre déjà un peu le bas de la liste, comme à l'origine). */
+.pb-below-nav {
+  padding-bottom: max(7rem, calc(var(--hauteur-barre, 0px) + 2.4rem));
+}
+
+.pb-below-fab {
+  padding-bottom: max(7rem, calc(var(--hauteur-barre, 0px) + var(--hauteur-fab, 0px) - 1rem));
+}
+
+.pb-below-fab-large {
+  padding-bottom: max(9rem, calc(var(--hauteur-barre, 0px) + var(--hauteur-fab, 0px) + 1.3rem));
 }
 
 /* Bouton flottant : 10px au-dessus de la barre d'onglets (4rem + .pb-safe). */
 .bottom-above-nav {
-  bottom: calc(4.625rem + max(0.5rem, env(safe-area-inset-bottom)));
+  bottom: calc(var(--hauteur-barre, calc(4rem + max(0.5rem, env(safe-area-inset-bottom)) + 1px)) + 0.5625rem);
 }
 
-/* Bandeau « Annuler » au-dessus du bouton flottant. */
+/* Bandeau « Annuler » au-dessus du bouton flottant (3.125rem) : 0.75rem d'écart. */
 .bottom-above-fab {
-  bottom: calc(8.5rem + max(0.5rem, env(safe-area-inset-bottom)));
+  bottom: calc(
+    var(--hauteur-barre, calc(4rem + max(0.5rem, env(safe-area-inset-bottom)) + 1px)) + 0.5625rem +
+      var(--hauteur-fab, 3.125rem) + 0.75rem
+  );
 }
 
 /* Bandeau « Annuler » au-dessus de la barre d'actions de l'éditeur. */
 .bottom-above-bar {
-  bottom: calc(4.5rem + max(0.5rem, env(safe-area-inset-bottom)));
+  bottom: calc(var(--hauteur-barre, calc(4.5rem + max(0.5rem, env(safe-area-inset-bottom)) + 1px)) - 1px);
 }
 
-/* Bandeau « Annuler » quand les barres sont masquées par le défilement. */
+/* Bandeau « Annuler » quand les barres sont masquées par le défilement : il ne dépend d'aucune hauteur de barre. */
 .bottom-safe-gap {
   bottom: calc(1.25rem + env(safe-area-inset-bottom));
+}
+
+/* Bandeau d'allergies : pleine largeur, par l'inverse exact de la gouttière de .px-safe. */
+.bandeau-pleine-largeur {
+  margin-left: calc(-1 * max(1rem, env(safe-area-inset-left)));
+  margin-right: calc(-1 * max(1rem, env(safe-area-inset-right)));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Ancre « La tablée » : le titre s'arrête sous l'en-tête mesuré et le bandeau d'allergies collé dessous. */
+.ancre-sous-entete {
+  scroll-margin-top: calc(var(--hauteur-entete, calc(3.5rem + var(--haut-systeme))) + var(--hauteur-bandeau, 0px) + 0.75rem);
 }
 
 /* Custom subtle scrollbars for Android WebView / desktop preview */
