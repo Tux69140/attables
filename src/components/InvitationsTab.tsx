@@ -3,7 +3,7 @@
  * Copyright (C) 2026 Stéphane MICHEL <stephane@biovibralyon.fr>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { COURSE_KEYS, ContrainteTag, Convive, Invitation, PlatFiche } from '../types/models';
 import { trierAVenir } from '../utils/dates';
@@ -14,8 +14,8 @@ import { Onglets, Puces } from './Controles';
 import { IconClose, IconPlus, IconSearch } from './Icons';
 import { LigneDerniereEtape, ParcoursGuide } from './ParcoursGuide';
 
-type Onglet = 'avenir' | 'realisees';
-type Hote = 'tous' | 'moi' | 'autres';
+export type Onglet = 'avenir' | 'realisees';
+export type Hote = 'tous' | 'moi' | 'autres';
 
 interface InvitationsTabProps {
   invitations: Invitation[];
@@ -29,6 +29,11 @@ interface InvitationsTabProps {
   /** Recherche ouverte par la loupe de l'en-tête (null = fermée). */
   recherche: string | null;
   onRecherche: (valeur: string | null) => void;
+  /** Sous-onglet et filtre d'hôte, tenus par App pour les retrouver au retour de l'éditeur. */
+  onglet: Onglet;
+  onOnglet: (valeur: Onglet) => void;
+  hote: Hote;
+  onHote: (valeur: Hote) => void;
   /** Parcours guidé du premier usage (déduit des données). */
   parcours: EtatParcours;
   resumeProches: string;
@@ -50,14 +55,16 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   onMarkRealisee,
   recherche,
   onRecherche,
+  onglet,
+  onOnglet,
+  hote,
+  onHote,
   parcours,
   resumeProches,
   onAjouterProche,
   ligneParcoursFermee,
   onFermerLigneParcours,
 }) => {
-  const [onglet, setOnglet] = useState<Onglet>('avenir');
-  const [hote, setHote] = useState<Hote>('tous');
   const aujourdHui = getTodayIso();
   useAndroidBack(recherche !== null, () => onRecherche(null));
 
@@ -166,7 +173,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
         <Onglets
           ariaLabel="Invitations"
           valeur={onglet}
-          onChange={setOnglet}
+          onChange={onOnglet}
           options={[
             { id: 'avenir', label: 'À venir', compte: aVenir.length },
             { id: 'realisees', label: 'Réalisées', compte: realisees.length },
@@ -177,7 +184,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
       <Puces
         ariaLabel="Filtrer par hôte"
         valeur={hote}
-        onChange={setHote}
+        onChange={onHote}
         options={[
           { id: 'tous', label: 'Tous' },
           { id: 'moi', label: 'Chez moi', icone: 'house' },

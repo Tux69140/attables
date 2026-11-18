@@ -11,7 +11,7 @@ import { ConvivesTab } from './components/ConvivesTab';
 import { FeuilleAjouter, type EtatAjout } from './components/FeuilleAjouter';
 import { IconGear, IconSearch } from './components/Icons';
 import { InvitationEditor } from './components/InvitationEditor';
-import { InvitationsTab } from './components/InvitationsTab';
+import { InvitationsTab, type Hote, type Onglet } from './components/InvitationsTab';
 import { PlatsTab } from './components/PlatsTab';
 import { Icone } from './components/Icone';
 import { SettingsScreen } from './components/SettingsModal';
@@ -70,6 +70,9 @@ export default function App() {
   const [ligneParcoursFermee, setLigneParcoursFermee] = useState(false);
   // Recherche de l'onglet Invitations, ouverte par la loupe de l'en-tête (null = fermée).
   const [recherche, setRecherche] = useState<string | null>(null);
+  // Sous-onglet « À venir / Réalisées » et filtre d'hôte, gardés pour la session (retour de l'éditeur).
+  const [ongletInvitations, setOngletInvitations] = useState<Onglet>('avenir');
+  const [hoteInvitations, setHoteInvitations] = useState<Hote>('tous');
   // Thème sombre effectif (réglage, ou système en mode « Appareil ») : teintes calculées en JS.
   const [sombre, setSombre] = useState(false);
   const undoTimerRef = useRef<number | null>(null);
@@ -562,6 +565,10 @@ export default function App() {
             chromeVisible={chromeVisible}
             recherche={recherche}
             onRecherche={setRecherche}
+            onglet={ongletInvitations}
+            onOnglet={setOngletInvitations}
+            hote={hoteInvitations}
+            onHote={setHoteInvitations}
             onOpenNew={() => ouvrirVue({ mode: 'new' })}
             onOpenEdit={(invitation) => ouvrirVue({ mode: 'edit', invitation })}
             onMarkRealisee={handleMarkRealisee}
