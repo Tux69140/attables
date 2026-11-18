@@ -117,7 +117,7 @@ export const FichePlat: React.FC<{
           {plat.apparitions.length > 0 && (
             <section className="flex flex-col gap-2">
               <h3 className="font-display text-[18px] text-[var(--ink)]">Historique</h3>
-              <ul className="flex flex-col divide-y divide-[var(--border)]/70 rounded-xl border border-[var(--border)] overflow-hidden">
+              <ul className="flex flex-col divide-y divide-[var(--border)]/70">
                 {plat.apparitions.map((a) => (
                   <li key={`${a.invitationId}-${a.course}`} className="px-3.5 py-2.5 flex items-start justify-between gap-2 text-[14px]">
                     <span className="min-w-0">

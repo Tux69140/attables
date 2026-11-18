@@ -289,7 +289,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       {/* Centered-title 3-zone Top Bar */}
       <header
         ref={enteteRef}
-        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
+        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)] border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >

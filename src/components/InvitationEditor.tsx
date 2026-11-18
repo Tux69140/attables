@@ -390,7 +390,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
       {/* Top App Bar */}
       <header
         ref={enteteRef}
-        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
+        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)] border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -508,7 +508,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             )}
 
             {/* 1. QUI REÇOIT ? (Collapsible) */}
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden">
+            <section className="carte overflow-hidden">
               <button
                 type="button"
                 onClick={() => setHostOpen((v) => !v)}
@@ -632,7 +632,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             </section>
 
             {/* 2. QUI VIENT ? (Collapsible) */}
-            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden">
+            <section className="carte overflow-hidden">
               <button
                 type="button"
                 onClick={() => setGuestsOpen((v) => !v)}
@@ -859,7 +859,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                             Aucun repas réalisé enregistré jusqu’ici avec ces convives.
                           </p>
                         ) : (
-                          <div className="flex flex-col divide-y divide-[var(--border)]/70 border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--surface-elevated)]/40">
+                          <div className="flex flex-col divide-y divide-[var(--border)]/70">
                             {servedDishes.map((dish) => {
                               const latest = dish.occurrences[0];
                               const courseStr = dish.courses
@@ -926,7 +926,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
         )}
 
         {/* 4. SAISIE DU MENU & DÉTAILS (ou Menu & Appréciations si figé) */}
-        <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 flex flex-col gap-4">
+        <section className="carte p-4 flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-display text-[19px] text-[var(--ink)]">
               {isFrozen ? 'Menu & Appréciations' : 'Menu & Détails'}
@@ -1314,7 +1314,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
       {/* Bottom Action Bar */}
       <div
         ref={barreRef}
-        className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] pb-safe chrome-mouvement ${
+        className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)] border-t border-[var(--border)] pb-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >

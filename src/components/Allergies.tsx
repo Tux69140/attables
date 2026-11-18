@@ -78,7 +78,7 @@ export const BlocTablee: React.FC<{ constraints: AggregatedConstraints }> = ({ c
     <div className="flex flex-col gap-2.5">
       {strict.length > 0 && (
         <div className="rounded-xl bg-[var(--error-bg)] text-[var(--error)] border-[1.5px] border-[var(--error)] text-[15px] pb-1.5">
-          <p className="px-3 pt-2 pb-1 text-[12px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+          <p className="px-3 pt-2 pb-1 text-[12px] font-bold flex items-center gap-1.5">
             <IconAlert size={15} /> Allergies strictes
           </p>
           {strict.map(({ tag, guests }) => (
@@ -88,7 +88,7 @@ export const BlocTablee: React.FC<{ constraints: AggregatedConstraints }> = ({ c
       )}
       {preferences.length > 0 && (
         <div className="rounded-xl bg-[var(--pref-bg)] text-[var(--pref)] text-[14px] pb-1.5">
-          <p className="px-3 pt-2 pb-1 text-[12px] font-bold uppercase tracking-wider">Préférences</p>
+          <p className="px-3 pt-2 pb-1 text-[12px] font-bold">Préférences</p>
           {preferences.map(({ tag, guests }) => (
             <Ligne key={tag.id} gauche={tag.libelle} droite={prenoms(guests)} />
           ))}

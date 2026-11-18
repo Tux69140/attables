@@ -60,7 +60,7 @@ export const FormulaireFoyer: React.FC<{ foyer?: Foyer; onEnregistrer: (f: Foyer
                 className={`min-h-[46px] rounded-xl flex items-center justify-center border-2 transition-transform active:scale-95 ${
                   selected ? 'border-[var(--ink)] scale-[1.03]' : 'border-transparent'
                 }`}
-                style={{ backgroundColor: c.hex, color: '#1A263C' }}
+                style={{ backgroundColor: c.hex, color: 'var(--encre-tuile)' }}
               >
                 {selected ? <IconCheck size={20} /> : <span className="text-[13px] font-semibold">{c.label}</span>}
               </button>

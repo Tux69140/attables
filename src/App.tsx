@@ -515,7 +515,7 @@ export default function App() {
       {/* Compact Android Top Bar */}
       <header
         ref={enteteRef}
-        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] pt-safe chrome-mouvement ${
+        className={`fixed top-0 left-0 right-0 z-30 bg-[var(--bg)] border-b border-[var(--border)] pt-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -628,7 +628,7 @@ export default function App() {
       <nav
         ref={barreRef}
         aria-label="Navigation principale"
-        className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)]/95 backdrop-blur-md border-t border-[var(--border)] pb-safe chrome-mouvement ${
+        className={`fixed bottom-0 left-0 right-0 z-30 bg-[var(--card)] border-t border-[var(--border)] pb-safe chrome-mouvement ${
           chromeVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >

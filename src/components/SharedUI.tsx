@@ -13,8 +13,8 @@ export const FoyerTile: React.FC<{
   const cls = sizePx === 44 ? 'w-[44px] h-[44px] rounded-xl' : 'w-9 h-9 rounded-lg';
   return (
     <div
-      className={`${cls} shrink-0 flex items-center justify-center border border-[#1A263C]/15`}
-      style={{ backgroundColor: bg, color: '#1A263C' }}
+      className={`${cls} shrink-0 flex items-center justify-center border border-[var(--encre-tuile-filet)]`}
+      style={{ backgroundColor: bg, color: 'var(--encre-tuile)' }}
       aria-hidden="true"
     >
       <FoyerPictoIcon picto={picto} size={sizePx === 44 ? 24 : 20} />
@@ -59,7 +59,7 @@ export const ConfirmModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-[#0D1624]/60 backdrop-blur-[2px] p-0 sm:p-4"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-[#0D1624]/60 p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-modal-title"
@@ -132,7 +132,7 @@ export const BottomSheet: React.FC<{
 
   return (
     <div
-      className={`fixed inset-0 ${zClass} flex items-end sm:items-center justify-center bg-[#0D1624]/60 backdrop-blur-[2px]`}
+      className={`fixed inset-0 ${zClass} flex items-end sm:items-center justify-center bg-[#0D1624]/60`}
       role="dialog"
       aria-modal="true"
       aria-label={title}
