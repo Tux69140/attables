@@ -19,7 +19,7 @@ import { UndoBanner } from './components/SharedUI';
 import { useAndroidBack } from './hooks/useAndroidBack';
 import { useAutoHideChrome } from './hooks/useAutoHideChrome';
 import { useHauteurMesuree } from './hooks/useHauteurMesuree';
-import { memoriserCleFocus, rendreFocus } from './hooks/focusVues';
+import { focaliserTitreVue, focusPerdu, memoriserCleFocus, rendreFocus } from './hooks/focusVues';
 import {
   createEmptyData,
   createSampleData,
@@ -111,21 +111,27 @@ export default function App() {
   };
 
   // Retour sur les onglets, quelle qu'en soit la cause : place, barres, puis focus.
+  // Les dépendances se limitent volontairement à `vueOuverte` : `activeTab` et `accueilAffiche` sont lus
+  // au moment de la fermeture, pas à chaque changement (pas d'ESLint ici pour le rappeler).
   useLayoutEffect(() => {
     if (vueOuverte) return;
+    // La présentation reprend la main (« Revoir la présentation ») : la place est gardée, le Retour
+    // depuis l'écran 1 rouvre les Réglages sans l'écraser (onRetourDebut), et leur fermeture la restaure.
+    if (accueilAffiche) return;
     const place = placeRef.current;
     if (!place) return;
     placeRef.current = null;
-    // La présentation reprend la main (« Revoir la présentation ») ou l'onglet a changé : rien à restaurer.
-    if (accueilAffiche || place.onglet !== activeTab) return;
+    // L'onglet a changé entre-temps : rien à restaurer.
+    if (place.onglet !== activeTab) return;
     const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     window.scrollTo(0, Math.min(place.y, max));
     recaler();
     rendreFocus(place.cle);
   }, [vueOuverte]);
 
+  // Pas sous la présentation : sa propre couche de Retour (écran 1 → Réglages) doit être celle du dessus.
   useAndroidBack(
-    activeTab !== 'invitations' && !editorTarget && !settingsOpen,
+    activeTab !== 'invitations' && !editorTarget && !settingsOpen && !accueilAffiche,
     () => setActiveTab('invitations')
   );
 
@@ -210,23 +216,33 @@ export default function App() {
     if (undoState) armerMinuteurUndo();
   }, [undoState, armerMinuteurUndo]);
 
+  // « Annuler » ou « Fermer » au clavier : le bandeau disparaît avec le focus, qui revient au titre de la vue.
+  const quitterBandeau = useCallback(() => {
+    if (!document.activeElement?.closest('[data-bandeau-annuler]')) return;
+    window.requestAnimationFrame(() => {
+      if (focusPerdu()) focaliserTitreVue();
+    });
+  }, []);
+
   const handleUndo = useCallback(() => {
     if (!undoState) return;
+    quitterBandeau();
     setData(undoState.snapshot);
     setUndoState(null);
     if (undoTimerRef.current) {
       window.clearTimeout(undoTimerRef.current);
       undoTimerRef.current = null;
     }
-  }, [undoState]);
+  }, [undoState, quitterBandeau]);
 
   const dismissUndo = useCallback(() => {
+    quitterBandeau();
     setUndoState(null);
     if (undoTimerRef.current) {
       window.clearTimeout(undoTimerRef.current);
       undoTimerRef.current = null;
     }
-  }, []);
+  }, [quitterBandeau]);
 
   const convivesById = useMemo(
     () => new Map(data.convives.map((c) => [c.id, c])),
@@ -467,8 +483,10 @@ export default function App() {
         onRetourDebut={
           revoirAccueil
             ? () => {
+                // Pas ouvrirVue : la place mémorisée à l'ouverture des Réglages doit survivre.
                 setRevoirAccueil(false);
-                ouvrirVue('reglages');
+                window.scrollTo(0, 0);
+                setSettingsOpen(true);
               }
             : undefined
         }

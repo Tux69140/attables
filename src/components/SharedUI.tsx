@@ -190,6 +190,7 @@ export const UndoBanner: React.FC<{
           className={`fixed ${bottomOffsetClass} left-4 right-4 z-40 flex justify-center pointer-events-none chrome-mouvement`}
         >
           <div
+            data-bandeau-annuler
             onFocus={onPause}
             onBlur={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onReprise();

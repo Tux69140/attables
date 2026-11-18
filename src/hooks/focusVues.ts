@@ -16,6 +16,12 @@ export function focaliserTitreVue(): void {
   document.querySelector<HTMLElement>('[data-titre-vue]')?.focus({ preventScroll: true });
 }
 
+/** Vrai quand le focus est tombé sur <body> (ou sur un élément retiré du DOM) : plus aucun repère pour le clavier. */
+export function focusPerdu(): boolean {
+  const actif = document.activeElement;
+  return !actif || actif === document.body || !actif.isConnected;
+}
+
 /** Focalise [data-focus-cle="cle"] s'il existe, sinon le titre de la vue ; toujours preventScroll. */
 export function rendreFocus(cle: string | null): void {
   if (cle) {

@@ -132,12 +132,11 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
   useAndroidBack(true, onCancel);
 
-  useEffect(() => {
-    focaliserTitreVue();
-  }, []);
-
+  // À l'ouverture comme à chaque nouvelle cible (« Réinviter ce groupe » réutilise cette instance) :
+  // le focus va au titre, sinon il resterait sur le bouton d'enregistrement réutilisé par React.
   useEffect(() => {
     window.scrollTo(0, 0);
+    focaliserTitreVue();
     const nextSource = existing ?? initialDraft;
     setUnlockedEdit(false);
     setDate(nextSource?.date ?? getTodayIso());

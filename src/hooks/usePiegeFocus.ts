@@ -5,6 +5,7 @@
  */
 
 import { useEffect, type RefObject } from 'react';
+import { focaliserTitreVue, focusPerdu } from './focusVues';
 import { cibleTabulation, creerPileFocus } from './pileFocus';
 
 const pile = creerPileFocus();
@@ -54,6 +55,10 @@ export function usePiegeFocus(
       pile.retirer(id);
       if (origine && origine.isConnected && origine.getClientRects().length > 0) {
         origine.focus({ preventScroll: true });
+      } else if (focusPerdu()) {
+        // L'élément qui avait ouvert la feuille a disparu (ligne supprimée…) : le titre de la vue, pas <body>.
+        // Si le focus est allé ailleurs (autre feuille, titre d'une nouvelle vue), on n'y touche pas.
+        focaliserTitreVue();
       }
     };
     // Les refs sont stables : l'effet ne dépend que de l'ouverture.
