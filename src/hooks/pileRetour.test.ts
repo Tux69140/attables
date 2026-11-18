@@ -108,3 +108,83 @@ test('l’historique reste aligné après un changement de feuille fermé par l�
   assert.deepEqual(fermetures, ['onglet']);
   assert.equal(h.historique.state, null, 'aucune entrée orpheline');
 });
+
+test('supprimer une invitation depuis l’éditeur : éditeur et confirmation fermés dans le même rendu', async () => {
+  for (const ordre of ['editeur d’abord', 'confirmation d’abord']) {
+    const h = fauxHistorique();
+    const pile = creerPileRetour(h.historique);
+    h.brancher(pile.surPopState);
+    const fermetures: string[] = [];
+    pile.empiler(() => fermetures.push('recherche'));
+    const etatRecherche = h.historique.state;
+    const editeur = pile.empiler(() => fermetures.push('editeur'));
+    const confirmation = pile.empiler(() => fermetures.push('confirmation'));
+    await h.attendre();
+
+    // La confirmation et l'éditeur se démontent ensemble ; l'ordre des nettoyages React n'est pas garanti.
+    if (ordre === 'editeur d’abord') {
+      pile.retirer(editeur);
+      pile.retirer(confirmation);
+    } else {
+      pile.retirer(confirmation);
+      pile.retirer(editeur);
+    }
+    await h.attendre();
+    assert.deepEqual(fermetures, [], ordre);
+    assert.equal(h.historique.state, etatRecherche, `${ordre} : aucune entrée orpheline au-dessus de la recherche`);
+
+    h.historique.back(); // un seul Retour ferme la recherche
+    await h.attendre();
+    assert.deepEqual(fermetures, ['recherche'], ordre);
+    assert.equal(h.historique.state, null, ordre);
+  }
+});
+
+test('« Vider toutes les données » : Réglages, sous-écran et confirmation fermés dans le même rendu', async () => {
+  const h = fauxHistorique();
+  const pile = creerPileRetour(h.historique);
+  h.brancher(pile.surPopState);
+  const fermetures: string[] = [];
+  pile.empiler(() => fermetures.push('recherche'));
+  const etatRecherche = h.historique.state;
+  const reglages = pile.empiler(() => fermetures.push('reglages'));
+  const sousEcran = pile.empiler(() => fermetures.push('sous-ecran'));
+  const confirmation = pile.empiler(() => fermetures.push('confirmation'));
+  await h.attendre();
+
+  pile.retirer(reglages); // le parent d'abord, la confirmation en dernier
+  pile.retirer(sousEcran);
+  pile.retirer(confirmation);
+  await h.attendre();
+  assert.deepEqual(fermetures, []);
+  assert.equal(h.historique.state, etatRecherche, 'aucune entrée orpheline au-dessus de la recherche');
+
+  h.historique.back();
+  await h.attendre();
+  assert.deepEqual(fermetures, ['recherche']);
+  assert.equal(h.historique.state, null);
+});
+
+test('une couche ouverte pendant la purge des entrées orphelines garde une entrée alignée', async () => {
+  const h = fauxHistorique();
+  const pile = creerPileRetour(h.historique);
+  h.brancher(pile.surPopState);
+  const fermetures: string[] = [];
+  const base = pile.empiler(() => fermetures.push('base'));
+  void base;
+  const a = pile.empiler(() => fermetures.push('a'));
+  const b = pile.empiler(() => fermetures.push('b'));
+  pile.retirer(a);
+  pile.retirer(b);
+  pile.empiler(() => fermetures.push('c')); // ouverte dans le même rendu
+  await h.attendre();
+  assert.deepEqual(fermetures, []);
+
+  h.historique.back();
+  await h.attendre();
+  assert.deepEqual(fermetures, ['c']);
+  h.historique.back();
+  await h.attendre();
+  assert.deepEqual(fermetures, ['c', 'base']);
+  assert.equal(h.historique.state, null);
+});
