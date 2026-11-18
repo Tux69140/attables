@@ -1,6 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
+import { focaliserTitreVue, rendreFocus } from '../hooks/focusVues';
 import { URL_NOTES_DE_VERSION, ouvrirLien } from '../services/liens';
 import { migrateAndValidateAppData } from '../services/storage';
 import {
@@ -105,6 +106,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [showLicenseDetails, setShowLicenseDetails] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Focus : titre de la vue à l'ouverture et à l'entrée dans une section ; au retour à la racine,
+  // l'entrée de la section quittée (après le rendu).
+  const sectionPrecedente = useRef<SettingsSection | null>(null);
+  useEffect(() => {
+    const quittee = sectionPrecedente.current;
+    sectionPrecedente.current = section;
+    if (section === 'root' && quittee && quittee !== 'root') rendreFocus(`section-${quittee}`);
+    else focaliserTitreVue();
+  }, [section]);
 
   const navigateToSection = (target: SettingsSection) => {
     setSection(target);
@@ -286,7 +297,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           >
             <IconArrowLeft size={22} />
           </button>
-          <h1 tabIndex={-1} data-titre-vue className="font-display text-[20px] text-[var(--ink)] text-center truncate px-1">
+          <h1 tabIndex={-1} data-titre-vue className="focus:outline-none font-display text-[20px] text-[var(--ink)] text-center truncate px-1">
             {SECTION_TITLES[section]}
           </h1>
           <button
@@ -307,6 +318,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <button
               type="button"
               onClick={() => navigateToSection('apparence')}
+              data-focus-cle="section-apparence"
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
@@ -328,6 +340,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <button
               type="button"
               onClick={() => navigateToSection('memoire')}
+              data-focus-cle="section-memoire"
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
@@ -349,6 +362,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <button
               type="button"
               onClick={() => navigateToSection('contraintes')}
+              data-focus-cle="section-contraintes"
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
@@ -370,6 +384,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <button
               type="button"
               onClick={() => navigateToSection('sauvegarde')}
+              data-focus-cle="section-sauvegarde"
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
@@ -392,6 +407,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <button
               type="button"
               onClick={() => navigateToSection('apropos')}
+              data-focus-cle="section-apropos"
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">

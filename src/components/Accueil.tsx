@@ -3,7 +3,7 @@
  * Copyright (C) 2026 Stéphane MICHEL <stephane@biovibralyon.fr>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { Icone } from './Icone';
 
@@ -92,6 +92,12 @@ export const Accueil: React.FC<{
 }> = ({ carnetVide, onCommencer, onVisiter, onFermer }) => {
   const piste = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  const titres = useRef<(HTMLHeadingElement | null)[]>([]);
+
+  // Le focus suit l'écran courant : son titre, sans faire défiler la piste.
+  useEffect(() => {
+    titres.current[index]?.focus({ preventScroll: true });
+  }, [index]);
 
   const aller = (i: number) => {
     const el = piste.current;
@@ -134,7 +140,7 @@ export const Accueil: React.FC<{
         <section aria-label="Écran 1 sur 3" className="w-full shrink-0 snap-center overflow-y-auto">
           <div className="max-w-[560px] mx-auto px-safe pt-4 flex flex-col items-center text-center gap-5">
             <Illustration />
-            <h1 className="font-display text-[30px] leading-tight">Qui a déjà mangé quoi ?</h1>
+            <h1 ref={(el) => { titres.current[0] = el; }} tabIndex={-1} className="focus:outline-none font-display text-[30px] leading-tight">Qui a déjà mangé quoi ?</h1>
             <p className="text-[17px] text-[var(--ink-muted)] max-w-[22rem]">
               Attablés s’en souvient pour vous : les plats servis, les allergies, les goûts de chacun.
             </p>
@@ -144,7 +150,7 @@ export const Accueil: React.FC<{
         {/* 2. Comment ça marche */}
         <section aria-label="Écran 2 sur 3" className="w-full shrink-0 snap-center overflow-y-auto">
           <div className="max-w-[560px] mx-auto px-safe pt-2 flex flex-col gap-4">
-            <h1 className="font-display text-[28px] text-center">Comment ça marche</h1>
+            <h1 ref={(el) => { titres.current[1] = el; }} tabIndex={-1} className="focus:outline-none font-display text-[28px] text-center">Comment ça marche</h1>
             <ol className="flex flex-col gap-3">
               {ETAPES.map((e, i) => (
                 <li key={e.titre} className="carte p-3.5 flex gap-3 items-start">
@@ -168,7 +174,7 @@ export const Accueil: React.FC<{
         {/* 3. Par où commencer ? */}
         <section aria-label="Écran 3 sur 3" className="w-full shrink-0 snap-center overflow-y-auto">
           <div className="max-w-[560px] mx-auto px-safe pt-6 flex flex-col gap-4">
-            <h1 className="font-display text-[28px] text-center">Par où commencer ?</h1>
+            <h1 ref={(el) => { titres.current[2] = el; }} tabIndex={-1} className="focus:outline-none font-display text-[28px] text-center">Par où commencer ?</h1>
             {carnetVide ? (
               <>
                 <Porte

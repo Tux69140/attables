@@ -54,6 +54,7 @@ import { Icone } from './Icone';
 import { BottomSheet, ConfirmModal, FoyerTile } from './SharedUI';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
+import { focaliserTitreVue } from '../hooks/focusVues';
 
 interface InvitationEditorProps {
   existing?: Invitation;
@@ -124,6 +125,10 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useAndroidBack(true, onCancel);
+
+  useEffect(() => {
+    focaliserTitreVue();
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -391,7 +396,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           >
             <IconArrowLeft size={22} />
           </button>
-          <h1 tabIndex={-1} data-titre-vue className="font-display text-[20px] text-[var(--ink)] text-center truncate px-1">
+          <h1 tabIndex={-1} data-titre-vue className="focus:outline-none font-display text-[20px] text-[var(--ink)] text-center truncate px-1">
             {isRealisee
               ? 'Repas réalisé'
               : existing
