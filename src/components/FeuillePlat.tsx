@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { ICONE_SERVICE } from '../icones/services';
-import { COURSE_KEYS, COURSE_LABELS, type ContrainteTag, type CourseKey } from '../types/models';
+import { COURSE_KEYS, COURSE_LABELS, type CourseKey } from '../types/models';
 import { formatDishInput } from '../utils/dishes';
 import { cleDePlat, platsProches, type PlatConnu } from '../utils/plats';
 import { ChoixAllergenes } from './ChoixAllergenes';
@@ -26,7 +26,8 @@ interface FormulairePlatProps {
   /** Clé du plat modifié (absente pour un nouveau plat). */
   cleActuelle?: string;
   liste: PlatConnu[];
-  contraintes: ContrainteTag[];
+  /** Aliments libres déjà portés par des personnes ou des plats. */
+  libresConnus: string[];
   erreur?: string;
   libelleBouton: string;
   onEnregistrer: (v: ValeursPlat) => void;
@@ -39,7 +40,7 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
   allergenesOuverts,
   cleActuelle,
   liste,
-  contraintes,
+  libresConnus,
   erreur,
   libelleBouton,
   onEnregistrer,
@@ -134,8 +135,7 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
       <ChoixAllergenes
         valeur={allergenes}
         onChange={setAllergenes}
-        contraintes={contraintes}
-        inclurePersonnels
+        libresConnus={libresConnus}
         replie={!allergenesOuverts}
       />
 

@@ -1,7 +1,8 @@
+import type { NomIcone } from '../icones/donnees';
 import {
   COURSE_KEYS,
   COURSE_LABELS,
-  ContrainteTag,
+  ContrainteConvive,
   Convive,
   CourseKey,
   DishVerdict,
@@ -10,6 +11,7 @@ import {
   MenuCourses,
   PlatFiche,
 } from '../types/models';
+import { iconeContrainte } from './allergenes';
 import { ecartJours } from './dates';
 
 /**
@@ -323,49 +325,74 @@ export function getDishSuggestions(
     .slice(0, 6);
 }
 
+/** Éléments de même libellé (comparaison normalisée), réunis pour toute la tablée. */
+export interface GroupeContrainte {
+  cle: string;
+  libelle: string;
+  icone: NomIcone;
+  guests: Convive[];
+}
+
+/** Ce que ne mange pas une personne de la tablée : allergies, « évite », note libre. */
+export interface ContraintesPersonne {
+  guest: Convive;
+  strict: ContrainteConvive[];
+  evite: ContrainteConvive[];
+  note: string;
+}
+
 export interface AggregatedConstraints {
-  strict: { tag: ContrainteTag; guests: Convive[] }[];
-  preferences: { tag: ContrainteTag; guests: Convive[] }[];
+  strict: GroupeContrainte[];
+  preferences: GroupeContrainte[];
+  parPersonne: ContraintesPersonne[];
   freeNotes: { guest: Convive; note: string }[];
 }
 
+/**
+ * Contraintes d'une tablée : regroupées par libellé (libellé et pictogramme du premier élément vu,
+ * groupes triés par libellé), puis détaillées par personne dans l'ordre de la sélection.
+ */
 export function aggregateConstraints(
   selectedGuestIds: string[],
-  convivesById: Map<string, Convive>,
-  contraintesById: Map<string, ContrainteTag>
+  convivesById: Map<string, Convive>
 ): AggregatedConstraints {
-  const strictMap = new Map<string, { tag: ContrainteTag; guests: Convive[] }>();
-  const prefMap = new Map<string, { tag: ContrainteTag; guests: Convive[] }>();
+  const strictMap = new Map<string, GroupeContrainte>();
+  const prefMap = new Map<string, GroupeContrainte>();
+  const parPersonne: ContraintesPersonne[] = [];
   const freeNotes: { guest: Convive; note: string }[] = [];
 
   for (const gid of selectedGuestIds) {
     const guest = convivesById.get(gid);
     if (!guest) continue;
 
-    for (const cid of guest.contraintesIds) {
-      const tag = contraintesById.get(cid);
-      if (!tag) continue;
-      const targetMap = tag.niveau === 'strict' ? strictMap : prefMap;
-      const entry = targetMap.get(tag.id);
-      if (entry) {
-        entry.guests.push(guest);
-      } else {
-        targetMap.set(tag.id, { tag, guests: [guest] });
+    for (const element of guest.contraintes) {
+      const targetMap = element.niveau === 'strict' ? strictMap : prefMap;
+      const cle = normalizeForCompare(element.libelle);
+      const groupe = targetMap.get(cle);
+      if (!groupe) {
+        targetMap.set(cle, { cle, libelle: element.libelle, icone: iconeContrainte(element), guests: [guest] });
+      } else if (!groupe.guests.includes(guest)) {
+        groupe.guests.push(guest);
       }
     }
 
-    if (guest.contrainteLibre.trim()) {
-      freeNotes.push({ guest, note: guest.contrainteLibre.trim() });
+    const note = guest.contrainteLibre.trim();
+    if (guest.contraintes.length > 0 || note) {
+      parPersonne.push({
+        guest,
+        strict: guest.contraintes.filter((e) => e.niveau === 'strict'),
+        evite: guest.contraintes.filter((e) => e.niveau !== 'strict'),
+        note,
+      });
     }
+    if (note) freeNotes.push({ guest, note });
   }
 
+  const parLibelle = (a: GroupeContrainte, b: GroupeContrainte) => a.libelle.localeCompare(b.libelle, 'fr');
   return {
-    strict: Array.from(strictMap.values()).sort((a, b) =>
-      a.tag.libelle.localeCompare(b.tag.libelle, 'fr')
-    ),
-    preferences: Array.from(prefMap.values()).sort((a, b) =>
-      a.tag.libelle.localeCompare(b.tag.libelle, 'fr')
-    ),
+    strict: Array.from(strictMap.values()).sort(parLibelle),
+    preferences: Array.from(prefMap.values()).sort(parLibelle),
+    parPersonne,
     freeNotes,
   };
 }
@@ -445,25 +472,20 @@ export function buildAiPromptMarkdown(params: {
   ) {
     lines.push(`- Aucune allergie ni restriction signalée.`);
   } else {
-    if (constraints.strict.length > 0) {
-      const strictSummary = constraints.strict
-        .map((item) =>
+    // Anonymisé : le nombre de personnes ; nominatif : les prénoms.
+    const resume = (groupes: GroupeContrainte[]) =>
+      groupes
+        .map(({ libelle, guests }) =>
           anon
-            ? `${item.guests.length} ${item.tag.libelle.toLowerCase()}`
-            : `${item.tag.libelle} (${item.guests.map((g) => g.nomAffiche).join(', ')})`
+            ? `${libelle} (${guests.length} personne${guests.length > 1 ? 's' : ''})`
+            : `${libelle} (${guests.map((g) => g.nomAffiche).join(', ')})`
         )
         .join(', ');
-      lines.push(`- **Contraintes strictes (tolérance zéro)** : ${strictSummary}.`);
+    if (constraints.strict.length > 0) {
+      lines.push(`- **Contraintes strictes (tolérance zéro)** : ${resume(constraints.strict)}.`);
     }
     if (constraints.preferences.length > 0) {
-      const prefSummary = constraints.preferences
-        .map((item) =>
-          anon
-            ? `${item.guests.length} ${item.tag.libelle.toLowerCase()}`
-            : `${item.tag.libelle} (${item.guests.map((g) => g.nomAffiche).join(', ')})`
-        )
-        .join(', ');
-      lines.push(`- **Préférences & régimes** : ${prefSummary}.`);
+      lines.push(`- **Préférences & régimes** : ${resume(constraints.preferences)}.`);
     }
     if (constraints.freeNotes.length > 0) {
       for (const noteItem of constraints.freeNotes) {

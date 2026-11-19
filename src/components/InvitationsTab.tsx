@@ -6,7 +6,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
-import { COURSE_KEYS, ContrainteTag, Convive, Invitation, PlatFiche } from '../types/models';
+import { COURSE_KEYS, Convive, Invitation, PlatFiche } from '../types/models';
 import { trierAVenir } from '../utils/dates';
 import { getTodayIso, normalizeForCompare } from '../utils/dishes';
 import type { EtatParcours } from '../utils/parcours';
@@ -21,7 +21,6 @@ export type Hote = 'tous' | 'moi' | 'autres';
 interface InvitationsTabProps {
   invitations: Invitation[];
   convivesById: Map<string, Convive>;
-  contraintesById: Map<string, ContrainteTag>;
   plats: PlatFiche[];
   chromeVisible?: boolean;
   onOpenNew: () => void;
@@ -48,7 +47,6 @@ const SUFFIXE_HOTE: Record<Hote, string> = { tous: '', moi: ' chez vous', autres
 export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   invitations,
   convivesById,
-  contraintesById,
   plats,
   chromeVisible = true,
   onOpenNew,
@@ -125,7 +123,6 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
       key={inv.id}
       invitation={inv}
       convivesById={convivesById}
-      contraintesById={contraintesById}
       plats={plats}
       aujourdHui={aujourdHui}
       onOuvrir={() => onOpenEdit(inv)}

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import type { NomIcone } from '../icones/donnees';
-import type { ContrainteTag, Convive, Foyer } from '../types/models';
+import type { Convive, Foyer } from '../types/models';
 import { FormulaireConvive } from './FeuilleConvive';
 import { FormulaireFoyer } from './FeuilleFoyer';
 import { Icone } from './Icone';
@@ -47,12 +47,11 @@ const Choix: React.FC<{ icone: NomIcone; titre: string; texte: string; onClick: 
 export const FeuilleAjouter: React.FC<{
   ajout: EtatAjout;
   foyers: Foyer[];
-  contraintes: ContrainteTag[];
   onEtape: (etat: EtatAjout) => void;
   onEnregistrerFoyer: (f: Foyer) => void;
   onEnregistrerConvive: (c: Convive) => void;
   onFermer: () => void;
-}> = ({ ajout, foyers, contraintes, onEtape, onEnregistrerFoyer, onEnregistrerConvive, onFermer }) => {
+}> = ({ ajout, foyers, onEtape, onEnregistrerFoyer, onEnregistrerConvive, onFermer }) => {
   const foyerDuMembre =
     ajout?.etape === 'convive' && ajout.foyerId ? foyers.find((f) => f.id === ajout.foyerId) : undefined;
   const titre =
@@ -88,7 +87,6 @@ export const FeuilleAjouter: React.FC<{
           key={ajout.foyerId ?? 'sans-foyer'}
           foyerIdInitial={ajout.foyerId}
           foyers={foyers}
-          contraintes={contraintes}
           onEnregistrer={onEnregistrerConvive}
         />
       )}

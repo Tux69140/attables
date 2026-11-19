@@ -61,13 +61,14 @@ export interface Foyer {
 
 export type ContrainteNiveau = 'strict' | 'preference';
 
-export interface ContrainteTag {
+/** Ce qu'une personne ne mange pas. Appartient à cette seule personne. */
+export interface ContrainteConvive {
   id: string;
   libelle: string;
   niveau: ContrainteNiveau;
-  /** Allergènes de référence (identifiants de ALLERGENES) que cette contrainte interdit. */
+  /** Identifiants de ALLERGENES, ou 'autre:<Libellé>' pour un aliment libre. */
   allergenes: string[];
-  /** Pictogramme choisi par l'utilisateur ; à défaut, déduit des allergènes liés. */
+  /** Pictogramme choisi ; à défaut, déduit des allergènes (iconeContrainte). */
   icone?: NomIcone;
 }
 
@@ -75,7 +76,7 @@ export interface Convive {
   id: string;
   nomAffiche: string;
   foyerId?: string;
-  contraintesIds: string[];
+  contraintes: ContrainteConvive[];
   contrainteLibre: string;
 }
 
@@ -133,8 +134,10 @@ export interface PlatFiche {
   id: string;
   libelle: string;
   services: CourseKey[];
-  /** Identifiants d'allergènes de référence ou de contraintes personnelles. */
+  /** Identifiants de ALLERGENES, ou 'autre:<Libellé>' pour un aliment libre. */
   allergenes: string[];
+  /** Vrai quand « Aucun de ces allergènes » est coché (seulement si `allergenes` est vide). */
+  sansAllergene?: boolean;
 }
 
 export type ThemeMode = 'appareil' | 'clair' | 'sombre';
@@ -150,7 +153,6 @@ export interface AppData {
   version: number;
   foyers: Foyer[];
   convives: Convive[];
-  contraintes: ContrainteTag[];
   invitations: Invitation[];
   plats: PlatFiche[];
   settings: AppSettings;

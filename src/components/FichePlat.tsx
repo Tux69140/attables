@@ -5,8 +5,8 @@
  */
 import React from 'react';
 import { ICONE_SERVICE } from '../icones/services';
-import { COURSE_LABELS, type ContrainteTag, VERDICT_LABELS } from '../types/models';
-import { ALLERGENES, iconeContrainte, libelleAllergene } from '../utils/allergenes';
+import { COURSE_LABELS, VERDICT_LABELS } from '../types/models';
+import { iconeAllergene, libelleAllergene } from '../utils/allergenes';
 import { formatJourMois, moisAvantRetour } from '../utils/dates';
 import { getElapsedTimeInfo } from '../utils/dishes';
 import type { PlatConnu } from '../utils/plats';
@@ -59,13 +59,12 @@ export const FichePlat: React.FC<{
   plat: PlatConnu | null;
   aujourdHui: string;
   prescriptionMois: number;
-  contraintesById: Map<string, ContrainteTag>;
   onFermer: () => void;
   onAllergenes: () => void;
   onPreparer: () => void;
   onModifier: () => void;
   onSupprimer: () => void;
-}> = ({ plat, aujourdHui, prescriptionMois, contraintesById, onFermer, onAllergenes, onPreparer, onModifier, onSupprimer }) => {
+}> = ({ plat, aujourdHui, prescriptionMois, onFermer, onAllergenes, onPreparer, onModifier, onSupprimer }) => {
   const idee = Boolean(plat && plat.apparitions.length === 0 && plat.fiche);
   return (
     <BottomSheet open={plat !== null} title={plat?.libelle ?? ''} onClose={onFermer}>
@@ -97,19 +96,15 @@ export const FichePlat: React.FC<{
               <p className="text-[14px] text-[var(--ink-muted)]">Non renseignés.</p>
             ) : (
               <div className="flex flex-wrap gap-1.5">
-                {plat.allergenes.map((id) => {
-                  const ref = ALLERGENES.find((a) => a.id === id);
-                  const perso = contraintesById.get(id);
-                  return (
-                    <span
-                      key={id}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-elevated)] text-[13px] font-semibold text-[var(--ink)]"
-                    >
-                      <Icone nom={ref?.icone ?? (perso ? iconeContrainte(perso) : 'tag')} size={15} className="text-[var(--primary-ink)]" />
-                      {libelleAllergene(id, contraintesById)}
-                    </span>
-                  );
-                })}
+                {plat.allergenes.map((id) => (
+                  <span
+                    key={id}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-elevated)] text-[13px] font-semibold text-[var(--ink)]"
+                  >
+                    <Icone nom={iconeAllergene(id)} size={15} className="text-[var(--primary-ink)]" />
+                    {libelleAllergene(id)}
+                  </span>
+                ))}
               </div>
             )}
           </section>

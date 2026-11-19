@@ -5,8 +5,7 @@
  */
 import React, { useState } from 'react';
 import type { NomIcone } from '../icones/donnees';
-import type { ContrainteTag } from '../types/models';
-import { choixAllergenes, iconeContrainte, PICTOS_CONTRAINTE } from '../utils/allergenes';
+import { choixAllergenes, iconeAllergene, libelleAllergene, memeAllergene, PICTOS_CONTRAINTE } from '../utils/allergenes';
 import { Icone } from './Icone';
 import { IconChevronDown } from './Icons';
 
@@ -39,17 +38,18 @@ const Groupe: React.FC<{ titre: string; children: React.ReactNode }> = ({ titre,
   </div>
 );
 
-/** Grille d'allergènes à cocher : référence, puis (facultatif) les contraintes personnelles. */
+/** Grille d'allergènes à cocher : référence, puis les aliments libres déjà connus. */
 export const ChoixAllergenes: React.FC<{
   valeur: string[];
   onChange: (v: string[]) => void;
-  contraintes: ContrainteTag[];
-  inclurePersonnels: boolean;
+  libresConnus: string[];
   replie?: boolean;
-}> = ({ valeur, onChange, contraintes, inclurePersonnels, replie = false }) => {
+}> = ({ valeur, onChange, libresConnus, replie = false }) => {
   const [ouvert, setOuvert] = useState(!replie);
-  const { reglementaires, autres, personnels } = choixAllergenes(contraintes);
-  const basculer = (id: string) => onChange(valeur.includes(id) ? valeur.filter((v) => v !== id) : [...valeur, id]);
+  const { reglementaires, autres, libres } = choixAllergenes(libresConnus);
+  // Un aliment libre écrit autrement (casse, accents) compte comme le même.
+  const choisi = (id: string) => valeur.some((v) => memeAllergene(v, id));
+  const basculer = (id: string) => onChange(choisi(id) ? valeur.filter((v) => !memeAllergene(v, id)) : [...valeur, id]);
 
   if (!ouvert) {
     return (
@@ -72,18 +72,18 @@ export const ChoixAllergenes: React.FC<{
     <div className="flex flex-col gap-3.5">
       <Groupe titre="Allergènes réglementaires">
         {reglementaires.map((a) => (
-          <Tuile key={a.id} icone={a.icone} libelle={a.libelle} choisie={valeur.includes(a.id)} onClick={() => basculer(a.id)} />
+          <Tuile key={a.id} icone={a.icone} libelle={a.libelle} choisie={choisi(a.id)} onClick={() => basculer(a.id)} />
         ))}
       </Groupe>
       <Groupe titre="Autres">
         {autres.map((a) => (
-          <Tuile key={a.id} icone={a.icone} libelle={a.libelle} choisie={valeur.includes(a.id)} onClick={() => basculer(a.id)} />
+          <Tuile key={a.id} icone={a.icone} libelle={a.libelle} choisie={choisi(a.id)} onClick={() => basculer(a.id)} />
         ))}
       </Groupe>
-      {inclurePersonnels && personnels.length > 0 && (
+      {libres.length > 0 && (
         <Groupe titre="Mes contraintes">
-          {personnels.map((t) => (
-            <Tuile key={t.id} icone={iconeContrainte(t)} libelle={t.libelle} choisie={valeur.includes(t.id)} onClick={() => basculer(t.id)} />
+          {libres.map((id) => (
+            <Tuile key={id} icone={iconeAllergene(id)} libelle={libelleAllergene(id)} choisie={choisi(id)} onClick={() => basculer(id)} />
           ))}
         </Groupe>
       )}

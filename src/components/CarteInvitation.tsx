@@ -8,7 +8,6 @@ import { ICONE_SERVICE } from '../icones/services';
 import {
   COURSE_KEYS,
   COURSE_LABELS,
-  ContrainteTag,
   Convive,
   Invitation,
   PlatFiche,
@@ -33,21 +32,20 @@ const invites = (inv: Invitation, convivesById: Map<string, Convive>) =>
 export const CarteInvitation: React.FC<{
   invitation: Invitation;
   convivesById: Map<string, Convive>;
-  contraintesById: Map<string, ContrainteTag>;
   plats: PlatFiche[];
   aujourdHui: string;
   onOuvrir: () => void;
   onMarquerRealisee: () => void;
-}> = ({ invitation: inv, convivesById, contraintesById, plats, aujourdHui, onOuvrir, onMarquerRealisee }) => {
+}> = ({ invitation: inv, convivesById, plats, aujourdHui, onOuvrir, onMarquerRealisee }) => {
   const convives = invites(inv, convivesById);
-  const { strict } = aggregateConstraints(inv.convivesIds, convivesById, contraintesById);
+  const { strict } = aggregateConstraints(inv.convivesIds, convivesById);
   const allergies = resumeAllergiesStrictes(strict);
   const menu = COURSE_KEYS.map((k) => ({ k, plat: inv.menu[k]?.trim() })).filter(
     (m): m is { k: (typeof COURSE_KEYS)[number]; plat: string } => Boolean(m.plat)
   );
   const conflitStrict = (plat: string) => {
     const fiche = trouverFiche(plats, plat);
-    return Boolean(fiche && conflitsPlat(fiche.allergenes, convives, contraintesById).some((c) => c.niveau === 'strict'));
+    return Boolean(fiche && conflitsPlat(fiche.allergenes, convives).some((c) => c.niveau === 'strict'));
   };
 
   return (

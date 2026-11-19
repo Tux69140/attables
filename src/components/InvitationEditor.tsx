@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   COURSE_KEYS,
   COURSE_LABELS,
-  ContrainteTag,
   Convive,
   CourseKey,
   DishVerdict,
@@ -46,7 +45,7 @@ import {
   IconTrash,
 } from './Icons';
 import { ICONE_SERVICE } from '../icones/services';
-import { ALLERGENES, conflitsPlat, iconeContrainte } from '../utils/allergenes';
+import { conflitsPlat, iconeAllergene } from '../utils/allergenes';
 import { trouverFiche } from '../utils/plats';
 import { realiseeMiseEnAvant } from '../utils/dates';
 import { AlertesAllergenes, BandeauAllergies, BlocTablee } from './Allergies';
@@ -65,7 +64,6 @@ interface InvitationEditorProps {
   foyers: Foyer[];
   convives: Convive[];
   convivesById: Map<string, Convive>;
-  contraintesById: Map<string, ContrainteTag>;
   prescriptionMois: number;
   /** Fiches de plat : idées proposées à la saisie et allergènes des plats. */
   plats: PlatFiche[];
@@ -84,7 +82,6 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   foyers,
   convives,
   convivesById,
-  contraintesById,
   prescriptionMois,
   plats,
   onDemanderNouveauConvive,
@@ -185,8 +182,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
   // Live aggregated constraints
   const constraints = useMemo(
-    () => aggregateConstraints(convivesIds, convivesById, contraintesById),
-    [convivesIds, convivesById, contraintesById]
+    () => aggregateConstraints(convivesIds, convivesById),
+    [convivesIds, convivesById]
   );
 
   // Live anti-duplicate served dishes (strictly from 'realisee' invitations)
@@ -750,9 +747,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       <div className="flex flex-wrap gap-2">
                         {filteredGuests.map((guest) => {
                           const checked = selectedSet.has(guest.id);
-                          const hasStrict = guest.contraintesIds.some(
-                            (cid) => contraintesById.get(cid)?.niveau === 'strict'
-                          );
+                          const hasStrict = guest.contraintes.some((e) => e.niveau === 'strict');
 
                           return (
                             <button
@@ -993,7 +988,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       : [];
                   const fiche = value.trim() ? trouverFiche(plats, value) : undefined;
                   const conflitsAllergenes = fiche
-                    ? conflitsPlat(fiche.allergenes, selectedGuests, contraintesById)
+                    ? conflitsPlat(fiche.allergenes, selectedGuests)
                     : [];
 
                   return (
@@ -1037,7 +1032,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               const sugFiche = trouverFiche(plats, sug.label);
                               const sugStrict = Boolean(
                                 sugFiche &&
-                                  conflitsPlat(sugFiche.allergenes, selectedGuests, contraintesById).some(
+                                  conflitsPlat(sugFiche.allergenes, selectedGuests).some(
                                     (c) => c.niveau === 'strict'
                                   )
                               );
@@ -1060,12 +1055,9 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                       </>
                                     )}
                                     <span className="font-medium text-[var(--ink)] break-words min-w-0">{sug.label}</span>
-                                    {sugFiche?.allergenes.map((id) => {
-                                      const ref = ALLERGENES.find((a) => a.id === id);
-                                      const perso = contraintesById.get(id);
-                                      const nom = ref?.icone ?? (perso ? iconeContrainte(perso) : 'tag');
-                                      return <Icone key={id} nom={nom} size={14} className="text-[var(--ink-muted)] shrink-0" />;
-                                    })}
+                                    {sugFiche?.allergenes.map((id) => (
+                                      <Icone key={id} nom={iconeAllergene(id)} size={14} className="text-[var(--ink-muted)] shrink-0" />
+                                    ))}
                                   </span>
                                   {sugConflict?.hasAEviter ? (
                                     <span className="text-[13px] text-[var(--error)] font-semibold shrink-0 flex items-center gap-1">

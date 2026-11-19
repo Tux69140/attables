@@ -6,7 +6,7 @@
  * Affichage des contraintes d'une tablée, avec une formulation unique « Allergène — Prénom(s) ».
  */
 import React, { useRef } from 'react';
-import type { ContrainteTag, Convive } from '../types/models';
+import type { ContrainteConvive, Convive } from '../types/models';
 import { type ConflitAllergene, iconeContrainte } from '../utils/allergenes';
 import type { AggregatedConstraints } from '../utils/dishes';
 import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
@@ -50,7 +50,7 @@ const BandeauAllergiesVisible: React.FC<{
       <IconAlert size={17} className="shrink-0" />
       <span className="sr-only">Allergies strictes : </span>
       <span className="leading-snug">
-        {strict.map(({ tag, guests }) => `${tag.libelle} — ${prenoms(guests)}`).join(' · ')}
+        {strict.map(({ libelle, guests }) => `${libelle} — ${prenoms(guests)}`).join(' · ')}
       </span>
     </button>
   );
@@ -81,16 +81,16 @@ export const BlocTablee: React.FC<{ constraints: AggregatedConstraints }> = ({ c
           <p className="px-3 pt-2 pb-1 text-[12px] font-bold flex items-center gap-1.5">
             <IconAlert size={15} /> Allergies strictes
           </p>
-          {strict.map(({ tag, guests }) => (
-            <Ligne key={tag.id} gauche={tag.libelle} droite={prenoms(guests)} />
+          {strict.map(({ cle, libelle, guests }) => (
+            <Ligne key={cle} gauche={libelle} droite={prenoms(guests)} />
           ))}
         </div>
       )}
       {preferences.length > 0 && (
         <div className="rounded-xl bg-[var(--pref-bg)] text-[var(--pref)] text-[14px] pb-1.5">
           <p className="px-3 pt-2 pb-1 text-[12px] font-bold">Préférences</p>
-          {preferences.map(({ tag, guests }) => (
-            <Ligne key={tag.id} gauche={tag.libelle} droite={prenoms(guests)} />
+          {preferences.map(({ cle, libelle, guests }) => (
+            <Ligne key={cle} gauche={libelle} droite={prenoms(guests)} />
           ))}
         </div>
       )}
@@ -110,9 +110,9 @@ export const BlocTablee: React.FC<{ constraints: AggregatedConstraints }> = ({ c
 };
 
 /** Pastille d'une contrainte : pleine rouge si stricte, bleue si préférence. */
-export const PastilleContrainte: React.FC<{ tag: ContrainteTag }> = ({ tag }) => {
-  const strict = tag.niveau === 'strict';
-  const icone = iconeContrainte(tag);
+export const PastilleContrainte: React.FC<{ contrainte: ContrainteConvive }> = ({ contrainte }) => {
+  const strict = contrainte.niveau === 'strict';
+  const icone = iconeContrainte(contrainte);
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[13px] font-bold ${
@@ -120,13 +120,13 @@ export const PastilleContrainte: React.FC<{ tag: ContrainteTag }> = ({ tag }) =>
       }`}
     >
       <Icone nom={strict && icone === 'tag' ? 'triangle-alert' : icone} size={14} />
-      {tag.libelle}
+      {contrainte.libelle}
       {strict && <span className="sr-only"> (allergie stricte)</span>}
     </span>
   );
 };
 
-/** « du lait », « des fruits à coque »… ; libellé brut pour une contrainte personnelle. */
+/** « du lait », « des fruits à coque »… ; libellé brut pour un aliment libre. */
 const CONTIENT: Record<string, string> = {
   gluten: 'du gluten',
   crustaces: 'des crustacés',

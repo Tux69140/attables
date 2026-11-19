@@ -4,15 +4,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 import React, { useState } from 'react';
-import type { ContrainteTag, Convive, Foyer } from '../types/models';
-import { IconAlert, IconCheck } from './Icons';
+import type { Convive, Foyer } from '../types/models';
+import { PastilleContrainte } from './Allergies';
 import { BottomSheet } from './SharedUI';
 
 interface FormulaireConviveProps {
   convive?: Convive;
   foyerIdInitial?: string;
   foyers: Foyer[];
-  contraintes: ContrainteTag[];
   onEnregistrer: (c: Convive) => void;
 }
 
@@ -21,16 +20,13 @@ export const FormulaireConvive: React.FC<FormulaireConviveProps> = ({
   convive,
   foyerIdInitial,
   foyers,
-  contraintes,
   onEnregistrer,
 }) => {
   const [nom, setNom] = useState(convive?.nomAffiche ?? '');
   const [foyerId, setFoyerId] = useState(convive?.foyerId ?? foyerIdInitial ?? '');
-  const [tags, setTags] = useState<string[]>(convive ? [...convive.contraintesIds] : []);
   const [libre, setLibre] = useState(convive?.contrainteLibre ?? '');
-
-  const basculerTag = (tagId: string) =>
-    setTags((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
+  // Provisoire : les contraintes de la personne sont affichées et conservées telles quelles.
+  const contraintes = convive?.contraintes ?? [];
 
   const enregistrer = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +35,7 @@ export const FormulaireConvive: React.FC<FormulaireConviveProps> = ({
       id: convive?.id ?? `conv-${Date.now()}`,
       nomAffiche: nom.trim(),
       foyerId: foyerId || undefined,
-      contraintesIds: tags,
+      contraintes,
       contrainteLibre: libre.trim(),
     });
   };
@@ -80,34 +76,16 @@ export const FormulaireConvive: React.FC<FormulaireConviveProps> = ({
         </select>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Contraintes alimentaires</span>
-        <div className="flex flex-wrap gap-2">
-          {contraintes.map((tag) => {
-            const selected = tags.includes(tag.id);
-            const isStrict = tag.niveau === 'strict';
-            return (
-              <button
-                key={tag.id}
-                type="button"
-                onClick={() => basculerTag(tag.id)}
-                aria-pressed={selected}
-                className={`min-h-[44px] px-3.5 rounded-xl border text-[14px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
-                  selected
-                    ? isStrict
-                      ? 'bg-[var(--error-bg)] border-[var(--error)] text-[var(--error)]'
-                      : 'bg-[var(--pref-bg)] border-[var(--pref)] text-[var(--pref)]'
-                    : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink)]'
-                }`}
-              >
-                {isStrict && <IconAlert size={15} />}
-                {selected && !isStrict && <IconCheck size={15} />}
-                <span>{tag.libelle}</span>
-              </button>
-            );
-          })}
+      {contraintes.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Contraintes alimentaires</span>
+          <div className="flex flex-wrap gap-2">
+            {contraintes.map((c) => (
+              <PastilleContrainte key={c.id} contrainte={c} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div>
         <label htmlFor="convive-libre" className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-1">

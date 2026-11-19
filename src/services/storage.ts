@@ -2,21 +2,31 @@ import { ICONES, type NomIcone } from '../icones/donnees';
 import {
   AppData,
   COURSE_KEYS,
+  ContrainteConvive,
   ContrainteNiveau,
-  ContrainteTag,
   Convive,
   CourseKey,
   Foyer,
   Invitation,
   PlatFiche,
 } from '../types/models';
-import { LIAISONS_PAR_DEFAUT } from '../utils/allergenes';
+import { ALLERGENES, estAutre, idAutre, LIAISONS_PAR_DEFAUT, libelleAutre, memeAllergene } from '../utils/allergenes';
 import { cleDePlat } from '../utils/plats';
 
 const STORAGE_KEY = 'attables_db_v1';
-export const CURRENT_DATA_VERSION = 1;
+export const CURRENT_DATA_VERSION = 2;
 
-export function getDefaultContraintes(): ContrainteTag[] {
+/** Contrainte partagée des versions 1 (`AppData.contraintes`), lue seulement pour la migration. */
+interface ContrainteV1 {
+  id: string;
+  libelle: string;
+  niveau: ContrainteNiveau;
+  allergenes: string[];
+  icone?: NomIcone;
+}
+
+/** Contraintes livrées avec les versions 1 : celles d'une sauvegarde v1 qui n'en contient pas. */
+function contraintesV1ParDefaut(): ContrainteV1[] {
   const tags: { id: string; libelle: string; niveau: ContrainteNiveau }[] = [
     { id: 'tag-arachides', libelle: 'Arachides', niveau: 'strict' },
     { id: 'tag-fruits-coque', libelle: 'Fruits à coque', niveau: 'strict' },
@@ -43,55 +53,66 @@ export function createSampleData(): AppData {
       id: 'conv-paul',
       nomAffiche: 'Paul',
       foyerId: 'foyer-paul-julie',
-      contraintesIds: ['tag-crustaces'],
+      contraintes: [{ id: 'ctr-ex-paul-crustaces', libelle: 'Crustacés', niveau: 'strict', allergenes: ['crustaces'] }],
       contrainteLibre: '',
     },
     {
       id: 'conv-julie',
       nomAffiche: 'Julie',
       foyerId: 'foyer-paul-julie',
-      contraintesIds: ['tag-vegetarien'],
+      contraintes: [
+        {
+          id: 'ctr-ex-julie-vegetarien',
+          libelle: 'Végétarien',
+          niveau: 'preference',
+          allergenes: ['viande', 'poissons', 'crustaces', 'mollusques'],
+          icone: 'leaf',
+        },
+      ],
       contrainteLibre: 'Évite les plats trop épicés',
     },
     {
       id: 'conv-marc',
       nomAffiche: 'Marc',
       foyerId: 'foyer-martin',
-      contraintesIds: [],
+      contraintes: [],
       contrainteLibre: '',
     },
     {
       id: 'conv-sophie',
       nomAffiche: 'Sophie',
       foyerId: 'foyer-martin',
-      contraintesIds: ['tag-lactose'],
+      contraintes: [{ id: 'ctr-ex-sophie-lait', libelle: 'Lait', niveau: 'preference', allergenes: ['lait'] }],
       contrainteLibre: 'Fromages de chèvre/brebis tolérés',
     },
     {
       id: 'conv-lea',
       nomAffiche: 'Léa',
       foyerId: 'foyer-martin',
-      contraintesIds: ['tag-arachides'],
+      contraintes: [{ id: 'ctr-ex-lea-arachides', libelle: 'Arachides', niveau: 'strict', allergenes: ['arachides'] }],
       contrainteLibre: '',
     },
     {
       id: 'conv-claire',
       nomAffiche: 'Claire',
       foyerId: 'foyer-claire-tom',
-      contraintesIds: ['tag-sans-alcool'],
+      contraintes: [{ id: 'ctr-ex-claire-alcool', libelle: 'Alcool', niveau: 'preference', allergenes: ['alcool'] }],
       contrainteLibre: '',
     },
     {
       id: 'conv-tom',
       nomAffiche: 'Tom',
       foyerId: 'foyer-claire-tom',
-      contraintesIds: [],
+      contraintes: [],
       contrainteLibre: 'N’aime pas la coriandre',
     },
     {
       id: 'conv-nadia',
       nomAffiche: 'Nadia',
-      contraintesIds: ['tag-sans-porc', 'tag-fruits-coque'],
+      contraintes: [
+        { id: 'ctr-ex-nadia-porc', libelle: 'Porc', niveau: 'preference', allergenes: ['porc'] },
+        { id: 'ctr-ex-nadia-fruits-a-coque', libelle: 'Fruits à coque', niveau: 'strict', allergenes: ['fruits-a-coque'] },
+      ],
       contrainteLibre: '',
     },
   ];
@@ -204,7 +225,6 @@ export function createSampleData(): AppData {
     version: CURRENT_DATA_VERSION,
     foyers,
     convives,
-    contraintes: getDefaultContraintes(),
     invitations,
     plats,
     settings: {
@@ -220,7 +240,6 @@ export function createEmptyData(keepSettings?: Partial<AppData['settings']>): Ap
     version: CURRENT_DATA_VERSION,
     foyers: [],
     convives: [],
-    contraintes: getDefaultContraintes(),
     invitations: [],
     plats: [],
     settings: {
@@ -295,30 +314,12 @@ export function migrateAndValidateAppData(input: unknown): AppData {
     throw new Error('Structure de sauvegarde incomplète (foyers, convives ou invitations manquants).');
   }
 
-  const contraintes: ContrainteTag[] = Array.isArray(obj.contraintes)
-    ? obj.contraintes
-        .filter(
-          (c): c is ContrainteTag =>
-            Boolean(c && typeof c === 'object' && typeof (c as ContrainteTag).id === 'string' && typeof (c as ContrainteTag).libelle === 'string')
-        )
-        .map(normaliserContrainte)
-    : getDefaultContraintes();
-
   const foyers: Foyer[] = obj.foyers.filter(
     (f): f is Foyer =>
       Boolean(f && typeof f === 'object' && typeof (f as Foyer).id === 'string' && typeof (f as Foyer).nom === 'string')
   );
 
-  const convives: Convive[] = obj.convives
-    .filter(
-      (c): c is Convive =>
-        Boolean(c && typeof c === 'object' && typeof (c as Convive).id === 'string' && typeof (c as Convive).nomAffiche === 'string')
-    )
-    .map((c) => ({
-      ...c,
-      contraintesIds: Array.isArray(c.contraintesIds) ? c.contraintesIds : [],
-      contrainteLibre: typeof c.contrainteLibre === 'string' ? c.contrainteLibre : '',
-    }));
+  const { convives, plats } = obj.version === 2 ? validerV2(obj) : migrerV1(obj);
 
   const invitations: Invitation[] = obj.invitations
     .filter(
@@ -349,48 +350,195 @@ export function migrateAndValidateAppData(input: unknown): AppData {
     version: CURRENT_DATA_VERSION,
     foyers,
     convives,
-    contraintes,
     invitations,
-    plats: normaliserPlats(obj.plats),
+    plats,
     settings: { theme, prescriptionMois, accueilVu },
+  };
+}
+
+/**
+ * Sauvegarde `.json` lisible aussi par les versions 1 de l'appli : en plus des champs v2,
+ * une contrainte partagée par élément de personne (`contraintes`), les `contraintesIds` de
+ * chaque convive et, dans chaque fiche de plat, les éléments qui portent ses aliments libres.
+ * Le chargement v2 ignore ces ajouts.
+ */
+export function preparerExport(data: AppData): Record<string, unknown> {
+  const elements = data.convives.flatMap((c) => c.contraintes);
+  return {
+    ...data,
+    contraintes: elements.map((e) => ({
+      id: e.id,
+      libelle: e.libelle,
+      niveau: e.niveau,
+      allergenes: e.allergenes.filter((a) => !estAutre(a)),
+      ...(e.icone ? { icone: e.icone } : {}),
+    })),
+    convives: data.convives.map((c) => ({ ...c, contraintesIds: c.contraintes.map((e) => e.id) })),
+    plats: data.plats.map((p) => {
+      const allergenes = [...p.allergenes];
+      for (const a of p.allergenes) {
+        if (!estAutre(a)) continue;
+        for (const e of elements) {
+          if (e.allergenes.some((x) => memeAllergene(x, a)) && !allergenes.includes(e.id)) allergenes.push(e.id);
+        }
+      }
+      return { ...p, allergenes };
+    }),
   };
 }
 
 const chaines = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
 
-/** Liaisons absentes (données d'avant la 0.3.0) : celles par défaut ; pictogramme inconnu retiré. */
-function normaliserContrainte(c: ContrainteTag): ContrainteTag {
-  const brut = c as unknown as Record<string, unknown>;
-  const allergenes = Array.isArray(brut.allergenes)
-    ? chaines(brut.allergenes)
-    : [...(LIAISONS_PAR_DEFAUT[c.id] ?? [])];
-  const icone =
-    typeof brut.icone === 'string' && Object.prototype.hasOwnProperty.call(ICONES, brut.icone) ? (brut.icone as NomIcone) : undefined;
+const estObjet = (v: unknown): v is Record<string, unknown> => Boolean(v && typeof v === 'object');
+
+const iconeValide = (v: unknown): NomIcone | undefined =>
+  typeof v === 'string' && Object.prototype.hasOwnProperty.call(ICONES, v) ? (v as NomIcone) : undefined;
+
+/** Identifiant de ALLERGENES, ou aliment libre au libellé non vide. */
+const allergeneValide = (id: string): boolean =>
+  ALLERGENES.some((a) => a.id === id) || (estAutre(id) && libelleAutre(id).trim() !== '');
+
+/** Allergènes valides, sans doublon (le premier vu est gardé). */
+function allergenesValides(v: unknown): string[] {
+  const res: string[] = [];
+  for (const id of chaines(v)) {
+    if (allergeneValide(id) && !res.some((x) => memeAllergene(x, id))) res.push(id);
+  }
+  return res;
+}
+
+/** Convive valide, construit champ par champ (aucune clé à valeur `undefined`). */
+function lireConvive(brut: Record<string, unknown>, contraintes: ContrainteConvive[]): Convive {
   return {
-    id: c.id,
-    libelle: c.libelle,
-    niveau: c.niveau === 'strict' ? 'strict' : 'preference',
-    allergenes,
+    id: brut.id as string,
+    nomAffiche: brut.nomAffiche as string,
+    ...(typeof brut.foyerId === 'string' ? { foyerId: brut.foyerId } : {}),
+    contraintes,
+    contrainteLibre: typeof brut.contrainteLibre === 'string' ? brut.contrainteLibre : '',
+  };
+}
+
+const convivesBruts = (obj: Record<string, unknown>): Record<string, unknown>[] =>
+  (obj.convives as unknown[]).filter(
+    (c): c is Record<string, unknown> => estObjet(c) && typeof c.id === 'string' && typeof c.nomAffiche === 'string'
+  );
+
+/** Version 2 : chaque champ validé, valeurs par défaut ; les champs de compatibilité v1 sont ignorés. */
+function validerV2(obj: Record<string, unknown>): { convives: Convive[]; plats: PlatFiche[] } {
+  const convives = convivesBruts(obj).map((brut) => {
+    const contraintes: ContrainteConvive[] = (Array.isArray(brut.contraintes) ? brut.contraintes : [])
+      .filter(
+        (e): e is Record<string, unknown> =>
+          estObjet(e) && typeof e.id === 'string' && typeof e.libelle === 'string' && e.libelle.trim() !== ''
+      )
+      .map((e) => {
+        const icone = iconeValide(e.icone);
+        return {
+          id: e.id as string,
+          libelle: e.libelle as string,
+          // Niveau inconnu : allergie, par prudence.
+          niveau: e.niveau === 'preference' ? 'preference' : 'strict',
+          allergenes: allergenesValides(e.allergenes),
+          ...(icone ? { icone } : {}),
+        };
+      });
+    return lireConvive(brut, contraintes);
+  });
+  return { convives, plats: normaliserPlats(obj.plats, allergenesValides) };
+}
+
+/** Pictogrammes que les versions 1 déduisaient de l'identifiant des régimes livrés. */
+const ICONE_V1: Partial<Record<string, NomIcone>> = { 'tag-vegetarien': 'leaf', 'tag-vegan': 'sprout' };
+
+/**
+ * Version 1 : chaque contrainte partagée citée par un convive devient un élément copié pour lui ;
+ * une contrainte sans allergène devient l'aliment libre de son libellé. Une contrainte citée par
+ * une fiche de plat y devient aussi cet aliment libre, ajouté aux éléments qui en viennent.
+ */
+function migrerV1(obj: Record<string, unknown>): { convives: Convive[]; plats: PlatFiche[] } {
+  const contraintes: ContrainteV1[] = Array.isArray(obj.contraintes)
+    ? obj.contraintes
+        .filter((c): c is Record<string, unknown> => estObjet(c) && typeof c.id === 'string' && typeof c.libelle === 'string')
+        .map(normaliserContrainteV1)
+    : contraintesV1ParDefaut();
+  const parId = new Map(contraintes.map((t) => [t.id, t]));
+  // Éléments créés pour chaque contrainte : ceux qui reçoivent l'aliment libre d'une fiche de plat.
+  const elementsParTag = new Map<string, ContrainteConvive[]>();
+
+  const convives = convivesBruts(obj).map((brut) => {
+    const elements: ContrainteConvive[] = [];
+    for (const tagId of new Set(chaines(brut.contraintesIds))) {
+      const tag = parId.get(tagId);
+      if (!tag || !tag.libelle.trim()) continue;
+      const allergenes = tag.allergenes.filter((a) => ALLERGENES.some((r) => r.id === a));
+      const icone = tag.icone ?? ICONE_V1[tag.id];
+      const element: ContrainteConvive = {
+        id: `ctr-${brut.id as string}-${tag.id}`,
+        libelle: tag.libelle,
+        niveau: tag.niveau,
+        allergenes: allergenes.length > 0 ? allergenes : [idAutre(tag.libelle)],
+        ...(icone ? { icone } : {}),
+      };
+      elements.push(element);
+      elementsParTag.set(tag.id, [...(elementsParTag.get(tag.id) ?? []), element]);
+    }
+    return lireConvive(brut, elements);
+  });
+
+  const allergenesPlat = (v: unknown): string[] => {
+    const res: string[] = [];
+    for (const id of chaines(v)) {
+      const tag = parId.get(id);
+      let a: string | undefined;
+      if (tag && tag.libelle.trim()) {
+        a = idAutre(tag.libelle);
+        for (const element of elementsParTag.get(tag.id) ?? []) {
+          if (!element.allergenes.some((x) => memeAllergene(x, a!))) element.allergenes.push(a);
+        }
+      } else if (allergeneValide(id)) {
+        a = id;
+      }
+      if (a && !res.some((x) => memeAllergene(x, a!))) res.push(a);
+    }
+    return res;
+  };
+
+  return { convives, plats: normaliserPlats(obj.plats, allergenesPlat) };
+}
+
+/** Liaisons absentes (données d'avant la 0.3.0) : celles par défaut ; pictogramme inconnu retiré. */
+function normaliserContrainteV1(brut: Record<string, unknown>): ContrainteV1 {
+  const id = brut.id as string;
+  const icone = iconeValide(brut.icone);
+  return {
+    id,
+    libelle: brut.libelle as string,
+    niveau: brut.niveau === 'strict' ? 'strict' : 'preference',
+    allergenes: Array.isArray(brut.allergenes) ? chaines(brut.allergenes) : [...(LIAISONS_PAR_DEFAUT[id] ?? [])],
     ...(icone ? { icone } : {}),
   };
 }
 
-/** Fiches valides seulement : nom non vide, au moins un service connu, une fiche par nom normalisé. */
-function normaliserPlats(v: unknown): PlatFiche[] {
+/**
+ * Fiches valides seulement : nom non vide, au moins un service connu, une fiche par nom normalisé.
+ * « Aucun de ces allergènes » n'est gardé que sur une fiche sans allergène.
+ */
+function normaliserPlats(v: unknown, lireAllergenes: (v: unknown) => string[]): PlatFiche[] {
   if (!Array.isArray(v)) return [];
   const vus = new Set<string>();
   const plats: PlatFiche[] = [];
   for (const p of v) {
-    if (!p || typeof p !== 'object') continue;
-    const brut = p as Record<string, unknown>;
-    if (typeof brut.id !== 'string' || typeof brut.libelle !== 'string') continue;
-    const cle = cleDePlat(brut.libelle);
+    if (!estObjet(p)) continue;
+    if (typeof p.id !== 'string' || typeof p.libelle !== 'string') continue;
+    const cle = cleDePlat(p.libelle);
     if (!cle || vus.has(cle)) continue;
-    const services = chaines(brut.services).filter((s): s is CourseKey => (COURSE_KEYS as string[]).includes(s));
+    const services = chaines(p.services).filter((s): s is CourseKey => (COURSE_KEYS as string[]).includes(s));
     if (services.length === 0) continue;
     vus.add(cle);
-    plats.push({ id: brut.id, libelle: brut.libelle, services, allergenes: chaines(brut.allergenes) });
+    const allergenes = lireAllergenes(p.allergenes);
+    const sansAllergene = p.sansAllergene === true && allergenes.length === 0;
+    plats.push({ id: p.id, libelle: p.libelle, services, allergenes, ...(sansAllergene ? { sansAllergene } : {}) });
   }
   return plats;
 }

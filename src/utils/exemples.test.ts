@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createEmptyData, createSampleData, getDefaultContraintes } from '../services/storage';
+import { createEmptyData, createSampleData } from '../services/storage';
 import type { Convive, Invitation } from '../types/models';
 import { effacerExemples, resteDesExemples } from './exemples';
 
@@ -20,7 +20,6 @@ test('effacerExemples vide foyers, convives et invitations', () => {
   assert.deepEqual(res.foyers, []);
   assert.deepEqual(res.convives, []);
   assert.deepEqual(res.invitations, []);
-  assert.deepEqual(res.contraintes, getDefaultContraintes());
   assert.deepEqual(res.settings, exemple.settings);
   assert.equal(resteDesExemples(res), false);
 });
@@ -31,7 +30,7 @@ test('un convive utilisateur rattaché à un foyer d\'exemple perd son foyer', (
     id: 'conv-1700000000000',
     nomAffiche: 'Moi',
     foyerId: 'foyer-martin',
-    contraintesIds: [],
+    contraintes: [],
     contrainteLibre: '',
   };
   data.convives.push(mien);
@@ -108,7 +107,7 @@ test('l\'entrée n\'est pas mutée', () => {
     id: 'conv-1700000000000',
     nomAffiche: 'Moi',
     foyerId: 'foyer-martin',
-    contraintesIds: [],
+    contraintes: [],
     contrainteLibre: '',
   });
   const copie = structuredClone(data);

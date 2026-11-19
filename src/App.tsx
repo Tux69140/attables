@@ -28,13 +28,11 @@ import {
   saveAppData,
 } from './services/storage';
 import { getTodayIso } from './utils/dishes';
-import { retirerContrainte } from './utils/allergenes';
 import { enregistrerFiche } from './utils/plats';
 import { effacerExemples, resteDesExemples } from './utils/exemples';
 import { etatParcours, resumeProches } from './utils/parcours';
 import {
   AppData,
-  ContrainteTag,
   Convive,
   CourseKey,
   Foyer,
@@ -249,11 +247,6 @@ export default function App() {
     [data.convives]
   );
 
-  const contraintesById = useMemo(
-    () => new Map(data.contraintes.map((t) => [t.id, t])),
-    [data.contraintes]
-  );
-
   // Invitation handlers
   const handleSaveInvitation = (inv: Invitation) => {
     setData((prev) => {
@@ -358,23 +351,6 @@ export default function App() {
     }));
   };
 
-  const handleSaveTag = (tag: ContrainteTag) => {
-    setData((prev) => {
-      const exists = prev.contraintes.some((t) => t.id === tag.id);
-      const contraintes = exists
-        ? prev.contraintes.map((t) => (t.id === tag.id ? tag : t))
-        : [...prev.contraintes, tag];
-      return { ...prev, contraintes };
-    });
-  };
-
-  const handleDeleteTag = (tagId: string) => {
-    const snapshot = data;
-    const label = data.contraintes.find((t) => t.id === tagId)?.libelle ?? 'Tag';
-    setData((prev) => retirerContrainte(prev, tagId));
-    showUndo(`Tag « ${label} » supprimé`, snapshot);
-  };
-
   const handleRestoreBackup = (restored: AppData) => {
     const snapshot = data;
     setData(restored);
@@ -438,7 +414,6 @@ export default function App() {
     <FeuilleAjouter
       ajout={ajout}
       foyers={data.foyers}
-      contraintes={data.contraintes}
       onEtape={setAjout}
       onEnregistrerFoyer={(foyer) => {
         handleSaveFoyer(foyer);
@@ -504,7 +479,6 @@ export default function App() {
         foyers={data.foyers}
         convives={data.convives}
         convivesById={convivesById}
-        contraintesById={contraintesById}
         prescriptionMois={data.settings.prescriptionMois}
         plats={data.plats}
         onDemanderNouveauConvive={demanderNouveauConvive}
@@ -524,8 +498,6 @@ export default function App() {
         data={data}
         onChangeTheme={handleChangeTheme}
         onChangePrescriptionMois={handleChangePrescriptionMois}
-        onSaveTag={handleSaveTag}
-        onDeleteTag={handleDeleteTag}
         onRestoreBackup={handleRestoreBackup}
         onClearAllData={handleClearAllData}
         onResetSampleData={handleResetSampleData}
@@ -603,8 +575,7 @@ export default function App() {
           <InvitationsTab
             invitations={data.invitations}
             convivesById={convivesById}
-            contraintesById={contraintesById}
-            plats={data.plats}
+                plats={data.plats}
             chromeVisible={chromeVisible}
             recherche={recherche}
             onRecherche={setRecherche}
@@ -625,10 +596,8 @@ export default function App() {
           <PlatsTab
             invitations={data.invitations}
             plats={data.plats}
-            contraintes={data.contraintes}
-            convivesById={convivesById}
-            contraintesById={contraintesById}
-            prescriptionMois={data.settings.prescriptionMois}
+                  convivesById={convivesById}
+                prescriptionMois={data.settings.prescriptionMois}
             onEnregistrerFiche={handleEnregistrerFiche}
             onRemplacerFiche={handleRemplacerFiche}
             onSupprimerFiche={handleSupprimerFiche}
@@ -638,10 +607,8 @@ export default function App() {
           <ConvivesTab
             foyers={data.foyers}
             convives={data.convives}
-            contraintes={data.contraintes}
-            invitations={data.invitations}
-            contraintesById={contraintesById}
-            convivesById={convivesById}
+                  invitations={data.invitations}
+                convivesById={convivesById}
             prescriptionMois={data.settings.prescriptionMois}
             chromeVisible={chromeVisible}
             onSaveFoyer={handleSaveFoyer}

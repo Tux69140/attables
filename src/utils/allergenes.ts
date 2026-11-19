@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 import type { NomIcone } from '../icones/donnees';
-import type { AppData, ContrainteNiveau, ContrainteTag, Convive } from '../types/models';
-import type { AggregatedConstraints } from './dishes';
+import type { ContrainteNiveau, Convive, PlatFiche } from '../types/models';
+import { type AggregatedConstraints, formatDishInput, normalizeForCompare } from './dishes';
 
 /** Allergène de référence : les 14 réglementaires, puis quelques familles courantes. */
 export interface Allergene {
@@ -36,7 +36,7 @@ export const ALLERGENES: Allergene[] = [
   { id: 'viande', libelle: 'Viande', icone: 'beef', groupe: 'autre' },
 ];
 
-/** Allergènes interdits par les contraintes livrées avec l'appli (identifiant de contrainte → allergènes). */
+/** Allergènes interdits par les contraintes livrées avec les versions 1 (identifiant de contrainte → allergènes) ; sert à la migration. */
 export const LIAISONS_PAR_DEFAUT: Record<string, string[]> = {
   'tag-arachides': ['arachides'],
   'tag-fruits-coque': ['fruits-a-coque'],
@@ -48,6 +48,35 @@ export const LIAISONS_PAR_DEFAUT: Record<string, string[]> = {
   'tag-sans-porc': ['porc'],
   'tag-sans-alcool': ['alcool'],
 };
+
+const VEGETARIEN = ['viande', 'poissons', 'crustaces', 'mollusques'];
+
+/** Régimes pré-remplis : choisir l'un d'eux crée un élément que l'on peut ajuster pour une seule personne. */
+export const REGIMES: { id: 'vegetarien' | 'vegan'; libelle: string; allergenes: string[]; icone: NomIcone }[] = [
+  { id: 'vegetarien', libelle: 'Végétarien', allergenes: [...VEGETARIEN], icone: 'leaf' },
+  { id: 'vegan', libelle: 'Végan', allergenes: [...VEGETARIEN, 'oeufs', 'lait'], icone: 'sprout' },
+];
+
+const PREFIXE_AUTRE = 'autre:';
+
+/** Identifiant d'un aliment libre (« Autre… ») : `autre:` suivi du libellé mis en forme. */
+export function idAutre(libelle: string): string {
+  return PREFIXE_AUTRE + formatDishInput(libelle);
+}
+
+export function estAutre(id: string): boolean {
+  return id.startsWith(PREFIXE_AUTRE);
+}
+
+export function libelleAutre(id: string): string {
+  return id.slice(PREFIXE_AUTRE.length);
+}
+
+/** Même allergène : même identifiant, ou deux aliments libres dont les libellés ne diffèrent que par la casse ou les accents. */
+export function memeAllergene(a: string, b: string): boolean {
+  if (a === b) return true;
+  return estAutre(a) && estAutre(b) && normalizeForCompare(libelleAutre(a)) === normalizeForCompare(libelleAutre(b));
+}
 
 /** Pictogrammes proposés pour une contrainte : ceux des allergènes, puis des aliments courants. */
 export const PICTOS_CONTRAINTE: { icone: NomIcone; libelle: string }[] = [
@@ -83,36 +112,38 @@ const rangAllergene = (id: string): number => {
   return i === -1 ? ALLERGENES.length : i;
 };
 
-/** Libellé d'un allergène de référence, sinon de la contrainte personnelle, sinon l'identifiant brut. */
-export function libelleAllergene(id: string, contraintesById: Map<string, ContrainteTag>): string {
-  return ALLERGENES.find((a) => a.id === id)?.libelle ?? contraintesById.get(id)?.libelle ?? id;
+/** Libellé d'un allergène de référence, sinon d'un aliment libre, sinon l'identifiant brut. */
+export function libelleAllergene(id: string): string {
+  return ALLERGENES.find((a) => a.id === id)?.libelle ?? (estAutre(id) ? libelleAutre(id) : id);
+}
+
+/** Pictogramme d'un allergène de référence, sinon l'étiquette. */
+export function iconeAllergene(id: string): NomIcone {
+  return ALLERGENES.find((a) => a.id === id)?.icone ?? 'tag';
 }
 
 /**
  * Allergènes du plat qui concernent les convives : un convive est concerné par l'allergène `a`
- * s'il porte une contrainte qui l'interdit (`allergenes` contient `a`) ou qui est `a` elle-même
- * (contrainte personnelle). Une seule entrée par (allergène, niveau) ; une allergie stricte
- * l'emporte sur une préférence pour un même convive. Strict d'abord, puis ordre de ALLERGENES.
+ * si l'un de ses éléments contient `a` (même aliment libre compris, voir `memeAllergene`).
+ * Une seule entrée par (allergène, niveau) ; une allergie stricte l'emporte sur une préférence
+ * pour un même convive. Strict d'abord, puis ordre de ALLERGENES.
  */
-export function conflitsPlat(
-  allergenesPlat: string[],
-  convives: Convive[],
-  contraintesById: Map<string, ContrainteTag>
-): ConflitAllergene[] {
+export function conflitsPlat(allergenesPlat: string[], convives: Convive[]): ConflitAllergene[] {
+  const distincts: string[] = [];
+  for (const a of allergenesPlat) if (!distincts.some((d) => memeAllergene(d, a))) distincts.push(a);
   const groupes = new Map<string, ConflitAllergene>();
-  for (const a of new Set(allergenesPlat)) {
+  for (const a of distincts) {
     for (const convive of convives) {
       let niveau: ContrainteNiveau | undefined;
-      for (const tagId of convive.contraintesIds) {
-        const tag = contraintesById.get(tagId);
-        if (!tag || !(tag.id === a || tag.allergenes.includes(a))) continue;
-        niveau = tag.niveau === 'strict' ? 'strict' : (niveau ?? 'preference');
+      for (const element of convive.contraintes) {
+        if (!element.allergenes.some((x) => memeAllergene(x, a))) continue;
+        niveau = element.niveau === 'strict' ? 'strict' : (niveau ?? 'preference');
       }
       if (!niveau) continue;
       const cle = `${a}|${niveau}`;
       const groupe = groupes.get(cle);
       if (groupe) groupe.convives.push(convive);
-      else groupes.set(cle, { allergeneId: a, libelle: libelleAllergene(a, contraintesById), niveau, convives: [convive] });
+      else groupes.set(cle, { allergeneId: a, libelle: libelleAllergene(a), niveau, convives: [convive] });
     }
   }
   return [...groupes.values()].sort(
@@ -122,49 +153,35 @@ export function conflitsPlat(
   );
 }
 
-/** Choix proposés pour les allergènes d'un plat : référence, puis contraintes personnelles non reliées. */
-export function choixAllergenes(contraintes: ContrainteTag[]): {
+/** Aliments libres déjà portés par des personnes ou des plats, sans doublon (le premier vu est gardé), triés. */
+export function alimentsLibresConnus(convives: Convive[], plats: PlatFiche[]): string[] {
+  const libres: string[] = [];
+  const ajouter = (id: string) => {
+    if (estAutre(id) && !libres.some((l) => memeAllergene(l, id))) libres.push(id);
+  };
+  for (const convive of convives) for (const element of convive.contraintes) element.allergenes.forEach(ajouter);
+  for (const plat of plats) plat.allergenes.forEach(ajouter);
+  return libres.sort((a, b) => libelleAutre(a).localeCompare(libelleAutre(b), 'fr'));
+}
+
+/** Choix proposés dans la grille d'allergènes : référence, puis aliments libres déjà connus. */
+export function choixAllergenes(libresConnus: string[]): {
   reglementaires: Allergene[];
   autres: Allergene[];
-  personnels: ContrainteTag[];
+  libres: string[];
 } {
   return {
     reglementaires: ALLERGENES.filter((a) => a.groupe === 'reglementaire'),
     autres: ALLERGENES.filter((a) => a.groupe === 'autre'),
-    personnels: contraintes.filter((t) => t.allergenes.length === 0),
+    libres: libresConnus.filter(estAutre),
   };
 }
 
-/** Pictogrammes par défaut des contraintes de départ sans allergène lié. */
-const ICONE_PAR_DEFAUT: Partial<Record<string, NomIcone>> = {
-  'tag-vegetarien': 'leaf',
-  'tag-vegan': 'sprout',
-};
-
-/** Pictogramme d'une contrainte : choisi, sinon celui par défaut de son identifiant, sinon celui de son unique allergène lié, sinon l'étiquette. */
-export function iconeContrainte(tag: ContrainteTag): NomIcone {
-  if (tag.icone) return tag.icone;
-  const parDefaut = ICONE_PAR_DEFAUT[tag.id];
-  if (parDefaut) return parDefaut;
-  if (tag.allergenes.length === 1) {
-    const lie = ALLERGENES.find((a) => a.id === tag.allergenes[0]);
-    if (lie) return lie.icone;
-  }
+/** Pictogramme d'un élément : choisi, sinon celui de son unique allergène, sinon l'étiquette. */
+export function iconeContrainte(c: { icone?: NomIcone; allergenes: string[] }): NomIcone {
+  if (c.icone) return c.icone;
+  if (c.allergenes.length === 1) return iconeAllergene(c.allergenes[0]);
   return 'tag';
-}
-
-/** Retire une contrainte et toutes ses références (convives, allergènes des fiches de plat). */
-export function retirerContrainte(data: AppData, tagId: string): AppData {
-  return {
-    ...data,
-    contraintes: data.contraintes.filter((t) => t.id !== tagId),
-    convives: data.convives.map((c) =>
-      c.contraintesIds.includes(tagId) ? { ...c, contraintesIds: c.contraintesIds.filter((id) => id !== tagId) } : c
-    ),
-    plats: data.plats.map((p) =>
-      p.allergenes.includes(tagId) ? { ...p, allergenes: p.allergenes.filter((id) => id !== tagId) } : p
-    ),
-  };
 }
 
 /** Bandeau de carte : « Arachides (Léa) · Fruits à coque (Nadia) », puis le nombre d'allergies non citées. */
@@ -174,7 +191,7 @@ export function resumeAllergiesStrictes(
 ): { texte: string; reste: number } {
   const texte = strict
     .slice(0, max)
-    .map(({ tag, guests }) => `${tag.libelle} (${guests.map((g) => g.nomAffiche).join(', ')})`)
+    .map(({ libelle, guests }) => `${libelle} (${guests.map((g) => g.nomAffiche).join(', ')})`)
     .join(' · ');
   return { texte, reste: Math.max(0, strict.length - max) };
 }

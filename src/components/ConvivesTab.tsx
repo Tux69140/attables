@@ -2,7 +2,6 @@ import React, { useMemo, useRef, useState } from 'react';
 import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import {
   COURSE_LABELS,
-  ContrainteTag,
   Convive,
   Foyer,
   Invitation,
@@ -37,9 +36,7 @@ import { BottomSheet, ConfirmModal, FoyerTile } from './SharedUI';
 interface ConvivesTabProps {
   foyers: Foyer[];
   convives: Convive[];
-  contraintes: ContrainteTag[];
   invitations: Invitation[];
-  contraintesById: Map<string, ContrainteTag>;
   convivesById: Map<string, Convive>;
   prescriptionMois: number;
   chromeVisible?: boolean;
@@ -56,9 +53,7 @@ interface ConvivesTabProps {
 export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   foyers,
   convives,
-  contraintes,
   invitations,
-  contraintesById,
   convivesById,
   prescriptionMois,
   chromeVisible = true,
@@ -75,8 +70,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   useHauteurMesuree(boutonFlottant, '--hauteur-fab');
   const [filtre, setFiltre] = useState<'tous' | 'allergies'>('tous');
   const [menuFoyer, setMenuFoyer] = useState<Foyer | null>(null);
-  const aAllergie = (c: Convive) =>
-    c.contraintesIds.some((id) => contraintesById.get(id)?.niveau === 'strict');
+  const aAllergie = (c: Convive) => c.contraintes.some((e) => e.niveau === 'strict');
 
   // Feuilles de modification (convive, foyer) et d'ajout d'un membre à un foyer
   const [feuilleConvive, setFeuilleConvive] = useState<null | { convive?: Convive; foyerId?: string }>(null);
@@ -121,7 +115,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         };
       })
       .filter((item) => item.visible);
-  }, [foyers, convives, queryNorm, filtre, contraintesById]);
+  }, [foyers, convives, queryNorm, filtre]);
 
   const ungroupedGuests = useMemo(() => {
     const foyerIds = new Set(foyers.map((f) => f.id));
@@ -130,7 +124,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
       .filter((c) => !queryNorm || normalizeForCompare(c.nomAffiche).includes(queryNorm))
       .filter((c) => filtre === 'tous' || aAllergie(c))
       .sort((a, b) => a.nomAffiche.localeCompare(b.nomAffiche, 'fr'));
-  }, [convives, foyers, queryNorm, filtre, contraintesById]);
+  }, [convives, foyers, queryNorm, filtre]);
 
   // Viewed convive history
   const viewedHistory = useMemo(() => {
@@ -154,12 +148,10 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   const countMembersInFoyer = (foyerId: string) =>
     convives.filter((c) => c.foyerId === foyerId).length;
 
-  const tagsDe = (guest: Convive) => {
-    const tags = guest.contraintesIds
-      .map((id) => contraintesById.get(id))
-      .filter((t): t is ContrainteTag => Boolean(t));
-    return [...tags.filter((t) => t.niveau === 'strict'), ...tags.filter((t) => t.niveau !== 'strict')];
-  };
+  const tagsDe = (guest: Convive) => [
+    ...guest.contraintes.filter((e) => e.niveau === 'strict'),
+    ...guest.contraintes.filter((e) => e.niveau !== 'strict'),
+  ];
 
   /** Ligne d'un convive ; `couleur` : filet et avatar teintés du foyer, sinon neutres. */
   const renderConviveRow = (guest: Convive, couleur?: Foyer['couleur']) => {
@@ -192,7 +184,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
           ) : (
             <span className="flex flex-wrap items-center gap-1.5">
               {tags.map((t) => (
-                <PastilleContrainte key={t.id} tag={t} />
+                <PastilleContrainte key={t.id} contrainte={t} />
               ))}
               {note && <span className="text-[13px] text-[var(--ink-muted)]">+ note</span>}
             </span>
@@ -422,7 +414,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
               <h3 className="font-display text-[18px] text-[var(--ink)]">
                 Régime & allergies
               </h3>
-              {viewedConvive.contraintesIds.length === 0 &&
+              {viewedConvive.contraintes.length === 0 &&
               !viewedConvive.contrainteLibre.trim() ? (
                 <p className="text-[14px] text-[var(--ink-muted)]">
                   Aucune contrainte enregistrée.
@@ -431,7 +423,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-wrap gap-1.5">
                     {tagsDe(viewedConvive).map((t) => (
-                      <PastilleContrainte key={t.id} tag={t} />
+                      <PastilleContrainte key={t.id} contrainte={t} />
                     ))}
                   </div>
                   {viewedConvive.contrainteLibre.trim() && (
@@ -548,7 +540,6 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         convive={feuilleConvive?.convive}
         foyerIdInitial={feuilleConvive?.foyerId}
         foyers={foyers}
-        contraintes={contraintes}
         onEnregistrer={enregistrerConvive}
         onFermer={() => setFeuilleConvive(null)}
       />

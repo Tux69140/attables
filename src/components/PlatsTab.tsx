@@ -10,13 +10,12 @@ import { ICONE_SERVICE } from '../icones/services';
 import {
   COURSE_KEYS,
   COURSE_LABELS,
-  type ContrainteTag,
   type Convive,
   type CourseKey,
   type Invitation,
   type PlatFiche,
 } from '../types/models';
-import { ALLERGENES, iconeContrainte } from '../utils/allergenes';
+import { alimentsLibresConnus, iconeAllergene } from '../utils/allergenes';
 import { formatJourMois } from '../utils/dates';
 import { formatDishInput, getElapsedTimeInfo, getTodayIso } from '../utils/dishes';
 import {
@@ -74,9 +73,7 @@ const PastilleEtat: React.FC<{ plat: PlatConnu; aujourdHui: string }> = ({ plat,
 export const PlatsTab: React.FC<{
   invitations: Invitation[];
   plats: PlatFiche[];
-  contraintes: ContrainteTag[];
   convivesById: Map<string, Convive>;
-  contraintesById: Map<string, ContrainteTag>;
   prescriptionMois: number;
   /** Crée la fiche, ou complète celle du même plat. */
   onEnregistrerFiche: (v: ValeursPlat) => void;
@@ -87,9 +84,7 @@ export const PlatsTab: React.FC<{
 }> = ({
   invitations,
   plats,
-  contraintes,
   convivesById,
-  contraintesById,
   prescriptionMois,
   onEnregistrerFiche,
   onRemplacerFiche,
@@ -107,6 +102,7 @@ export const PlatsTab: React.FC<{
     () => repertoirePlats(invitations, plats, convivesById, prescriptionMois, aujourdHui),
     [invitations, plats, convivesById, prescriptionMois, aujourdHui]
   );
+  const libresConnus = useMemo(() => alimentsLibresConnus([...convivesById.values()], plats), [convivesById, plats]);
   const compteurs = compterFiltres(liste);
   const { resultats, proposerEnregistrement } = rechercherPlats(liste, saisie);
   const visibles = resultats.filter((p) => garder(p, filtre));
@@ -168,11 +164,9 @@ export const PlatsTab: React.FC<{
           {sousLigne && <span className="text-[14px] text-[var(--ink-muted)] break-words min-w-0">{sousLigne}</span>}
           {plat.allergenes.length > 0 && (
             <span className="flex flex-wrap gap-1.5 text-[var(--ink-muted)]" aria-label="Allergènes renseignés">
-              {plat.allergenes.map((id) => {
-                const ref = ALLERGENES.find((a) => a.id === id);
-                const perso = contraintesById.get(id);
-                return <Icone key={id} nom={ref?.icone ?? (perso ? iconeContrainte(perso) : 'tag')} size={15} />;
-              })}
+              {plat.allergenes.map((id) => (
+                <Icone key={id} nom={iconeAllergene(id)} size={15} />
+              ))}
             </span>
           )}
         </span>
@@ -285,7 +279,6 @@ export const PlatsTab: React.FC<{
         plat={platOuvert}
         aujourdHui={aujourdHui}
         prescriptionMois={prescriptionMois}
-        contraintesById={contraintesById}
         onFermer={() => setCleOuverte(null)}
         onAllergenes={() => platOuvert && setFeuille({ mode: 'allergenes', cle: platOuvert.cle })}
         onModifier={() => platOuvert && setFeuille({ mode: 'modifier', cle: platOuvert.cle })}
@@ -316,7 +309,7 @@ export const PlatsTab: React.FC<{
         allergenesOuverts={feuille?.mode === 'allergenes'}
         cleActuelle={platFeuille?.cle}
         liste={liste}
-        contraintes={contraintes}
+        libresConnus={libresConnus}
         erreur={erreur}
         libelleBouton={feuille?.mode === 'nouveau' ? 'Enregistrer le plat' : 'Enregistrer'}
         onEnregistrer={enregistrer}

@@ -12,7 +12,7 @@ const convive = (id: string, nomAffiche: string, foyerId?: string): Convive => (
   id,
   nomAffiche,
   foyerId,
-  contraintesIds: [],
+  contraintes: [],
   contrainteLibre: '',
 });
 const foyer = (id: string, nom: string): Foyer => ({ id, nom, couleur: 'corail', picto: 'maison' });

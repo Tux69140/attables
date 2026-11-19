@@ -38,7 +38,7 @@ test('trouverFiche retrouve un plat écrit autrement', () => {
 });
 
 const AUJ = '2026-11-17';
-const paul: Convive = { id: 'conv-paul', nomAffiche: 'Paul', contraintesIds: [], contrainteLibre: '' };
+const paul: Convive = { id: 'conv-paul', nomAffiche: 'Paul', contraintes: [], contrainteLibre: '' };
 const parId = new Map([[paul.id, paul]]);
 let n = 0;
 const inv = (

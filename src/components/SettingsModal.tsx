@@ -1,17 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
 import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import { focaliserTitreVue, rendreFocus } from '../hooks/focusVues';
 import { URL_NOTES_DE_VERSION, ouvrirLien } from '../services/liens';
-import { migrateAndValidateAppData } from '../services/storage';
-import {
-  AppData,
-  ContrainteNiveau,
-  ContrainteTag,
-  Convive,
-  ThemeMode,
-} from '../types/models';
+import { migrateAndValidateAppData, preparerExport } from '../services/storage';
+import { AppData, ThemeMode } from '../types/models';
 import { getTodayIso } from '../utils/dishes';
 import {
   FoyerPictoIcon,
@@ -22,25 +16,18 @@ import {
   IconClock,
   IconClose,
   IconDownload,
-  IconEdit,
-  IconPlus,
   IconShield,
   IconTrash,
   IconUpload,
   IconUtensils,
 } from './Icons';
 import { Puces } from './Controles';
-import type { NomIcone } from '../icones/donnees';
-import { ALLERGENES, iconeContrainte } from '../utils/allergenes';
-import { ChoixAllergenes, ChoixPictogramme } from './ChoixAllergenes';
-import { Icone } from './Icone';
-import { BottomSheet, ConfirmModal } from './SharedUI';
+import { ConfirmModal } from './SharedUI';
 
 type SettingsSection =
   | 'root'
   | 'apparence'
   | 'memoire'
-  | 'contraintes'
   | 'sauvegarde'
   | 'apropos';
 
@@ -48,7 +35,6 @@ const SECTION_TITLES: Record<SettingsSection, string> = {
   root: 'Réglages',
   apparence: 'Apparence',
   memoire: 'Mémoire des plats',
-  contraintes: 'Contraintes alimentaires',
   sauvegarde: 'Sauvegarde & Données',
   apropos: 'À propos',
 };
@@ -63,8 +49,6 @@ interface SettingsScreenProps {
   data: AppData;
   onChangeTheme: (theme: ThemeMode) => void;
   onChangePrescriptionMois: (mois: number) => void;
-  onSaveTag: (tag: ContrainteTag) => void;
-  onDeleteTag: (tagId: string) => void;
   onRestoreBackup: (restored: AppData) => void;
   onClearAllData: () => void;
   onResetSampleData: () => void;
@@ -78,8 +62,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   data,
   onChangeTheme,
   onChangePrescriptionMois,
-  onSaveTag,
-  onDeleteTag,
   onRestoreBackup,
   onClearAllData,
   onResetSampleData,
@@ -94,12 +76,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const enteteRef = useRef<HTMLElement>(null);
   useHauteurMesuree(enteteRef, '--hauteur-entete');
 
-  const [newTagLabel, setNewTagLabel] = useState('');
-  const [newTagNiveau, setNewTagNiveau] = useState<ContrainteNiveau>('strict');
-
-  const [tagEnEdition, setTagEnEdition] = useState<ContrainteTag | null>(null);
-
-  const [tagToDelete, setTagToDelete] = useState<ContrainteTag | null>(null);
   const [pendingRestore, setPendingRestore] = useState<AppData | null>(null);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [exportSuccess, setExportSuccess] = useState(false);
@@ -141,28 +117,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     window.scrollTo({ top: 0 });
   });
 
-  const handleAddTag = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = newTagLabel.trim();
-    if (!trimmed) return;
-    onSaveTag({
-      id: `tag-${Date.now()}`,
-      libelle: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
-      niveau: newTagNiveau,
-      allergenes: [],
-    });
-    setNewTagLabel('');
-  };
-
-  const toggleTagNiveau = (tag: ContrainteTag) => {
-    onSaveTag({
-      ...tag,
-      niveau: tag.niveau === 'strict' ? 'preference' : 'strict',
-    });
-  };
-
   const handleExportJson = () => {
-    const json = JSON.stringify(data, null, 2);
+    const json = JSON.stringify(preparerExport(data), null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -196,93 +152,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   };
 
-  const countGuestsUsingTag = (tagId: string) =>
-    data.convives.filter((c: Convive) => c.contraintesIds.includes(tagId)).length;
-
-  const strictTags = useMemo(
-    () =>
-      data.contraintes
-        .filter((t) => t.niveau === 'strict')
-        .sort((a, b) => a.libelle.localeCompare(b.libelle, 'fr')),
-    [data.contraintes]
-  );
-
-  const prefTags = useMemo(
-    () =>
-      data.contraintes
-        .filter((t) => t.niveau === 'preference')
-        .sort((a, b) => a.libelle.localeCompare(b.libelle, 'fr')),
-    [data.contraintes]
-  );
-
   const themeSummaryLabel =
     data.settings.theme === 'appareil'
       ? 'Appareil (automatique)'
       : data.settings.theme === 'clair'
       ? 'Clair (Safran)'
       : 'Sombre (Nuit marine)';
-
-  const renderTagRow = (tag: ContrainteTag) => {
-    const isStrict = tag.niveau === 'strict';
-    return (
-      <div key={tag.id} className="pl-4 pr-2 py-3 flex items-center justify-between gap-2">
-        <div className="min-w-0 flex-1 flex items-start gap-3">
-          <span className="w-9 h-9 rounded-xl bg-[var(--surface-elevated)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
-            <Icone nom={iconeContrainte(tag)} size={20} />
-          </span>
-          <div className="min-w-0 flex flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[15px] font-semibold text-[var(--ink)]">{tag.libelle}</span>
-              <button
-                type="button"
-                onClick={() => toggleTagNiveau(tag)}
-                className={`min-h-[44px] px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
-                  isStrict ? 'bg-[var(--error-bg)] text-[var(--error)]' : 'bg-[var(--pref-bg)] text-[var(--pref)]'
-                }`}
-                title="Appuyer pour basculer Allergie stricte / Préférence"
-              >
-                {isStrict && <IconAlert size={14} />}
-                <span>{isStrict ? 'Allergie stricte' : 'Préférence'}</span>
-              </button>
-            </div>
-            <span className="text-[13px] text-[var(--ink-muted)] flex flex-wrap items-center gap-1.5">
-              {tag.allergenes.length === 0 ? (
-                'Contrainte personnelle'
-              ) : (
-                tag.allergenes.map((id) => {
-                  const a = ALLERGENES.find((x) => x.id === id);
-                  return a ? (
-                    <span key={id} className="inline-flex items-center gap-1">
-                      <Icone nom={a.icone} size={14} />
-                      {a.libelle}
-                    </span>
-                  ) : null;
-                })
-              )}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center shrink-0">
-          <button
-            type="button"
-            onClick={() => setTagEnEdition(tag)}
-            aria-label={`Modifier ${tag.libelle}`}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--ink-muted)] hover:bg-[var(--surface-elevated)]"
-          >
-            <IconEdit size={17} />
-          </button>
-          <button
-            type="button"
-            onClick={() => setTagToDelete(tag)}
-            aria-label={`Supprimer ${tag.libelle}`}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[var(--error)] hover:bg-[var(--error-bg)]"
-          >
-            <IconTrash size={17} />
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
@@ -358,28 +233,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="text-[14px] text-[var(--ink-muted)] break-words min-w-0 tabular-nums">
                     Alerte forte sous {data.settings.prescriptionMois} mois
-                  </div>
-                </div>
-              </div>
-              <IconChevronRight size={19} className="text-[var(--ink-muted)] shrink-0" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigateToSection('contraintes')}
-              data-focus-cle="section-contraintes"
-              className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
-            >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-[var(--error-bg)] text-[var(--error)] flex items-center justify-center shrink-0">
-                  <IconAlert size={22} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[16px] font-semibold text-[var(--ink)]">
-                    Contraintes alimentaires
-                  </div>
-                  <div className="text-[14px] text-[var(--ink-muted)] break-words min-w-0 tabular-nums">
-                    {data.contraintes.length} tags · {strictTags.length} allergies strictes
                   </div>
                 </div>
               </div>
@@ -531,98 +384,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               {THEMES.find((t) => t.id === data.settings.theme)?.desc}
             </p>
           </section>
-        )}
-
-        {/* SUB-SCREEN: Contraintes alimentaires */}
-        {section === 'contraintes' && (
-          <div className="flex flex-col gap-5">
-            {/* Add new tag card */}
-            <section className="carte p-4 flex flex-col gap-3">
-              <h2 className="font-display text-[18px] text-[var(--ink)]">
-                Ajouter un tag
-              </h2>
-              <form onSubmit={handleAddTag} className="flex flex-col gap-2.5">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={newTagLabel}
-                    onChange={(e) => setNewTagLabel(e.target.value)}
-                    placeholder="Ex. Sésame, Sans œufs…"
-                    aria-label="Libellé du nouveau tag"
-                    className="flex-1 min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
-                  />
-                  <button
-                    type="submit"
-                    className="min-h-[46px] px-4 rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] inline-flex items-center justify-center gap-2 shrink-0 active:scale-[0.98] transition-transform"
-                  >
-                    <IconPlus size={18} />
-                    <span>Ajouter</span>
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNewTagNiveau('strict')}
-                    className={`min-h-[44px] px-3 rounded-xl border text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors ${
-                      newTagNiveau === 'strict'
-                        ? 'bg-[var(--error-bg)] border-[var(--error)] text-[var(--error)]'
-                        : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink-muted)]'
-                    }`}
-                  >
-                    <IconAlert size={16} />
-                    <span>Allergie stricte</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewTagNiveau('preference')}
-                    className={`min-h-[44px] px-3 rounded-xl border text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors ${
-                      newTagNiveau === 'preference'
-                        ? 'bg-[var(--pref-bg)] border-[var(--pref)] text-[var(--pref)]'
-                        : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink-muted)]'
-                    }`}
-                  >
-                    <span>Préférence</span>
-                  </button>
-                </div>
-              </form>
-            </section>
-
-            {/* Grouped existing tags */}
-            <p className="text-[13px] text-[var(--ink-muted)] px-1">
-              Touchez le badge d’un tag pour basculer entre Allergie stricte et Préférence.
-            </p>
-            {strictTags.length > 0 && (
-              <section className="flex flex-col gap-2">
-                <div className="flex items-baseline justify-between px-1">
-                  <h2 className="font-display text-[18px] text-[var(--ink)]">
-                    Allergies & interdits stricts
-                  </h2>
-                  <span className="text-[13px] text-[var(--ink-muted)] tabular-nums">
-                    {strictTags.length}
-                  </span>
-                </div>
-                <div className="carte overflow-hidden divide-y divide-[var(--border)]">
-                  {strictTags.map(renderTagRow)}
-                </div>
-              </section>
-            )}
-
-            {prefTags.length > 0 && (
-              <section className="flex flex-col gap-2">
-                <div className="flex items-baseline justify-between px-1">
-                  <h2 className="font-display text-[18px] text-[var(--ink)]">
-                    Régimes & préférences
-                  </h2>
-                  <span className="text-[13px] text-[var(--ink-muted)] tabular-nums">
-                    {prefTags.length}
-                  </span>
-                </div>
-                <div className="carte overflow-hidden divide-y divide-[var(--border)]">
-                  {prefTags.map(renderTagRow)}
-                </div>
-              </section>
-            )}
-          </div>
         )}
 
         {/* SUB-SCREEN: Sauvegarde & Données */}
@@ -867,41 +628,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         )}
       </main>
 
-      {/* Confirm Delete Tag */}
-      <BottomSheet open={tagEnEdition !== null} title="Modifier la contrainte" onClose={() => setTagEnEdition(null)}>
-        {tagEnEdition && (
-          <FormulaireContrainte
-            key={tagEnEdition.id}
-            tag={tagEnEdition}
-            onEnregistrer={(t) => {
-              onSaveTag(t);
-              setTagEnEdition(null);
-            }}
-          />
-        )}
-      </BottomSheet>
-
-      <ConfirmModal
-        open={Boolean(tagToDelete)}
-        title={`Supprimer le tag « ${tagToDelete?.libelle ?? ''} » ?`}
-        description={(() => {
-          if (!tagToDelete) return '';
-          const count = countGuestsUsingTag(tagToDelete.id);
-          if (count === 0) {
-            return 'Aucun convive n’utilise ce tag actuellement. Vous pourrez annuler juste après.';
-          }
-          return `Ce tag sera retiré de la fiche de ${count} convive${
-            count > 1 ? 's' : ''
-          }. Vous pourrez annuler juste après.`;
-        })()}
-        confirmLabel="Supprimer le tag"
-        onConfirm={() => {
-          if (tagToDelete) onDeleteTag(tagToDelete.id);
-          setTagToDelete(null);
-        }}
-        onCancel={() => setTagToDelete(null)}
-      />
-
       {/* Confirm Restore Backup */}
       <ConfirmModal
         open={Boolean(pendingRestore)}
@@ -925,7 +651,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <ConfirmModal
         open={showClearConfirm}
         title="Vider toutes les données ?"
-        description={`Supprimer les ${data.invitations.length} invitations, ${data.convives.length} convives et ${data.foyers.length} foyers pour repartir sur une base vide ? (Les tags de contraintes par défaut seront conservés, et vous pourrez annuler juste après.)`}
+        description={`Supprimer les ${data.invitations.length} invitations, ${data.convives.length} convives et ${data.foyers.length} foyers pour repartir sur une base vide ? Vous pourrez annuler juste après.`}
         confirmLabel="Tout vider"
         onConfirm={() => {
           setShowClearConfirm(false);
@@ -961,70 +687,5 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         onCancel={() => setShowSampleConfirm(false)}
       />
     </div>
-  );
-};
-
-/** Édition d'une contrainte : libellé, niveau, pictogramme et allergènes qu'elle interdit. */
-const FormulaireContrainte: React.FC<{ tag: ContrainteTag; onEnregistrer: (t: ContrainteTag) => void }> = ({
-  tag,
-  onEnregistrer,
-}) => {
-  const [libelle, setLibelle] = useState(tag.libelle);
-  const [niveau, setNiveau] = useState<ContrainteNiveau>(tag.niveau);
-  const [icone, setIcone] = useState<NomIcone | undefined>(tag.icone);
-  const [allergenes, setAllergenes] = useState<string[]>(tag.allergenes);
-  const auto = iconeContrainte({ ...tag, icone: undefined, allergenes });
-
-  const enregistrer = (e: React.FormEvent) => {
-    e.preventDefault();
-    const propre = libelle.trim();
-    if (!propre) return;
-    const { icone: _ancienne, ...reste } = tag;
-    onEnregistrer({ ...reste, libelle: propre, niveau, allergenes, ...(icone ? { icone } : {}) });
-  };
-
-  return (
-    <form onSubmit={enregistrer} className="flex flex-col gap-4">
-      <div>
-        <label htmlFor="contrainte-libelle" className="block text-[14px] font-semibold text-[var(--ink-muted)] mb-1">
-          Libellé
-        </label>
-        <input
-          id="contrainte-libelle"
-          type="text"
-          required
-          value={libelle}
-          onChange={(e) => setLibelle(e.target.value)}
-          className="w-full min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
-        />
-      </div>
-      <Puces
-        ariaLabel="Niveau"
-        valeur={niveau}
-        onChange={setNiveau}
-        options={[
-          { id: 'strict', label: 'Allergie stricte', icone: 'triangle-alert', ton: 'alerte' },
-          { id: 'preference', label: 'Préférence' },
-        ]}
-      />
-      <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Pictogramme</span>
-        <ChoixPictogramme valeur={icone} auto={auto} onChange={setIcone} />
-      </div>
-      <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Allergènes concernés</span>
-        <p className="text-[13px] text-[var(--ink-muted)] -mt-1">
-          Un plat qui en contient déclenchera une alerte. Sans allergène, la contrainte reste personnelle et peut être
-          cochée elle-même sur un plat.
-        </p>
-        <ChoixAllergenes valeur={allergenes} onChange={setAllergenes} contraintes={[]} inclurePersonnels={false} />
-      </div>
-      <button
-        type="submit"
-        className="min-h-[48px] w-full rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] active:scale-[0.98] transition-transform"
-      >
-        Enregistrer
-      </button>
-    </form>
   );
 };
