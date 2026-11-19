@@ -214,11 +214,16 @@ export function createSampleData(): AppData {
     },
   ];
 
-  // Deux idées jamais servies et la fiche d'un plat déjà servi (Mousse, inv-3).
+  // Deux idées jamais servies, la fiche d'un plat déjà servi (Mousse, inv-3) et celles des plats des repas à venir
+  // (sauf les poires du Dîner d'automne, laissées sans fiche pour montrer l'invite « Allergènes non renseignés »).
   const plats: PlatFiche[] = [
     { id: 'plat-exemple-pot-au-feu', libelle: 'Pot-au-feu', services: ['plat'], allergenes: ['viande', 'celeri'] },
     { id: 'plat-exemple-cervelle-canut', libelle: 'Cervelle de canut', services: ['apero'], allergenes: ['lait'] },
     { id: 'plat-exemple-mousse', libelle: 'Mousse au chocolat noir', services: ['dessert'], allergenes: ['oeufs', 'lait'] },
+    { id: 'plat-exemple-veloute-potimarron', libelle: 'Velouté de potimarron en verrine', services: ['apero'], allergenes: ['lait'] },
+    { id: 'plat-exemple-chevre-comte', libelle: 'Chèvre cendré & Comté affiné', services: ['fromage'], allergenes: ['lait'] },
+    { id: 'plat-exemple-shakshuka', libelle: 'Shakshuka aux herbes', services: ['plat'], allergenes: ['oeufs'] },
+    { id: 'plat-exemple-gateau-pommes', libelle: 'Gâteau aux pommes maison', services: ['dessert'], allergenes: ['gluten', 'oeufs', 'lait'] },
   ];
 
   return {

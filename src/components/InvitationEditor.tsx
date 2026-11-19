@@ -899,7 +899,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                       </span>
                                     ) : dish.isRecent ? (
                                       <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--warning)]">
-                                        <IconAlert size={14} />
+                                        <IconClock size={14} />
                                         <span>Récent ({dish.elapsedLabel})</span>
                                       </span>
                                     ) : (
@@ -1081,7 +1081,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                     </span>
                                   ) : sugConflict?.isRecent ? (
                                     <span className="text-[13px] text-[var(--warning)] font-semibold shrink-0 flex items-center gap-1">
-                                      <IconAlert size={14} />
+                                      <IconClock size={14} />
                                       <span>Servi récemment</span>
                                     </span>
                                   ) : sugConflict ? (
@@ -1127,7 +1127,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                           {conflict.hasAEviter ? (
                             <IconBan size={17} className="shrink-0 mt-0.5" />
                           ) : conflict.isRecent ? (
-                            <IconAlert size={17} className="shrink-0 mt-0.5" />
+                            <IconClock size={17} className="shrink-0 mt-0.5" />
                           ) : (
                             <IconClock size={17} className="shrink-0 mt-0.5 text-[var(--success)]" />
                           )}

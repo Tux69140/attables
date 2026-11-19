@@ -17,6 +17,7 @@ import {
   iconeContrainte,
   idAutre,
   libelleAllergene,
+  listePrenoms,
   memeAllergene,
   REGIMES,
   resumeAllergiesStrictes,
@@ -101,17 +102,31 @@ test('régimes pré-remplis : Végétarien et Végan', () => {
   );
 });
 
-test('resumeAllergiesStrictes : deux premières puis le reste', () => {
+test('listePrenoms : un, deux, trois prénoms', () => {
+  const lea = c('conv-lea', 'Léa');
+  const nadia = c('conv-nadia', 'Nadia');
+  const paul = c('conv-paul', 'Paul');
+  assert.equal(listePrenoms([lea]), 'Léa');
+  assert.equal(listePrenoms([lea, nadia]), 'Léa et Nadia');
+  assert.equal(listePrenoms([lea, nadia, paul]), 'Léa, Nadia et Paul');
+  assert.equal(listePrenoms([]), '');
+});
+
+test('resumeAllergiesStrictes : deux premières puis le reste, au format « Allergène — Prénom »', () => {
   const lea = c('conv-lea', 'Léa');
   const paul = c('conv-paul', 'Paul');
   const nadia = c('conv-nadia', 'Nadia');
   const groupe = (libelle: string, guests: Convive[]) => ({ cle: libelle.toLowerCase(), libelle, icone: 'tag' as const, guests });
   const strict = [groupe('Arachides', [lea]), groupe('Fruits à coque', [nadia]), groupe('Crustacés', [paul]), groupe('Gluten', [nadia])];
   assert.deepEqual(resumeAllergiesStrictes(strict), {
-    texte: 'Arachides (Léa) · Fruits à coque (Nadia)',
+    texte: 'Arachides — Léa · Fruits à coque — Nadia',
     reste: 2,
   });
-  assert.deepEqual(resumeAllergiesStrictes(strict.slice(0, 1)), { texte: 'Arachides (Léa)', reste: 0 });
+  assert.deepEqual(resumeAllergiesStrictes(strict.slice(0, 1)), { texte: 'Arachides — Léa', reste: 0 });
+  assert.deepEqual(
+    resumeAllergiesStrictes([groupe('Arachides', [lea, nadia]), groupe('Crustacés', [paul]), groupe('Gluten', [nadia])]),
+    { texte: 'Arachides — Léa, Nadia · Crustacés — Paul', reste: 1 }
+  );
 });
 
 test('affaiblissements', () => {

@@ -8,6 +8,7 @@ import { afterEach, test } from 'node:test';
 import type { AppData, ContrainteConvive, ContrainteNiveau, Convive } from '../types/models';
 import { conflitsPlat, LIAISONS_PAR_DEFAUT } from '../utils/allergenes';
 import { aggregateConstraints } from '../utils/dishes';
+import { trouverFiche } from '../utils/plats';
 import { createEmptyData, createSampleData, creerStockage, migrateAndValidateAppData, preparerExport } from './storage';
 
 const c = (id: string, nom: string, ...els: ContrainteConvive[]): Convive => ({ id, nomAffiche: nom, contraintes: els, contrainteLibre: '' });
@@ -301,4 +302,14 @@ test('accueilVu conservé quand on vide les données', () => {
   const settings = createSampleData().settings;
   assert.equal(createEmptyData({ ...settings, accueilVu: true }).settings.accueilVu, true);
   assert.equal(createEmptyData().settings.accueilVu, false);
+});
+
+test('exemples : les plats des repas à venir ont une fiche, sauf les poires du Dîner d\'automne', () => {
+  const d = createSampleData();
+  const sansFiche = d.invitations
+    .filter((i) => i.statut === 'prevue')
+    .flatMap((i) => Object.values(i.menu))
+    .filter((plat): plat is string => Boolean(plat?.trim()))
+    .filter((plat) => !trouverFiche(d.plats, plat));
+  assert.deepEqual(sansFiche, ['Poires pochées à la vanille']);
 });

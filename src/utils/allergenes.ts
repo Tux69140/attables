@@ -240,14 +240,21 @@ export function iconeContrainte(c: { icone?: NomIcone; allergenes: string[] }): 
   return 'tag';
 }
 
-/** Bandeau de carte : « Arachides (Léa) · Fruits à coque (Nadia) », puis le nombre d'allergies non citées. */
+/** Prénoms en phrase : « Léa », « Léa et Nadia », « Léa, Nadia et Paul ». */
+export function listePrenoms(convives: Convive[]): string {
+  const noms = convives.map((g) => g.nomAffiche);
+  if (noms.length <= 1) return noms.join('');
+  return `${noms.slice(0, -1).join(', ')} et ${noms[noms.length - 1]}`;
+}
+
+/** Bandeau de carte : « Arachides — Léa, Nadia · Crustacés — Paul », puis le nombre d'allergies non citées. */
 export function resumeAllergiesStrictes(
   strict: AggregatedConstraints['strict'],
   max = 2
 ): { texte: string; reste: number } {
   const texte = strict
     .slice(0, max)
-    .map(({ libelle, guests }) => `${libelle} (${guests.map((g) => g.nomAffiche).join(', ')})`)
+    .map(({ libelle, guests }) => `${libelle} — ${guests.map((g) => g.nomAffiche).join(', ')}`)
     .join(' · ');
   return { texte, reste: Math.max(0, strict.length - max) };
 }

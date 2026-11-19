@@ -30,7 +30,7 @@ import { Puces } from './Controles';
 import { FeuillePlat, type ValeursPlat } from './FeuillePlat';
 import { FichePlat } from './FichePlat';
 import { Icone } from './Icone';
-import { IconBan, IconClose, IconHeart, IconPlus, IconSearch } from './Icons';
+import { IconBan, IconClock, IconClose, IconHeart, IconPlus, IconSearch } from './Icons';
 
 type Filtre = 'tous' | 'idees' | 'coeur' | 'peut_revenir' | 'a_eviter';
 
@@ -56,7 +56,7 @@ const PastilleEtat: React.FC<{ plat: PlatConnu; aujourdHui: string }> = ({ plat,
     plat.etat === 'a_eviter'
       ? 'à éviter'
       : plat.etat === 'recent'
-        ? getElapsedTimeInfo(plat.derniereServie!.date, aujourdHui).label
+        ? `récent · ${getElapsedTimeInfo(plat.derniereServie!.date, aujourdHui).label}`
         : plat.etat === 'peut_revenir'
           ? 'peut revenir'
           : plat.etat === 'prevu'
@@ -65,6 +65,7 @@ const PastilleEtat: React.FC<{ plat: PlatConnu; aujourdHui: string }> = ({ plat,
   return (
     <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[13px] font-bold ${styles[plat.etat]}`}>
       {plat.etat === 'a_eviter' && <IconBan size={13} />}
+      {plat.etat === 'recent' && <IconClock size={13} />}
       {texte}
     </span>
   );

@@ -7,11 +7,11 @@
  */
 import React, { useRef } from 'react';
 import type { ContrainteConvive, Convive } from '../types/models';
-import { type ConflitAllergene, iconeContrainte } from '../utils/allergenes';
+import { type ConflitAllergene, iconeContrainte, listePrenoms } from '../utils/allergenes';
 import type { AggregatedConstraints } from '../utils/dishes';
 import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import { Icone } from './Icone';
-import { IconAlert, IconCheck, IconEdit } from './Icons';
+import { IconAlert, IconCheck } from './Icons';
 
 const prenoms = (guests: Convive[]) => guests.map((g) => g.nomAffiche).join(', ');
 
@@ -56,17 +56,10 @@ const BandeauAllergiesVisible: React.FC<{
   );
 };
 
-const Ligne: React.FC<{ gauche: string; droite: string }> = ({ gauche, droite }) => (
-  <div className="flex justify-between gap-3 px-3 py-1.5">
-    <b className="font-bold">{gauche}</b>
-    <span className="text-right">{droite}</span>
-  </div>
-);
-
-/** Contraintes réunies : allergies strictes, préférences, notes libres. */
+/** Contraintes réunies, une ligne par personne : allergies en pastilles rouges, « évite » en bleu, note libre entre guillemets. */
 export const BlocTablee: React.FC<{ constraints: AggregatedConstraints }> = ({ constraints }) => {
-  const { strict, preferences, freeNotes } = constraints;
-  if (strict.length === 0 && preferences.length === 0 && freeNotes.length === 0) {
+  const { parPersonne } = constraints;
+  if (parPersonne.length === 0) {
     return (
       <p className="px-3.5 py-2.5 rounded-xl bg-[var(--success-bg)] text-[var(--success)] text-[14px] font-semibold flex items-center gap-2">
         <IconCheck size={17} />
@@ -75,37 +68,22 @@ export const BlocTablee: React.FC<{ constraints: AggregatedConstraints }> = ({ c
     );
   }
   return (
-    <div className="flex flex-col gap-2.5">
-      {strict.length > 0 && (
-        <div className="rounded-xl bg-[var(--error-bg)] text-[var(--error)] border-[1.5px] border-[var(--error)] text-[15px] pb-1.5">
-          <p className="px-3 pt-2 pb-1 text-[12px] font-bold flex items-center gap-1.5">
-            <IconAlert size={15} /> Allergies strictes
-          </p>
-          {strict.map(({ cle, libelle, guests }) => (
-            <Ligne key={cle} gauche={libelle} droite={prenoms(guests)} />
+    <ul className="flex flex-col divide-y divide-[var(--border)]">
+      {parPersonne.map(({ guest, strict, evite, note }) => (
+        <li key={guest.id} className="py-2 first:pt-0 last:pb-0 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[14px]">
+          <b className="font-bold text-[var(--ink)] break-words min-w-0">{guest.nomAffiche}</b>
+          {strict.map((e) => (
+            <PastilleContrainte key={e.id} contrainte={e} />
           ))}
-        </div>
-      )}
-      {preferences.length > 0 && (
-        <div className="rounded-xl bg-[var(--pref-bg)] text-[var(--pref)] text-[14px] pb-1.5">
-          <p className="px-3 pt-2 pb-1 text-[12px] font-bold">Préférences</p>
-          {preferences.map(({ cle, libelle, guests }) => (
-            <Ligne key={cle} gauche={libelle} droite={prenoms(guests)} />
-          ))}
-        </div>
-      )}
-      {freeNotes.map(({ guest, note }) => (
-        <p
-          key={guest.id}
-          className="px-3 py-2 rounded-xl bg-[var(--surface-elevated)] text-[14px] text-[var(--ink)] flex items-start gap-2"
-        >
-          <IconEdit size={15} className="shrink-0 mt-0.5 text-[var(--ink-muted)]" />
-          <span>
-            <b>{guest.nomAffiche}</b> <span className="text-[var(--ink-muted)]">— {note}</span>
-          </span>
-        </p>
+          {evite.length > 0 && (
+            <span className="text-[var(--pref)] break-words min-w-0">
+              évite : {evite.map((e) => e.libelle.toLowerCase()).join(', ')}
+            </span>
+          )}
+          {note && <span className="text-[var(--ink)] break-words min-w-0">« {note} »</span>}
+        </li>
       ))}
-    </div>
+    </ul>
   );
 };
 
@@ -161,7 +139,8 @@ export const AlertesAllergenes: React.FC<{ conflits: ConflitAllergene[] }> = ({ 
         >
           <IconAlert size={17} className="shrink-0 mt-px" />
           <span>
-            Contient {quoi} — {prenoms(c.convives)} (allergie stricte)
+            Ce plat contient {quoi} — {listePrenoms(c.convives)}{' '}
+            {c.convives.length > 1 ? 'sont allergiques' : 'est allergique'}
           </span>
         </p>
       ) : (
@@ -170,7 +149,7 @@ export const AlertesAllergenes: React.FC<{ conflits: ConflitAllergene[] }> = ({ 
           className="px-3 py-2 rounded-xl bg-[var(--pref-bg)] text-[var(--pref)] text-[14px] flex items-start gap-2"
         >
           <span>
-            Contient {quoi} — {prenoms(c.convives)} (préférence)
+            Ce plat contient {quoi} — {listePrenoms(c.convives)} {c.convives.length > 1 ? 'évitent' : 'évite'}
           </span>
         </p>
       );
