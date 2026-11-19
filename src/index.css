@@ -103,7 +103,7 @@ body {
   padding-top: var(--haut-systeme);
   padding-bottom: env(safe-area-inset-bottom);
 }
-@media (min-width: 640px) {
+@media (min-width: 40rem) { /* = point de rupture sm: de Tailwind */
   .voile-feuille {
     padding: max(1rem, var(--haut-systeme)) 1rem max(1rem, env(safe-area-inset-bottom));
   }
