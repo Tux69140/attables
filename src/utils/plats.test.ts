@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Convive, CourseKey, DishVerdict, Invitation, PlatFiche } from '../types/models';
 import {
+  aVerifier,
   allergenesRenseignes,
   cleDePlat,
   compterFiltres,
@@ -238,6 +239,16 @@ test('allergenesRenseignes', () => {
   assert.equal(allergenesRenseignes(fiche('Flan')), false);
   assert.equal(allergenesRenseignes({ ...fiche('Flan'), sansAllergene: true }), true);
   assert.equal(allergenesRenseignes(fiche('Flan', ['plat'], ['oeufs'])), true);
+});
+
+test('aVerifier : plat saisi, tablée avec allergie, allergènes non renseignés', () => {
+  assert.equal(aVerifier('', undefined, true), false);
+  assert.equal(aVerifier('   ', undefined, true), false);
+  assert.equal(aVerifier('Flan', undefined, false), false);
+  assert.equal(aVerifier('Flan', undefined, true), true);
+  assert.equal(aVerifier('Flan', fiche('Flan'), true), true);
+  assert.equal(aVerifier('Flan', { ...fiche('Flan'), sansAllergene: true }, true), false);
+  assert.equal(aVerifier('Flan', fiche('Flan', ['plat'], ['oeufs']), true), false);
 });
 
 test('renommerIdee', () => {

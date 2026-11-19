@@ -488,6 +488,7 @@ export default function App() {
         prescriptionMois={data.settings.prescriptionMois}
         plats={data.plats}
         onDemanderNouveauConvive={demanderNouveauConvive}
+        onEnregistrerFiche={handleEnregistrerFiche}
         onSave={handleSaveInvitation}
         onReinvite={handleReinvite}
         onDelete={handleDeleteInvitation}

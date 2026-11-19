@@ -292,6 +292,11 @@ export function allergenesRenseignes(fiche: PlatFiche | undefined): boolean {
   return Boolean(fiche && (fiche.allergenes.length > 0 || fiche.sansAllergene));
 }
 
+/** Vrai quand un plat saisi, servi à une tablée qui compte une allergie, n'a pas ses allergènes renseignés. */
+export function aVerifier(valeurPlat: string, fiche: PlatFiche | undefined, tableeAvecAllergie: boolean): boolean {
+  return valeurPlat.trim() !== '' && tableeAvecAllergie && !allergenesRenseignes(fiche);
+}
+
 /** Enregistre une fiche ; si le plat a déjà une fiche, la complète (services unis, allergènes remplacés). */
 export function enregistrerFiche(plats: PlatFiche[], entree: ValeursPlat, id: string): PlatFiche[] {
   const cle = cleDePlat(entree.libelle);

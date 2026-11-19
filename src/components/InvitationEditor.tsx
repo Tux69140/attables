@@ -45,12 +45,13 @@ import {
   IconTrash,
 } from './Icons';
 import { ICONE_SERVICE } from '../icones/services';
-import { conflitsPlat, iconeAllergene } from '../utils/allergenes';
-import { trouverFiche } from '../utils/plats';
+import { alimentsLibresConnus, conflitsPlat, iconeAllergene } from '../utils/allergenes';
+import { aVerifier, cleDePlat, repertoirePlats, trouverFiche, type ValeursPlat } from '../utils/plats';
 import { realiseeMiseEnAvant } from '../utils/dates';
 import { AlertesAllergenes, BandeauAllergies, BlocTablee } from './Allergies';
 import { Puces } from './Controles';
 import { Icone } from './Icone';
+import { FeuillePlat } from './FeuillePlat';
 import { BottomSheet, ConfirmModal, FoyerTile } from './SharedUI';
 import { useAndroidBack } from '../hooks/useAndroidBack';
 import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
@@ -69,6 +70,8 @@ interface InvitationEditorProps {
   plats: PlatFiche[];
   /** Ouvre la feuille de création d'un convive ; `apres` reçoit le convive enregistré. */
   onDemanderNouveauConvive: (apres: (c: Convive) => void) => void;
+  /** Crée la fiche d'un plat, ou complète celle du même plat. */
+  onEnregistrerFiche: (v: ValeursPlat) => void;
   onSave: (invitation: Invitation) => void;
   onReinvite?: (invitation: Invitation) => void;
   onDelete?: (invitation: Invitation) => void;
@@ -85,6 +88,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   prescriptionMois,
   plats,
   onDemanderNouveauConvive,
+  onEnregistrerFiche,
   onSave,
   onReinvite,
   onDelete,
@@ -129,6 +133,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   const [selectedDishDetail, setSelectedDishDetail] = useState<ConsolidatedServedDish | null>(null);
   const [selectedGuestDetail, setSelectedGuestDetail] = useState<Convive | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Service dont la fiche de plat est ouverte pour renseigner les allergènes.
+  const [platAVerifier, setPlatAVerifier] = useState<CourseKey | null>(null);
 
   useAndroidBack(true, onCancel);
 
@@ -157,6 +163,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
     setSelectedDishDetail(null);
     setSelectedGuestDetail(null);
     setShowAiSheet(false);
+    setPlatAVerifier(null);
   }, [existing, initialDraft]);
 
   // AI Prompt modal state (anonymized by default)
@@ -185,6 +192,13 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
     () => aggregateConstraints(convivesIds, convivesById),
     [convivesIds, convivesById]
   );
+
+  // Répertoire des plats et aliments libres connus, pour la fiche de plat ouverte depuis un menu.
+  const listePlats = useMemo(
+    () => repertoirePlats(allInvitations, plats, convivesById, prescriptionMois, getTodayIso()),
+    [allInvitations, plats, convivesById, prescriptionMois]
+  );
+  const libresConnus = useMemo(() => alimentsLibresConnus(convives, plats), [convives, plats]);
 
   // Live anti-duplicate served dishes (strictly from 'realisee' invitations)
   const servedDishes = useMemo(
@@ -990,6 +1004,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                   const conflitsAllergenes = fiche
                     ? conflitsPlat(fiche.allergenes, selectedGuests)
                     : [];
+                  const allergenesAVerifier = aVerifier(value, fiche, constraints.strict.length > 0);
 
                   return (
                     <div key={courseKey} className="relative flex flex-col gap-1.5">
@@ -1085,6 +1100,17 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
 
                       {/* Allergènes de la fiche du plat qui concernent la tablée */}
                       <AlertesAllergenes conflits={conflitsAllergenes} />
+
+                      {/* Plat saisi pour une tablée avec allergie, mais sans allergènes renseignés */}
+                      {allergenesAVerifier && (
+                        <button
+                          type="button"
+                          onClick={() => setPlatAVerifier(courseKey)}
+                          className="w-full min-h-[44px] px-3.5 py-2 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] text-[var(--ink)] text-left"
+                        >
+                          Allergènes de ce plat non renseignés — vérifier
+                        </button>
+                      )}
 
                       {/* Immediate anti-duplicate / temporal prescription / verdict feedback */}
                       {conflict && (
@@ -1584,6 +1610,43 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           </div>
         </div>
       </BottomSheet>
+
+      {/* Fiche du plat dont les allergènes sont à renseigner : le nom vient du menu, il n'est pas modifiable ici */}
+      {(() => {
+        const valeur = platAVerifier ? (menu[platAVerifier] ?? '') : '';
+        const ficheOuverte = valeur.trim() ? trouverFiche(plats, valeur) : undefined;
+        return (
+          <FeuillePlat
+            ouverte={platAVerifier !== null && valeur.trim() !== ''}
+            titre={`Allergènes · ${ficheOuverte?.libelle ?? formatDishInput(valeur)}`}
+            initial={
+              ficheOuverte
+                ? {
+                    libelle: ficheOuverte.libelle,
+                    services:
+                      platAVerifier && !ficheOuverte.services.includes(platAVerifier)
+                        ? COURSE_KEYS.filter((k) => k === platAVerifier || ficheOuverte.services.includes(k))
+                        : ficheOuverte.services,
+                    allergenes: ficheOuverte.allergenes,
+                    sansAllergene: ficheOuverte.sansAllergene ?? false,
+                  }
+                : { libelle: valeur, services: platAVerifier ? [platAVerifier] : [], allergenes: [], sansAllergene: false }
+            }
+            nomModifiable={false}
+            allergenesOuverts
+            cleActuelle={ficheOuverte ? cleDePlat(ficheOuverte.libelle) : undefined}
+            liste={listePlats}
+            libresConnus={libresConnus}
+            libelleBouton="Enregistrer"
+            onEnregistrer={(v) => {
+              onEnregistrerFiche(v);
+              setPlatAVerifier(null);
+            }}
+            onOuvrirPlat={() => {}}
+            onFermer={() => setPlatAVerifier(null)}
+          />
+        );
+      })()}
 
       {/* Delete confirmation modal */}
       <ConfirmModal
