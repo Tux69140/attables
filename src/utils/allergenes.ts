@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 import type { NomIcone } from '../icones/donnees';
-import type { ContrainteNiveau, Convive, PlatFiche } from '../types/models';
+import type { ContrainteConvive, ContrainteNiveau, Convive, PlatFiche } from '../types/models';
 import { type AggregatedConstraints, formatDishInput, normalizeForCompare } from './dishes';
 
 /** Allergène de référence : les 14 réglementaires, puis quelques familles courantes. */
@@ -76,6 +76,26 @@ export function libelleAutre(id: string): string {
 export function memeAllergene(a: string, b: string): boolean {
   if (a === b) return true;
   return estAutre(a) && estAutre(b) && normalizeForCompare(libelleAutre(a)) === normalizeForCompare(libelleAutre(b));
+}
+
+/**
+ * Allergies affaiblies entre deux versions des éléments d'une personne : libellés des éléments `strict`
+ * d'`avant` qui, dans `apres` (même `id`), ont disparu, sont passés à « Évite » ou ont perdu un allergène.
+ */
+export function affaiblissements(avant: ContrainteConvive[], apres: ContrainteConvive[]): string[] {
+  return avant
+    .filter((a) => {
+      if (a.niveau !== 'strict') return false;
+      const b = apres.find((x) => x.id === a.id);
+      return !b || b.niveau !== 'strict' || a.allergenes.some((x) => !b.allergenes.some((y) => memeAllergene(x, y)));
+    })
+    .map((a) => a.libelle);
+}
+
+/** Vrai si un élément porte exactement ces allergènes (même ensemble, voir `memeAllergene`) : choix à ne pas reproposer. */
+export function dejaPresent(contraintes: ContrainteConvive[], allergenes: string[]): boolean {
+  const inclus = (xs: string[], ys: string[]) => xs.every((x) => ys.some((y) => memeAllergene(x, y)));
+  return contraintes.some((c) => inclus(c.allergenes, allergenes) && inclus(allergenes, c.allergenes));
 }
 
 /** Pictogrammes proposés pour une contrainte : ceux des allergènes, puis des aliments courants. */

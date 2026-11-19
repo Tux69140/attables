@@ -110,7 +110,8 @@ export const ConfirmModal: React.FC<{
 export const BottomSheet: React.FC<{
   open: boolean;
   title: string;
-  onClose: () => void;
+  /** Renvoie `false` si la feuille reste ouverte (une confirmation s'affiche d'abord) : le Retour d'Android garde sa couche. */
+  onClose: () => void | boolean;
   zClass?: string;
   children: React.ReactNode;
 }> = ({ open, title, onClose, zClass = 'z-50', children }) => {

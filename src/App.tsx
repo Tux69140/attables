@@ -27,6 +27,7 @@ import {
   MODE_DEMO,
   saveAppData,
 } from './services/storage';
+import { alimentsLibresConnus } from './utils/allergenes';
 import { getTodayIso } from './utils/dishes';
 import { enregistrerFiche } from './utils/plats';
 import { effacerExemples, resteDesExemples } from './utils/exemples';
@@ -246,6 +247,8 @@ export default function App() {
     () => new Map(data.convives.map((c) => [c.id, c])),
     [data.convives]
   );
+  // Aliments libres (« Autre… ») déjà notés : proposés dans la fiche d'une personne.
+  const libresConnus = useMemo(() => alimentsLibresConnus(data.convives, data.plats), [data.convives, data.plats]);
 
   // Invitation handlers
   const handleSaveInvitation = (inv: Invitation) => {
@@ -319,7 +322,8 @@ export default function App() {
   };
 
   // Convive handlers
-  const handleSaveConvive = (convive: Convive) => {
+  const handleSaveConvive = (convive: Convive, annulable: boolean) => {
+    const snapshot = data;
     setData((prev) => {
       const exists = prev.convives.some((c) => c.id === convive.id);
       const convives = exists
@@ -327,6 +331,7 @@ export default function App() {
         : [...prev.convives, convive];
       return { ...prev, convives };
     });
+    if (annulable) showUndo(`Fiche de ${convive.nomAffiche} enregistrée`, snapshot);
   };
 
   const handleDeleteConvive = (conviveId: string) => {
@@ -414,13 +419,14 @@ export default function App() {
     <FeuilleAjouter
       ajout={ajout}
       foyers={data.foyers}
+      libresConnus={libresConnus}
       onEtape={setAjout}
       onEnregistrerFoyer={(foyer) => {
         handleSaveFoyer(foyer);
         setAjout({ etape: 'convive', foyerId: foyer.id });
       }}
-      onEnregistrerConvive={(convive) => {
-        handleSaveConvive(convive);
+      onEnregistrerConvive={(convive, annulable) => {
+        handleSaveConvive(convive, annulable);
         const apres = ajout?.etape === 'convive' ? ajout.apres : undefined;
         setAjout(null);
         apres?.(convive);
@@ -614,6 +620,7 @@ export default function App() {
             onSaveFoyer={handleSaveFoyer}
             onDeleteFoyer={handleDeleteFoyer}
             onSaveConvive={handleSaveConvive}
+            libresConnus={libresConnus}
             onDeleteConvive={handleDeleteConvive}
             onAjouter={ouvrirAjout}
             sombre={sombre}

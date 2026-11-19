@@ -7,9 +7,11 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { ContrainteConvive, ContrainteNiveau, Convive, PlatFiche } from '../types/models';
 import {
+  affaiblissements,
   alimentsLibresConnus,
   choixAllergenes,
   conflitsPlat,
+  dejaPresent,
   iconeContrainte,
   idAutre,
   libelleAllergene,
@@ -108,4 +110,20 @@ test('resumeAllergiesStrictes : deux premières puis le reste', () => {
     reste: 2,
   });
   assert.deepEqual(resumeAllergiesStrictes(strict.slice(0, 1)), { texte: 'Arachides (Léa)', reste: 0 });
+});
+
+test('affaiblissements', () => {
+  const ara = el('ctr-1', 'Arachides', 'strict', ['arachides']);
+  const vegan = el('ctr-2', 'Végan', 'strict', ['viande', 'oeufs', 'lait']);
+  const lait = el('ctr-3', 'Lait', 'preference', ['lait']);
+  assert.deepEqual(affaiblissements([ara, vegan, lait], [vegan, lait]), ['Arachides']); // retirée
+  assert.deepEqual(affaiblissements([ara], [{ ...ara, niveau: 'preference' }]), ['Arachides']); // passée à « Évite »
+  assert.deepEqual(affaiblissements([vegan], [{ ...vegan, allergenes: ['viande', 'oeufs'] }]), ['Végan']); // allergène retiré
+  assert.deepEqual(affaiblissements([lait], []), []); // « Évite » retiré : rien
+  assert.deepEqual(affaiblissements([ara], [{ ...ara, libelle: 'Cacahuètes' }]), []); // renommée : rien
+});
+
+test('dejaPresent', () => {
+  assert.ok(dejaPresent([el('ctr-1', 'Œufs', 'strict', ['oeufs'])], ['oeufs']));
+  assert.ok(!dejaPresent([el('ctr-1', 'Végan', 'preference', ['oeufs', 'lait'])], ['oeufs']));
 });

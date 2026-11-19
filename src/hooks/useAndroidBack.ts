@@ -15,9 +15,11 @@ function pileDuNavigateur() {
 /**
  * Registers an active view/modal/sheet on the browser/Android history stack so
  * hardware/gesture Back closes the topmost overlay instead of exiting the app.
+ * Si `onBack` renvoie `false`, la couche reste ouverte (ex. une confirmation s'affiche d'abord) : elle
+ * reprend aussitôt une entrée d'historique, sous ce qui s'ouvrira ensuite, pour que le Retour suivant la trouve.
  * Renvoie une fonction stable qui dit si cette couche est celle du dessus (faux si inactive).
  */
-export function useAndroidBack(active: boolean, onBack: () => void): () => boolean {
+export function useAndroidBack(active: boolean, onBack: () => void | boolean): () => boolean {
   const onBackRef = useRef(onBack);
   onBackRef.current = onBack;
   const idRef = useRef<string | null>(null);
@@ -25,11 +27,17 @@ export function useAndroidBack(active: boolean, onBack: () => void): () => boole
   useEffect(() => {
     if (!active || typeof window === 'undefined') return;
     const p = pileDuNavigateur();
-    const id = p.empiler(() => onBackRef.current());
-    idRef.current = id;
+    const armer = () => {
+      idRef.current = p.empiler(() => {
+        idRef.current = null;
+        if (onBackRef.current() === false) armer();
+      });
+    };
+    armer();
     return () => {
+      const id = idRef.current;
       idRef.current = null;
-      p.retirer(id);
+      if (id !== null) p.retirer(id);
     };
   }, [active]);
 

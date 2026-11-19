@@ -3,10 +3,10 @@
  * Copyright (C) 2026 Stéphane MICHEL <stephane@biovibralyon.fr>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-import React from 'react';
+import React, { useRef } from 'react';
 import type { NomIcone } from '../icones/donnees';
 import type { Convive, Foyer } from '../types/models';
-import { FormulaireConvive } from './FeuilleConvive';
+import { FormulaireConvive, type PoigneeFiche } from './FeuilleConvive';
 import { FormulaireFoyer } from './FeuilleFoyer';
 import { Icone } from './Icone';
 import { IconChevronRight } from './Icons';
@@ -47,11 +47,14 @@ const Choix: React.FC<{ icone: NomIcone; titre: string; texte: string; onClick: 
 export const FeuilleAjouter: React.FC<{
   ajout: EtatAjout;
   foyers: Foyer[];
+  libresConnus: string[];
   onEtape: (etat: EtatAjout) => void;
   onEnregistrerFoyer: (f: Foyer) => void;
-  onEnregistrerConvive: (c: Convive) => void;
+  onEnregistrerConvive: (c: Convive, annulable: boolean) => void;
   onFermer: () => void;
-}> = ({ ajout, foyers, onEtape, onEnregistrerFoyer, onEnregistrerConvive, onFermer }) => {
+}> = ({ ajout, foyers, libresConnus, onEtape, onEnregistrerFoyer, onEnregistrerConvive, onFermer }) => {
+  // Étape convive : la fermeture passe par la fiche (elle enregistre une fiche remplie).
+  const fiche = useRef<PoigneeFiche>(null);
   const foyerDuMembre =
     ajout?.etape === 'convive' && ajout.foyerId ? foyers.find((f) => f.id === ajout.foyerId) : undefined;
   const titre =
@@ -64,7 +67,12 @@ export const FeuilleAjouter: React.FC<{
         : 'Ajouter…';
 
   return (
-    <BottomSheet open={ajout !== null} title={titre} zClass="z-[60]" onClose={onFermer}>
+    <BottomSheet
+      open={ajout !== null}
+      title={titre}
+      zClass="z-[60]"
+      onClose={() => (ajout?.etape === 'convive' && fiche.current ? fiche.current.fermer() : (onFermer(), true))}
+    >
       {ajout?.etape === 'choix' && (
         <div className="flex flex-col gap-3">
           <Choix
@@ -85,9 +93,12 @@ export const FeuilleAjouter: React.FC<{
       {ajout?.etape === 'convive' && (
         <FormulaireConvive
           key={ajout.foyerId ?? 'sans-foyer'}
+          ref={fiche}
           foyerIdInitial={ajout.foyerId}
           foyers={foyers}
+          libresConnus={libresConnus}
           onEnregistrer={onEnregistrerConvive}
+          onFermer={onFermer}
         />
       )}
     </BottomSheet>

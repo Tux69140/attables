@@ -42,7 +42,9 @@ interface ConvivesTabProps {
   chromeVisible?: boolean;
   onSaveFoyer: (foyer: Foyer) => void;
   onDeleteFoyer: (foyerId: string) => void;
-  onSaveConvive: (convive: Convive) => void;
+  onSaveConvive: (convive: Convive, annulable: boolean) => void;
+  /** Aliments libres déjà notés (`alimentsLibresConnus`), proposés dans la fiche d'une personne. */
+  libresConnus: string[];
   onDeleteConvive: (conviveId: string) => void;
   /** Ouvre la feuille « Ajouter… » (personne ou foyer), tenue par App. */
   onAjouter: () => void;
@@ -60,6 +62,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   onSaveFoyer,
   onDeleteFoyer,
   onSaveConvive,
+  libresConnus,
   onDeleteConvive,
   onAjouter,
   sombre,
@@ -87,9 +90,11 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   const openEditConvive = (convive: Convive) => setFeuilleConvive({ convive });
   const openEditFoyer = (foyer: Foyer) => setFeuilleFoyer(foyer);
 
-  const enregistrerConvive = (saved: Convive) => {
-    onSaveConvive(saved);
-    if (viewedConvive?.id === saved.id) setViewedConvive(saved);
+  const enregistrerConvive = (saved: Convive, annulable: boolean) => {
+    onSaveConvive(saved, annulable);
+    // Bandeau « Annuler » à suivre : la fiche détaillée se ferme aussi, sinon son voile le cacherait.
+    if (annulable) setViewedConvive(null);
+    else if (viewedConvive?.id === saved.id) setViewedConvive(saved);
     setFeuilleConvive(null);
   };
 
@@ -540,6 +545,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         convive={feuilleConvive?.convive}
         foyerIdInitial={feuilleConvive?.foyerId}
         foyers={foyers}
+        libresConnus={libresConnus}
         onEnregistrer={enregistrerConvive}
         onFermer={() => setFeuilleConvive(null)}
       />
