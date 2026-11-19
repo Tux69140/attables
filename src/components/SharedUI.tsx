@@ -67,7 +67,7 @@ export const ConfirmModal: React.FC<{
     >
       <div
         ref={panneau}
-        className="w-full sm:max-w-md bg-[var(--card)] border border-[var(--border)] rounded-t-3xl sm:rounded-2xl p-5 pb-safe shadow-xl"
+        className="w-full sm:max-w-md bg-[var(--card)] border border-[var(--border)] rounded-t-3xl sm:rounded-2xl p-5 mb-[env(safe-area-inset-bottom)] sm:mb-0 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-[var(--border)] mx-auto mb-4 sm:hidden" />
@@ -140,7 +140,7 @@ export const BottomSheet: React.FC<{
     >
       <div
         ref={panneau}
-        className="w-full sm:max-w-lg max-h-[88vh] flex flex-col bg-[var(--card)] border-t sm:border border-[var(--border)] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden pb-[env(safe-area-inset-bottom)] sm:pb-0"
+        className="w-full sm:max-w-lg max-h-[88vh] flex flex-col bg-[var(--card)] border-t sm:border border-[var(--border)] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden mb-[env(safe-area-inset-bottom)] sm:mb-0"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-4 pt-2.5 pb-3 border-b border-[var(--border)] shrink-0">

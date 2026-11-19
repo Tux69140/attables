@@ -141,6 +141,7 @@ export const Accueil: React.FC<{
   return (
     <div className="fixed inset-0 z-[70] bg-[var(--bg)] text-[var(--ink)] flex flex-col pt-safe">
       <div className="nappe" aria-hidden="true" />
+      <div className="nappe nappe-bas" aria-hidden="true" />
       {index > 0 ? (
         <CoucheRetour key={index} onRetour={() => aller(index - 1)} />
       ) : (
