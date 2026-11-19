@@ -91,7 +91,7 @@ try {
   await page.getByText('Dîner d’automne').first().click();
   await pause(800);
   await page.mouse.move(200, 500);
-  await page.mouse.wheel(0, 420);
+  await page.mouse.wheel(0, 200);
   await page.mouse.move(2, 400);
   await capturer('invitation');
   console.log(`Captures enregistrées dans ${sortie} (.${ext})`);
