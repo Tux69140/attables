@@ -387,7 +387,7 @@ La signature du système : des carreaux de 8 px, safran à 40 % sur crème (28 %
 Un jeu unique au trait : grille de 24 px, trait de 2 px à bouts ronds (Lucide, licence ISC), complété de dessins maison dans le même style (moutarde, chocolat, ail). De 14 à 22 px selon le texte qu'ils accompagnent, masqués aux lecteurs d'écran et toujours doublés d'un mot. Les tuiles de foyer portent un pictogramme choisi (maison, table, cœur…) en encre de tuile sur la couleur du foyer.
 
 ### Bandeau « Annuler »
-Fond expresso, texte crème de 14 px, coins de 16 px, ombre « Notification », bouton « Annuler » safran ; il reste 7 secondes au-dessus du bouton flottant après toute action destructrice.
+Fond expresso, texte crème de 14 px, coins de 16 px, ombre « Notification », bouton « Annuler » safran ; il reste 7 secondes au-dessus du bouton flottant après toute action destructrice, et disparaît dès qu'on touche l'écran ailleurs. Dans la fiche d'une personne, un élément retiré laisse à sa place une ligne « Retiré : Arachides » avec son « Annuler », tant que la fiche est ouverte.
 
 ### Filet de foyer
 Seule exception autorisée à l'interdiction des filets latéraux : un filet vertical de 3 px à la couleur du foyer devant chaque membre, à l'intérieur d'une carte de foyer de l'onglet Convives. Nulle part ailleurs.
