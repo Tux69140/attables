@@ -6,13 +6,15 @@ PLAN GATHERINGS AT A GLANCE
 • Look back anytime at who attended and what dishes were served.
 
 NEVER MISS AN ALLERGY
-• Clearly separate strict allergies (peanuts, shellfish, gluten...) from mild preferences or diets.
-• View all combined dietary constraints for your current guest list in real time.
-• Keep a permanent strict-allergy reminder banner right above the menu editor.
+• Each person has their own list: tap "+ Add" on their card, pick an allergen (peanuts, shellfish, gluten...) or type any other food, then choose its level.
+• Two levels: "Allergy" raises a strong red alert; "Avoids" (intolerance, diet, dislike) is shown for information.
+• Your guests' allergies stay pinned right above the menu editor, in one simple form: "Peanuts — Léa".
+• In the Dishes tab, note each dish's allergens, or tick "None of these allergens" when it contains none: a dish containing a guest's allergen is flagged at once.
+• If a guest has an allergy and a dish on the menu has no allergens noted yet, a reminder appears under it: "Allergens for this dish not filled in — check". One tap lets you fill them in. "None of these allergens" only covers the listed allergens: a food typed by hand for a guest (kiwi...) still needs checking.
 
 ANTI-DUPLICATE DISH MEMORY & RATINGS
 • Stop accidentally serving the same dish twice to the same guests.
-• Configurable time window (6 months by default): strong alert for recently served dishes, gentle "can return" hint for older ones.
+• Configurable time window (6 months by default): "Recently served" reminder for recent dishes, gentle "can return" hint for older ones.
 • Rate realised meals and individual dishes (Favorite, Good, Avoid) to keep winners and skip misses.
 
 OPTIONAL ANONYMIZED MARKDOWN EXPORT

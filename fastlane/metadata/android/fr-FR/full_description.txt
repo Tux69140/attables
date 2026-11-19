@@ -6,13 +6,15 @@ PRÉPAREZ VOS REPAS EN UN COUP D’ŒIL
 • Retrouvez instantanément qui était présent et ce qui a été servi.
 
 ZÉRO OUBLI D’ALLERGIE
-• Distinguez les allergies strictes (arachides, crustacés, gluten…) des simples préférences ou régimes.
-• Visualisez toutes les contraintes réunies de la tablée en temps réel.
-• Gardez un rappel permanent des allergies strictes juste au-dessus de la saisie du menu.
+• Chaque personne a sa propre liste : touchez « + Ajouter » sur sa fiche, choisissez un allergène (arachides, crustacés, gluten…) ou écrivez un autre aliment, puis son niveau.
+• Deux niveaux : « Allergie » déclenche une alerte rouge bien visible ; « Évite » (intolérance, régime, goût) s’affiche pour information.
+• Les allergies de la tablée restent rappelées juste au-dessus de la saisie du menu, sous une forme unique : « Arachides — Léa ».
+• Dans l’onglet Plats, notez les allergènes de chaque plat, ou cochez « Aucun de ces allergènes » s’il n’en contient aucun : un plat qui contient l’allergie d’un invité est signalé aussitôt.
+• Si un invité a une allergie et qu’un plat du menu n’a pas encore ses allergènes, l’appli le rappelle sous le plat : « Allergènes de ce plat non renseignés — vérifier ». Un toucher suffit pour les compléter. « Aucun de ces allergènes » ne couvre que la liste proposée : un aliment écrit à la main pour un invité (kiwi…) reste à vérifier.
 
 MÉMOIRE ANTI-DOUBLON & APPRÉCIATIONS
 • Ne resservez plus involontairement le même plat aux mêmes invités.
-• Prescription temporelle réglable (6 mois par défaut) : alerte forte si un plat a été servi récemment, mention douce « peut revenir » lorsqu’il est plus ancien.
+• Prescription temporelle réglable (6 mois par défaut) : rappel « Servi récemment » si un plat a été servi il y a peu, mention douce « peut revenir » lorsqu’il est plus ancien.
 • Notez vos retours sur les repas réalisés (Coup de cœur, Bien, À éviter) pour garder le meilleur et écarter les ratés.
 
 EXPORT IA ANONYMISÉ EN OPTION

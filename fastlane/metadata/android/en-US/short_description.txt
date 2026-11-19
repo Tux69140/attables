@@ -1,1 +1,1 @@
-Offline dinner planner: guests, allergies, households & dish memory.
+Offline dinner planner: each guest's allergies, households & dish memory.
