@@ -9,8 +9,8 @@ import { AppData, ThemeMode } from '../types/models';
 import { getTodayIso } from '../utils/dishes';
 import {
   FoyerPictoIcon,
-  IconAlert,
   IconArrowLeft,
+  IconBan,
   IconCheck,
   IconChevronRight,
   IconClock,
@@ -430,7 +430,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   role="alert"
                   className="px-3.5 py-2.5 rounded-xl bg-[var(--error-bg)] text-[var(--error)] text-[14px] flex items-center gap-2"
                 >
-                  <IconAlert size={17} />
+                  {/* ⚠ est réservé aux allergies. */}
+                  <IconBan size={17} />
                   <span>{restoreError}</span>
                 </div>
               )}

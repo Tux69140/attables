@@ -257,7 +257,7 @@ const GroupeChoix: React.FC<{ titre: string; choix: Choix[]; onChoisir: (c: Choi
       <h3 tabIndex={-1} className="text-[14px] font-bold text-[var(--ink-muted)] focus:outline-none">
         {titre}
       </h3>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grille-tuiles">
         {choix.map((c) => (
           <TuileChoix key={c.allergenes.join('|') + c.libelle} icone={iconeContrainte(c)} libelle={c.libelle} onClick={() => onChoisir(c)} />
         ))}

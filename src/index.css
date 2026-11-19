@@ -160,6 +160,16 @@ body {
   box-shadow: var(--ombre);
 }
 
+/* Grille de tuiles (allergènes, aliments, régimes, pictogrammes) : le minimum d'une colonne est en em
+   du texte des libellés (13 px), pour suivre la taille de police d'Android (textZoom grossit le texte,
+   pas les rem) : 4 colonnes sur un téléphone de 412 px, moins quand le texte grossit, sans couper un mot. */
+.grille-tuiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.2em, 1fr));
+  gap: 0.5rem;
+  font-size: 13px;
+}
+
 /* Nappe du bas : même bande, dans la zone de la barre de navigation Android
    (nulle en navigateur), au-dessus de la barre d'onglets, sans capter les touchers. */
 .nappe-bas {

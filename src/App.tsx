@@ -585,7 +585,7 @@ export default function App() {
           <InvitationsTab
             invitations={data.invitations}
             convivesById={convivesById}
-                plats={data.plats}
+            plats={data.plats}
             chromeVisible={chromeVisible}
             recherche={recherche}
             onRecherche={setRecherche}
@@ -606,8 +606,8 @@ export default function App() {
           <PlatsTab
             invitations={data.invitations}
             plats={data.plats}
-                  convivesById={convivesById}
-                prescriptionMois={data.settings.prescriptionMois}
+            convivesById={convivesById}
+            prescriptionMois={data.settings.prescriptionMois}
             onEnregistrerFiche={handleEnregistrerFiche}
             onRemplacerFiche={handleRemplacerFiche}
             onSupprimerFiche={handleSupprimerFiche}
@@ -617,8 +617,8 @@ export default function App() {
           <ConvivesTab
             foyers={data.foyers}
             convives={data.convives}
-                  invitations={data.invitations}
-                convivesById={convivesById}
+            invitations={data.invitations}
+            convivesById={convivesById}
             prescriptionMois={data.settings.prescriptionMois}
             chromeVisible={chromeVisible}
             onSaveFoyer={handleSaveFoyer}

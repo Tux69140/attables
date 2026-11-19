@@ -42,7 +42,7 @@ const Tuile: React.FC<{ icone: NomIcone; libelle: string; choisie: boolean; onCl
 const Groupe: React.FC<{ titre: string; children: React.ReactNode }> = ({ titre, children }) => (
   <div className="flex flex-col gap-2">
     <span className="text-[13px] font-bold text-[var(--ink-muted)]">{titre}</span>
-    <div className="grid grid-cols-4 gap-2">{children}</div>
+    <div className="grille-tuiles">{children}</div>
   </div>
 );
 
@@ -191,7 +191,7 @@ export const ChoixPictogramme: React.FC<{
   auto: NomIcone;
   onChange: (v: NomIcone | undefined) => void;
 }> = ({ valeur, auto, onChange }) => (
-  <div role="radiogroup" aria-label="Pictogramme" className="grid grid-cols-4 gap-2">
+  <div role="radiogroup" aria-label="Pictogramme" className="grille-tuiles">
     <Tuile icone={auto} libelle="Automatique" choisie={valeur === undefined} onClick={() => onChange(undefined)} radio />
     {PICTOS_CONTRAINTE.map((p) => (
       <Tuile key={p.icone} icone={p.icone} libelle={p.libelle} choisie={valeur === p.icone} onClick={() => onChange(p.icone)} radio />
