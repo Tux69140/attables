@@ -48,6 +48,7 @@ import { ICONE_SERVICE } from '../icones/services';
 import { alimentsLibresConnus, conflitsPlat, iconeAllergene } from '../utils/allergenes';
 import { aVerifier, cleDePlat, repertoirePlats, trouverFiche, type ValeursPlat } from '../utils/plats';
 import { realiseeMiseEnAvant } from '../utils/dates';
+import { construireInvitation, invitationVide, memeInvitation, type ChampsInvitation } from '../utils/invitations';
 import { AlertesAllergenes, BandeauAllergies, BlocTablee } from './Allergies';
 import { Puces } from './Controles';
 import { Icone } from './Icone';
@@ -72,7 +73,7 @@ interface InvitationEditorProps {
   onDemanderNouveauConvive: (apres: (c: Convive) => void) => void;
   /** Crée la fiche d'un plat, ou complète celle du même plat. */
   onEnregistrerFiche: (v: ValeursPlat) => void;
-  onSave: (invitation: Invitation) => void;
+  onSave: (invitation: Invitation, message: string) => void;
   onReinvite?: (invitation: Invitation) => void;
   onDelete?: (invitation: Invitation) => void;
   onCancel: () => void;
@@ -136,7 +137,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   // Service dont la fiche de plat est ouverte pour renseigner les allergènes.
   const [platAVerifier, setPlatAVerifier] = useState<CourseKey | null>(null);
 
-  useAndroidBack(true, onCancel);
+  useAndroidBack(true, () => quitter());
 
   // À l'ouverture comme à chaque nouvelle cible (« Réinviter ce groupe » réutilise cette instance) :
   // le focus va au titre, sinon il resterait sur le bouton d'enregistrement réutilisé par React.
@@ -288,37 +289,63 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
     });
   };
 
-  const handleSubmit = (statut: InvitationStatut) => {
-    const cleanedMenu: MenuCourses = {};
-    const cleanedVerdicts: Partial<Record<CourseKey, DishVerdict>> = {};
-    for (const k of COURSE_KEYS) {
-      const formatted = formatDishInput(menu[k] ?? '');
-      if (formatted) {
-        cleanedMenu[k] = formatted;
-        if (menuVerdicts[k]) cleanedVerdicts[k] = menuVerdicts[k];
-      }
-    }
-
-    const finalHoteLabel =
-      hoteType === 'moi' ? 'Moi' : hoteLabel.trim() || 'Hôte extérieur';
-
-    const saved: Invitation = {
-      id: existing?.id ?? `inv-${Date.now()}`,
+  // Invitation que l'éditeur enregistrerait avec ce statut : seules les personnes qui existent
+  // encore y figurent (une personne créée ici puis annulée n'y laisse pas son identifiant).
+  const construire = (statut: InvitationStatut): Invitation =>
+    construireInvitation(
+      {
+        date,
+        titre,
+        note,
+        hoteType,
+        hoteLabel,
+        hoteRefType,
+        hoteRefId,
+        convivesIds,
+        menu,
+        verdict,
+        menuVerdicts,
+      },
+      existing?.id ?? `inv-${Date.now()}`,
       statut,
-      date: date || getTodayIso(),
-      titre: titre.trim() || undefined,
-      note: note.trim() || undefined,
-      hoteType,
-      hoteLabel: finalHoteLabel,
-      hoteRefType: hoteType === 'autre' ? hoteRefType : undefined,
-      hoteRefId: hoteType === 'autre' ? hoteRefId : undefined,
-      convivesIds,
-      menu: cleanedMenu,
-      verdict,
-      menuVerdicts: Object.keys(cleanedVerdicts).length > 0 ? cleanedVerdicts : undefined,
-    };
+      new Set(convivesById.keys()),
+      getTodayIso()
+    );
 
-    onSave(saved);
+  const handleSubmit = (statut: InvitationStatut, message: string) => {
+    onSave(construire(statut), message);
+  };
+
+  // Retour (flèche ou Android) : rien n'est perdu. Sans changement, ou pour une nouvelle invitation
+  // vide, on ferme simplement ; sinon on enregistre avec le statut de départ (bandeau « Annuler »).
+  const quitter = () => {
+    const statutDepart: InvitationStatut = existing?.statut ?? 'prevue';
+    const actuelle = construire(statutDepart);
+    const depart: ChampsInvitation = {
+      date: source?.date ?? getTodayIso(),
+      titre: source?.titre ?? '',
+      note: source?.note ?? '',
+      hoteType: source?.hoteType ?? 'moi',
+      hoteLabel: source?.hoteLabel ?? '',
+      hoteRefType: source?.hoteRefType,
+      hoteRefId: source?.hoteRefId,
+      convivesIds: source?.convivesIds ?? [],
+      menu: source?.menu ?? {},
+      verdict: source?.verdict,
+      menuVerdicts: source?.menuVerdicts,
+    };
+    const reference = construireInvitation(
+      depart,
+      actuelle.id,
+      statutDepart,
+      new Set(convivesById.keys()),
+      getTodayIso()
+    );
+    if (memeInvitation(actuelle, reference) || (!existing && invitationVide(actuelle))) {
+      onCancel();
+      return;
+    }
+    onSave(actuelle, 'Invitation enregistrée');
   };
 
   const filteredFoyers = useMemo(() => {
@@ -410,7 +437,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
         <div className="max-w-[1080px] mx-auto px-safe min-h-14 grid grid-cols-[44px_1fr_44px] items-center gap-2">
           <button
             type="button"
-            onClick={onCancel}
+            onClick={quitter}
             aria-label="Retour"
             className="justify-self-start min-h-[44px] min-w-[44px] -ml-2 flex items-center justify-center rounded-xl text-[var(--ink)] hover:bg-[var(--surface-elevated)] active:scale-95 transition-transform"
           >
@@ -1352,7 +1379,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             )}
             <button
               type="button"
-              onClick={() => handleSubmit('realisee')}
+              onClick={() => handleSubmit('realisee', 'Invitation enregistrée')}
               className="flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
             >
               <IconCheck size={17} />
@@ -1364,7 +1391,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             {/* Mise en avant selon la date : à venir → « Enregistrer prévue » ; jour arrivé ou passé → « Valider réalisée ». */}
             <button
               type="button"
-              onClick={() => handleSubmit('prevue')}
+              onClick={() => handleSubmit('prevue', 'Invitation enregistrée')}
               className={`flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl font-semibold text-[14px] active:scale-[0.98] transition-transform ${
                 jourArrive ? 'border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)]' : 'bg-[var(--primary)] text-[var(--on-primary)]'
               }`}
@@ -1373,7 +1400,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => handleSubmit('realisee')}
+              onClick={() => handleSubmit('realisee', 'Repas enregistré comme réalisé')}
               className={`flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform ${
                 jourArrive ? 'bg-[var(--success)] text-[var(--card)]' : 'border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)]'
               }`}

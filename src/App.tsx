@@ -251,7 +251,8 @@ export default function App() {
   const libresConnus = useMemo(() => alimentsLibresConnus(data.convives, data.plats), [data.convives, data.plats]);
 
   // Invitation handlers
-  const handleSaveInvitation = (inv: Invitation) => {
+  const handleSaveInvitation = (inv: Invitation, message: string) => {
+    const snapshot = data;
     setData((prev) => {
       const exists = prev.invitations.some((item) => item.id === inv.id);
       const invitations = exists
@@ -260,6 +261,7 @@ export default function App() {
       return { ...prev, invitations };
     });
     setEditorTarget(null);
+    showUndo(message, snapshot);
   };
 
   const handleDeleteInvitation = (inv: Invitation) => {
