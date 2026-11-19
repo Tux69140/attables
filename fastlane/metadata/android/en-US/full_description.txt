@@ -1,21 +1,21 @@
-Attablés is a 100% offline, account-free personal dinner and invitation journal designed to help you host friends and family thoughtfully without culinary missteps.
+Attablés is a 100% offline, account-free personal dinner and invitation journal designed to help you host friends and family thoughtfully without culinary missteps. Its interface is in French.
 
 PLAN GATHERINGS AT A GLANCE
-• Track Planned and Realised meals, whether hosted at your home or someone else's.
+• Track planned and past meals ("À venir", "Réalisées"), whether hosted at your home or someone else's.
 • Group guests by household to select an entire family in one tap.
 • Look back anytime at who attended and what dishes were served.
 
 NEVER MISS AN ALLERGY
-• Each person has their own list: tap "+ Add" on their card, pick an allergen (peanuts, shellfish, gluten...) or type any other food, then choose its level.
-• Two levels: "Allergy" raises a strong red alert; "Avoids" (intolerance, diet, dislike) is shown for information.
-• Your guests' allergies stay pinned right above the menu editor, in one simple form: "Peanuts — Léa".
-• In the Dishes tab, note each dish's allergens, or tick "None of these allergens" when it contains none: a dish containing a guest's allergen is flagged at once.
-• If a guest has an allergy and a dish on the menu has no allergens noted yet, a reminder appears under it: "Allergens for this dish not filled in — check". One tap lets you fill them in. "None of these allergens" only covers the listed allergens: a food typed by hand for a guest (kiwi...) still needs checking.
+• Each person has their own list: tap "+ Ajouter" (Add) on their card, pick an allergen (peanuts, shellfish, gluten...) or type any other food, then choose its level.
+• Two levels: "Allergie" (Allergy) raises a strong red alert; "Évite" (Avoids: intolerance, diet, dislike) is shown for information.
+• Your guests' allergies stay pinned right above the menu editor, in one simple form: "Arachides — Léa" (Peanuts — Léa).
+• In the "Plats" (Dishes) tab, note each dish's allergens, or tick "Aucun de ces allergènes" (None of these allergens) when it contains none: a dish containing a guest's allergen is flagged at once.
+• If a guest has an allergy and a dish on the menu has no allergens noted yet, a reminder appears under it to check them ("Allergènes de ce plat non renseignés — vérifier"). One tap lets you fill them in. "Aucun de ces allergènes" only covers the listed allergens: a food typed by hand for a guest (kiwi...) still needs checking.
 
 ANTI-DUPLICATE DISH MEMORY & RATINGS
 • Stop accidentally serving the same dish twice to the same guests.
-• Configurable time window (6 months by default): "Recently served" reminder for recent dishes, gentle "can return" hint for older ones.
-• Rate realised meals and individual dishes (Favorite, Good, Avoid) to keep winners and skip misses.
+• Configurable time window (6 months by default): a "Servi récemment" (Recently served) reminder for recent dishes, a gentle "peut revenir" (can return) hint for older ones.
+• Rate past meals and individual dishes ("Coup de cœur", "Bien", "À éviter": Favorite, Good, Avoid) to keep winners and skip misses.
 
 OPTIONAL ANONYMIZED MARKDOWN EXPORT
 • Copy a structured Markdown summary of constraints and dish history in one tap.
