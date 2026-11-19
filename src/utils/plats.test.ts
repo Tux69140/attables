@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Convive, CourseKey, DishVerdict, Invitation, PlatFiche } from '../types/models';
 import {
+  allergenesRenseignes,
   cleDePlat,
   compterFiltres,
   enregistrerFiche,
@@ -204,12 +205,39 @@ test('rechercherPlats : la saisie exacte avant les correspondances approchées',
 });
 
 test('enregistrerFiche fusionne', () => {
-  const res = enregistrerFiche([fiche('Tarte Tatin', ['dessert'])], { libelle: 'tarte tatin', services: ['entree'], allergenes: ['oeufs'] }, 'plat-2');
+  const res = enregistrerFiche([fiche('Tarte Tatin', ['dessert'])], { libelle: 'tarte tatin', services: ['entree'], allergenes: ['oeufs'], sansAllergene: false }, 'plat-2');
   assert.equal(res.length, 1);
   assert.deepEqual(res[0].services, ['dessert', 'entree']);
   assert.deepEqual(res[0].allergenes, ['oeufs']);
-  const ajout = enregistrerFiche([], { libelle: '  blanquette  ', services: ['plat'], allergenes: [] }, 'plat-3');
+  const ajout = enregistrerFiche([], { libelle: '  blanquette  ', services: ['plat'], allergenes: [], sansAllergene: false }, 'plat-3');
   assert.deepEqual(ajout, [{ id: 'plat-3', libelle: 'Blanquette', services: ['plat'], allergenes: [] }]);
+});
+
+const valeurs = (allergenes: string[], sansAllergene: boolean) => ({ libelle: 'Poires pochées', services: ['dessert'] as CourseKey[], allergenes, sansAllergene });
+
+test('enregistrerFiche : sansAllergene seulement sans allergène', () => {
+  const vrai = enregistrerFiche([], valeurs([], true), 'plat-9');
+  assert.deepEqual(vrai, [{ id: 'plat-9', libelle: 'Poires pochées', services: ['dessert'], allergenes: [], sansAllergene: true }]);
+  const incoherent = enregistrerFiche([], valeurs(['oeufs'], true), 'plat-9');
+  assert.equal('sansAllergene' in incoherent[0], false);
+  const faux = enregistrerFiche([], valeurs([], false), 'plat-9');
+  assert.equal('sansAllergene' in faux[0], false);
+});
+
+test('enregistrerFiche : une fiche existante gagne ou perd sansAllergene', () => {
+  const avec = { ...fiche('Poires pochées', ['dessert']), sansAllergene: true };
+  const retire = enregistrerFiche([avec], valeurs(['oeufs'], false), 'plat-9');
+  assert.equal('sansAllergene' in retire[0], false);
+  assert.deepEqual(retire[0].allergenes, ['oeufs']);
+  const pose = enregistrerFiche([fiche('Poires pochées', ['dessert'])], valeurs([], true), 'plat-9');
+  assert.equal(pose[0].sansAllergene, true);
+});
+
+test('allergenesRenseignes', () => {
+  assert.equal(allergenesRenseignes(undefined), false);
+  assert.equal(allergenesRenseignes(fiche('Flan')), false);
+  assert.equal(allergenesRenseignes({ ...fiche('Flan'), sansAllergene: true }), true);
+  assert.equal(allergenesRenseignes(fiche('Flan', ['plat'], ['oeufs'])), true);
 });
 
 test('renommerIdee', () => {

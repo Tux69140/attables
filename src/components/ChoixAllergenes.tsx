@@ -5,7 +5,16 @@
  */
 import React, { useState } from 'react';
 import type { NomIcone } from '../icones/donnees';
-import { choixAllergenes, iconeAllergene, libelleAllergene, memeAllergene, PICTOS_CONTRAINTE } from '../utils/allergenes';
+import {
+  allergeneDeReference,
+  choixAllergenes,
+  estAutre,
+  iconeAllergene,
+  idAutre,
+  libelleAllergene,
+  memeAllergene,
+  PICTOS_CONTRAINTE,
+} from '../utils/allergenes';
 import { Icone } from './Icone';
 import { IconChevronDown } from './Icons';
 
@@ -38,18 +47,68 @@ const Groupe: React.FC<{ titre: string; children: React.ReactNode }> = ({ titre,
   </div>
 );
 
-/** Grille d'allergènes à cocher : référence, puis les aliments libres déjà connus. */
+/** Tuile pleine largeur « Aucun de ces allergènes » : exclusive, elle remplace toute la sélection. */
+const TuileAucun: React.FC<{ choisie: boolean; onClick: () => void }> = ({ choisie, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={choisie}
+    className={`min-h-[52px] w-full px-3.5 py-2 rounded-xl border flex items-center justify-center gap-2 text-center transition-colors ${
+      choisie
+        ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--card)]'
+        : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink)]'
+    }`}
+  >
+    <Icone nom="check" size={20} className={choisie ? undefined : 'text-[var(--primary-ink)]'} />
+    <span className="text-[14px] font-semibold leading-tight">Aucun de ces allergènes</span>
+  </button>
+);
+
+/**
+ * Grille d'allergènes à cocher : référence, puis les aliments libres déjà connus.
+ * `aucun` ajoute la tuile « Aucun de ces allergènes » (fiche de plat), exclusive des allergènes ;
+ * `autreLibre` ajoute le champ « Autre… » qui coche l'allergène de référence qu'il désigne, sinon crée un aliment libre.
+ */
 export const ChoixAllergenes: React.FC<{
   valeur: string[];
   onChange: (v: string[]) => void;
   libresConnus: string[];
   replie?: boolean;
-}> = ({ valeur, onChange, libresConnus, replie = false }) => {
+  aucun?: { valeur: boolean; onChange: (v: boolean) => void };
+  autreLibre?: boolean;
+}> = ({ valeur, onChange, libresConnus, replie = false, aucun, autreLibre = false }) => {
   const [ouvert, setOuvert] = useState(!replie);
-  const { reglementaires, autres, libres } = choixAllergenes(libresConnus);
+  const [ajoutes, setAjoutes] = useState<string[]>([]);
+  const [autre, setAutre] = useState('');
+  // Un aliment libre ajouté ici reste proposé, même décoché.
+  const connus = [...libresConnus];
+  for (const id of ajoutes) if (!connus.some((c) => memeAllergene(c, id))) connus.push(id);
+  const { reglementaires, autres, libres } = choixAllergenes(connus);
   // Un aliment libre écrit autrement (casse, accents) compte comme le même.
   const choisi = (id: string) => valeur.some((v) => memeAllergene(v, id));
-  const basculer = (id: string) => onChange(choisi(id) ? valeur.filter((v) => !memeAllergene(v, id)) : [...valeur, id]);
+  const changer = (v: string[]) => {
+    if (v.length > 0 && aucun?.valeur) aucun.onChange(false);
+    onChange(v);
+  };
+  const basculer = (id: string) => changer(choisi(id) ? valeur.filter((v) => !memeAllergene(v, id)) : [...valeur, id]);
+  const basculerAucun = () => {
+    if (!aucun) return;
+    if (aucun.valeur) {
+      aucun.onChange(false);
+      return;
+    }
+    onChange([]);
+    aucun.onChange(true);
+  };
+  const ajouterAutre = () => {
+    const texte = autre.trim();
+    if (!texte) return;
+    const saisi = idAutre(texte);
+    const id = allergeneDeReference(texte) ?? connus.find((c) => memeAllergene(c, saisi)) ?? saisi;
+    if (estAutre(id) && !connus.some((c) => memeAllergene(c, id))) setAjoutes((prev) => [...prev, id]);
+    if (!choisi(id)) changer([...valeur, id]);
+    setAutre('');
+  };
 
   if (!ouvert) {
     return (
@@ -61,6 +120,7 @@ export const ChoixAllergenes: React.FC<{
       >
         <span>
           Allergènes (facultatif)
+          {aucun?.valeur && <span className="text-[var(--ink-muted)] font-normal"> · aucun</span>}
           {valeur.length > 0 && <span className="text-[var(--ink-muted)] font-normal"> · {valeur.length} choisi{valeur.length > 1 ? 's' : ''}</span>}
         </span>
         <IconChevronDown size={18} className="text-[var(--ink-muted)]" />
@@ -70,6 +130,7 @@ export const ChoixAllergenes: React.FC<{
 
   return (
     <div className="flex flex-col gap-3.5">
+      {aucun && <TuileAucun choisie={aucun.valeur} onClick={basculerAucun} />}
       <Groupe titre="Allergènes réglementaires">
         {reglementaires.map((a) => (
           <Tuile key={a.id} icone={a.icone} libelle={a.libelle} choisie={choisi(a.id)} onClick={() => basculer(a.id)} />
@@ -81,11 +142,41 @@ export const ChoixAllergenes: React.FC<{
         ))}
       </Groupe>
       {libres.length > 0 && (
-        <Groupe titre="Mes contraintes">
+        <Groupe titre="Déjà notés ailleurs">
           {libres.map((id) => (
             <Tuile key={id} icone={iconeAllergene(id)} libelle={libelleAllergene(id)} choisie={choisi(id)} onClick={() => basculer(id)} />
           ))}
         </Groupe>
+      )}
+      {autreLibre && (
+        // Pas de <form> : la grille se trouve déjà dans un formulaire. Entrée ajoute l'aliment, sans enregistrer la fiche.
+        <div className="flex flex-col gap-1">
+          <label htmlFor="allergene-autre" className="text-[13px] font-bold text-[var(--ink-muted)]">
+            Autre…
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="allergene-autre"
+              type="text"
+              value={autre}
+              onChange={(e) => setAutre(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                ajouterAutre();
+              }}
+              placeholder="Ex. Kiwi, coriandre…"
+              className="flex-1 min-w-0 min-h-[46px] px-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[15px] text-[var(--ink)] focus:outline-none focus:border-[var(--primary-ink)]"
+            />
+            <button
+              type="button"
+              onClick={ajouterAutre}
+              className="shrink-0 min-h-[46px] px-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--ink)] font-semibold text-[15px]"
+            >
+              Ajouter
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

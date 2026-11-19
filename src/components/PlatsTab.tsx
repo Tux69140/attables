@@ -129,10 +129,17 @@ export const PlatsTab: React.FC<{
         setErreur(`« ${autre.libelle} » existe déjà.`);
         return;
       }
-      onRemplacerFiche({ ...platFeuille.fiche, libelle: nouveauNom, services: v.services, allergenes: v.allergenes });
+      const { sansAllergene: _ancien, ...fiche } = platFeuille.fiche;
+      onRemplacerFiche({
+        ...fiche,
+        libelle: nouveauNom,
+        services: v.services,
+        allergenes: v.allergenes,
+        ...(v.sansAllergene && v.allergenes.length === 0 ? { sansAllergene: true } : {}),
+      });
       if (feuille?.mode === 'modifier') setCleOuverte(cleDePlat(nouveauNom));
     } else {
-      onEnregistrerFiche({ libelle: platFeuille.libelle, services: v.services, allergenes: v.allergenes });
+      onEnregistrerFiche({ ...v, libelle: platFeuille.libelle });
     }
     fermerFeuille();
   };
@@ -302,8 +309,13 @@ export const PlatsTab: React.FC<{
         }
         initial={
           feuille?.mode === 'nouveau'
-            ? { libelle: feuille.libelle, services: [], allergenes: [] }
-            : { libelle: platFeuille?.libelle ?? '', services: platFeuille?.services ?? [], allergenes: platFeuille?.allergenes ?? [] }
+            ? { libelle: feuille.libelle, services: [], allergenes: [], sansAllergene: false }
+            : {
+                libelle: platFeuille?.libelle ?? '',
+                services: platFeuille?.services ?? [],
+                allergenes: platFeuille?.allergenes ?? [],
+                sansAllergene: platFeuille?.fiche?.sansAllergene ?? false,
+              }
         }
         nomModifiable={feuille?.mode !== 'allergenes'}
         allergenesOuverts={feuille?.mode === 'allergenes'}

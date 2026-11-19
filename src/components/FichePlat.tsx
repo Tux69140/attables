@@ -9,7 +9,7 @@ import { COURSE_LABELS, VERDICT_LABELS } from '../types/models';
 import { iconeAllergene, libelleAllergene } from '../utils/allergenes';
 import { formatJourMois, moisAvantRetour } from '../utils/dates';
 import { getElapsedTimeInfo } from '../utils/dishes';
-import type { PlatConnu } from '../utils/plats';
+import { allergenesRenseignes, type PlatConnu } from '../utils/plats';
 import { Icone } from './Icone';
 import { IconBan, IconEdit, IconHeart, IconPlus, IconThumbUp, IconTrash } from './Icons';
 import { BottomSheet } from './SharedUI';
@@ -89,11 +89,11 @@ export const FichePlat: React.FC<{
                 onClick={onAllergenes}
                 className="min-h-[44px] px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[14px] font-semibold text-[var(--ink)]"
               >
-                {plat.allergenes.length > 0 ? 'Modifier' : 'Renseigner'}
+                {allergenesRenseignes(plat.fiche) ? 'Modifier' : 'Renseigner'}
               </button>
             </div>
             {plat.allergenes.length === 0 ? (
-              <p className="text-[14px] text-[var(--ink-muted)]">Non renseignés.</p>
+              <p className="text-[14px] text-[var(--ink-muted)]">{plat.fiche?.sansAllergene ? 'Aucun allergène' : 'Non renseignés'}</p>
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {plat.allergenes.map((id) => (

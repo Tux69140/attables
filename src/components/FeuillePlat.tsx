@@ -7,16 +7,12 @@ import React, { useState } from 'react';
 import { ICONE_SERVICE } from '../icones/services';
 import { COURSE_KEYS, COURSE_LABELS, type CourseKey } from '../types/models';
 import { formatDishInput } from '../utils/dishes';
-import { cleDePlat, platsProches, type PlatConnu } from '../utils/plats';
+import { cleDePlat, platsProches, type PlatConnu, type ValeursPlat } from '../utils/plats';
 import { ChoixAllergenes } from './ChoixAllergenes';
 import { Icone } from './Icone';
 import { BottomSheet } from './SharedUI';
 
-export interface ValeursPlat {
-  libelle: string;
-  services: CourseKey[];
-  allergenes: string[];
-}
+export type { ValeursPlat };
 
 interface FormulairePlatProps {
   initial: ValeursPlat;
@@ -49,6 +45,7 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
   const [libelle, setLibelle] = useState(initial.libelle);
   const [services, setServices] = useState<CourseKey[]>(initial.services);
   const [allergenes, setAllergenes] = useState<string[]>(initial.allergenes);
+  const [sansAllergene, setSansAllergene] = useState(initial.sansAllergene);
 
   const cle = cleDePlat(libelle);
   const connu = !cleActuelle && cle ? liste.find((p) => p.cle === cle) : undefined;
@@ -61,7 +58,7 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
   const enregistrer = (e: React.FormEvent) => {
     e.preventDefault();
     if (!valide) return;
-    onEnregistrer({ libelle: formatDishInput(libelle), services, allergenes });
+    onEnregistrer({ libelle: formatDishInput(libelle), services, allergenes, sansAllergene: sansAllergene && allergenes.length === 0 });
   };
 
   return (
@@ -137,6 +134,8 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
         onChange={setAllergenes}
         libresConnus={libresConnus}
         replie={!allergenesOuverts}
+        aucun={{ valeur: sansAllergene, onChange: setSansAllergene }}
+        autreLibre
       />
 
       {erreur && <p className="text-[14px] font-semibold text-[var(--error)]">{erreur}</p>}

@@ -72,6 +72,25 @@ export function libelleAutre(id: string): string {
   return id.slice(PREFIXE_AUTRE.length);
 }
 
+/** Clé de comparaison d'un nom d'aliment : normalisée, sans pluriel en -s/-x à la fin de chaque mot (« fruit a coque » = « fruits a coque »). */
+function cleSansPluriel(texte: string): string {
+  return normalizeForCompare(texte)
+    .split(' ')
+    .map((m) => (m.length > 3 ? m.replace(/[sx]$/, '') : m))
+    .join(' ');
+}
+
+/**
+ * Allergène de référence que désigne une saisie libre (« oeuf », « Arachide », « fruit à coque »), pluriel,
+ * casse et accents tolérés ; sinon `undefined`. Évite qu'un aliment libre double un allergène de référence
+ * sans que les alertes des plats le retrouvent.
+ */
+export function allergeneDeReference(saisie: string): string | undefined {
+  const cle = cleSansPluriel(saisie);
+  if (!cle) return undefined;
+  return ALLERGENES.find((a) => cleSansPluriel(a.libelle) === cle)?.id;
+}
+
 /** Même allergène : même identifiant, ou deux aliments libres dont les libellés ne diffèrent que par la casse ou les accents. */
 export function memeAllergene(a: string, b: string): boolean {
   if (a === b) return true;

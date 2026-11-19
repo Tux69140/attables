@@ -278,26 +278,47 @@ export function platsProches(liste: PlatConnu[], saisie: string, max = 5): PlatC
     .map((n) => n.plat);
 }
 
+/** Ce que la feuille d'une fiche de plat saisit. */
+export interface ValeursPlat {
+  libelle: string;
+  services: CourseKey[];
+  allergenes: string[];
+  /** « Aucun de ces allergènes » : n'est gardé que si `allergenes` est vide. */
+  sansAllergene: boolean;
+}
+
+/** Vrai quand les allergènes du plat ont été renseignés : au moins un coché, ou « Aucun de ces allergènes ». */
+export function allergenesRenseignes(fiche: PlatFiche | undefined): boolean {
+  return Boolean(fiche && (fiche.allergenes.length > 0 || fiche.sansAllergene));
+}
+
 /** Enregistre une fiche ; si le plat a déjà une fiche, la complète (services unis, allergènes remplacés). */
-export function enregistrerFiche(
-  plats: PlatFiche[],
-  entree: { libelle: string; services: CourseKey[]; allergenes: string[] },
-  id: string
-): PlatFiche[] {
+export function enregistrerFiche(plats: PlatFiche[], entree: ValeursPlat, id: string): PlatFiche[] {
   const cle = cleDePlat(entree.libelle);
+  const aucun = entree.sansAllergene && entree.allergenes.length === 0;
   const existante = plats.find((p) => cleDePlat(p.libelle) === cle);
   if (existante) {
-    return plats.map((p) =>
-      p === existante
-        ? {
-            ...p,
-            services: [...p.services, ...entree.services.filter((s) => !p.services.includes(s))],
-            allergenes: entree.allergenes,
-          }
-        : p
-    );
+    return plats.map((p) => {
+      if (p !== existante) return p;
+      const { sansAllergene: _ancien, ...reste } = p;
+      return {
+        ...reste,
+        services: [...p.services, ...entree.services.filter((s) => !p.services.includes(s))],
+        allergenes: entree.allergenes,
+        ...(aucun ? { sansAllergene: true } : {}),
+      };
+    });
   }
-  return [...plats, { id, libelle: formatDishInput(entree.libelle), services: entree.services, allergenes: entree.allergenes }];
+  return [
+    ...plats,
+    {
+      id,
+      libelle: formatDishInput(entree.libelle),
+      services: entree.services,
+      allergenes: entree.allergenes,
+      ...(aucun ? { sansAllergene: true } : {}),
+    },
+  ];
 }
 
 /** Renomme une idée, sauf si le nouveau nom est déjà celui d'une autre fiche. */

@@ -11,6 +11,7 @@ import type { NomIcone } from '../icones/donnees';
 import type { ContrainteConvive } from '../types/models';
 import {
   ALLERGENES,
+  allergeneDeReference,
   dejaPresent,
   estAutre,
   iconeContrainte,
@@ -186,7 +187,7 @@ export const FormulaireElement: React.FC<{
       <div className="flex flex-col gap-2">
         <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Allergènes concernés</span>
         <p className="text-[13px] text-[var(--ink-muted)] -mt-1">Un plat qui en contient déclenchera une alerte.</p>
-        <ChoixAllergenes valeur={valeur.allergenes} onChange={(allergenes) => changer({ allergenes })} libresConnus={libres} />
+        <ChoixAllergenes valeur={valeur.allergenes} onChange={(allergenes) => changer({ allergenes })} libresConnus={libres} autreLibre />
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Pictogramme</span>
@@ -292,7 +293,8 @@ export const FeuilleAjoutElement: React.FC<{
     const texte = autre.trim();
     if (!texte) return;
     const cle = normalizeForCompare(texte);
-    const reference = ALLERGENES.find((a) => normalizeForCompare(a.libelle) === cle);
+    const idReference = allergeneDeReference(texte);
+    const reference = ALLERGENES.find((a) => a.id === idReference);
     const regime = REGIMES.find((r) => normalizeForCompare(r.libelle) === cle);
     const connu = libresConnus.find((l) => memeAllergene(l, idAutre(texte)));
     const c: Choix = reference

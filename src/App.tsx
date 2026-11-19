@@ -29,7 +29,7 @@ import {
 } from './services/storage';
 import { alimentsLibresConnus } from './utils/allergenes';
 import { getTodayIso } from './utils/dishes';
-import { enregistrerFiche } from './utils/plats';
+import { enregistrerFiche, type ValeursPlat } from './utils/plats';
 import { effacerExemples, resteDesExemples } from './utils/exemples';
 import { etatParcours, resumeProches } from './utils/parcours';
 import {
@@ -386,7 +386,7 @@ export default function App() {
   };
 
   // Fiches de plat (onglet Plats)
-  const handleEnregistrerFiche = (v: { libelle: string; services: CourseKey[]; allergenes: string[] }) => {
+  const handleEnregistrerFiche = (v: ValeursPlat) => {
     setData((prev) => ({ ...prev, plats: enregistrerFiche(prev.plats, v, `plat-${Date.now()}`) }));
   };
 

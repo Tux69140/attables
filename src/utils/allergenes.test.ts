@@ -9,6 +9,7 @@ import type { ContrainteConvive, ContrainteNiveau, Convive, PlatFiche } from '..
 import {
   affaiblissements,
   alimentsLibresConnus,
+  allergeneDeReference,
   choixAllergenes,
   conflitsPlat,
   dejaPresent,
@@ -126,4 +127,16 @@ test('affaiblissements', () => {
 test('dejaPresent', () => {
   assert.ok(dejaPresent([el('ctr-1', 'Œufs', 'strict', ['oeufs'])], ['oeufs']));
   assert.ok(!dejaPresent([el('ctr-1', 'Végan', 'preference', ['oeufs', 'lait'])], ['oeufs']));
+});
+
+test('allergeneDeReference : libellé de référence, pluriel ou accents tolérés', () => {
+  assert.equal(allergeneDeReference('oeuf'), 'oeufs');
+  assert.equal(allergeneDeReference('Œufs'), 'oeufs');
+  assert.equal(allergeneDeReference('Arachide'), 'arachides');
+  assert.equal(allergeneDeReference('poisson'), 'poissons');
+  assert.equal(allergeneDeReference('crustace'), 'crustaces');
+  assert.equal(allergeneDeReference('fruit a coque'), 'fruits-a-coque');
+  assert.equal(allergeneDeReference('Fruit à coque'), 'fruits-a-coque');
+  assert.equal(allergeneDeReference('kiwi'), undefined);
+  assert.equal(allergeneDeReference(''), undefined);
 });
