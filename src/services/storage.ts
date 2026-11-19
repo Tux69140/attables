@@ -10,26 +10,10 @@ import {
   Invitation,
   PlatFiche,
 } from '../types/models';
-import { ALLERGENES, estAutre, idAutre, LIAISONS_PAR_DEFAUT, libelleAutre, memeAlerte, memeAllergene } from '../utils/allergenes';
+import { ALLERGENES, estAutre, idAutre, LIAISONS_PAR_DEFAUT, libelleAutre, memeAllergene } from '../utils/allergenes';
 import { cleDePlat } from '../utils/plats';
 
 const STORAGE_KEY = 'attables_db_v1';
-/** Copie brute d'une donnée v1, faite une seule fois avant que le premier enregistrement v2 ne l'écrase. */
-const CLE_COPIE_AVANT_V2 = 'attables_db_v1_avant_v2';
-
-/**
- * Rien ne se perd : avant la migration d'une donnée stockée d'avant la version 2, garde le texte brut
- * sous `attables_db_v1_avant_v2`, si aucune copie n'existe. Stockage plein : tant pis, on continue.
- */
-function garderCopieAvantV2(raw: string, parsed: unknown): void {
-  const version = parsed && typeof parsed === 'object' ? (parsed as { version?: unknown }).version : undefined;
-  if (typeof version === 'number' && version >= 2) return;
-  try {
-    if (localStorage.getItem(CLE_COPIE_AVANT_V2) === null) localStorage.setItem(CLE_COPIE_AVANT_V2, raw);
-  } catch {
-    // Quota dépassé : la migration se fait quand même.
-  }
-}
 export const CURRENT_DATA_VERSION = 2;
 
 /** Contrainte partagée des versions 1 (`AppData.contraintes`), lue seulement pour la migration. */
@@ -304,7 +288,6 @@ export function creerStockage(demo: boolean): {
         return vide;
       }
       const parsed = JSON.parse(raw);
-      garderCopieAvantV2(raw, parsed);
       return migrateAndValidateAppData(parsed);
     } catch {
       const vide = createEmptyData();
@@ -381,38 +364,6 @@ export function migrateAndValidateAppData(input: unknown): AppData {
   };
 }
 
-/**
- * Sauvegarde `.json` lisible aussi par les versions 1 de l'appli : en plus des champs v2,
- * une contrainte partagée par élément de personne (`contraintes`), les `contraintesIds` de
- * chaque convive et, dans chaque fiche de plat, les éléments qui portent ses aliments libres.
- * Le chargement v2 ignore ces ajouts.
- */
-export function preparerExport(data: AppData): Record<string, unknown> {
-  const elements = data.convives.flatMap((c) => c.contraintes);
-  return {
-    ...data,
-    contraintes: elements.map((e) => ({
-      id: e.id,
-      libelle: e.libelle,
-      niveau: e.niveau,
-      allergenes: e.allergenes.filter((a) => !estAutre(a)),
-      ...(e.icone ? { icone: e.icone } : {}),
-    })),
-    convives: data.convives.map((c) => ({ ...c, contraintesIds: c.contraintes.map((e) => e.id) })),
-    plats: data.plats.map((p) => {
-      const allergenes = [...p.allergenes];
-      for (const a of p.allergenes) {
-        if (!estAutre(a)) continue;
-        for (const e of elements) {
-          // `memeAlerte` : un aliment libre « Cacahuètes » du plat alerte aussi une personne « Arachides » en v1.
-          if (e.allergenes.some((x) => memeAlerte(x, a)) && !allergenes.includes(e.id)) allergenes.push(e.id);
-        }
-      }
-      return { ...p, allergenes };
-    }),
-  };
-}
-
 const chaines = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
 
@@ -450,7 +401,7 @@ const convivesBruts = (obj: Record<string, unknown>): Record<string, unknown>[] 
     (c): c is Record<string, unknown> => estObjet(c) && typeof c.id === 'string' && typeof c.nomAffiche === 'string'
   );
 
-/** Version 2 : chaque champ validé, valeurs par défaut ; les champs de compatibilité v1 sont ignorés. */
+/** Version 2 : chaque champ validé, valeurs par défaut ; les champs inconnus (dont ceux de la v1) sont ignorés. */
 function validerV2(obj: Record<string, unknown>): { convives: Convive[]; plats: PlatFiche[] } {
   const convives = convivesBruts(obj).map((brut) => {
     const contraintes: ContrainteConvive[] = (Array.isArray(brut.contraintes) ? brut.contraintes : [])

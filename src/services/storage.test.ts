@@ -9,18 +9,17 @@ import type { AppData, ContrainteConvive, ContrainteNiveau, Convive } from '../t
 import { conflitsPlat, LIAISONS_PAR_DEFAUT } from '../utils/allergenes';
 import { aggregateConstraints } from '../utils/dishes';
 import { trouverFiche } from '../utils/plats';
-import { createEmptyData, createSampleData, creerStockage, migrateAndValidateAppData, preparerExport } from './storage';
+import { createEmptyData, createSampleData, creerStockage, migrateAndValidateAppData } from './storage';
 
 const c = (id: string, nom: string, ...els: ContrainteConvive[]): Convive => ({ id, nomAffiche: nom, contraintes: els, contrainteLibre: '' });
 const el = (id: string, libelle: string, niveau: ContrainteNiveau, allergenes: string[]): ContrainteConvive => ({ id, libelle, niveau, allergenes });
 
-function installerFauxStockage(initial: Record<string, string> = {}, refuser?: (cle: string) => boolean) {
-  const contenu: Record<string, string> = { ...initial };
-  const compteur = { setItem: 0, contenu };
+function installerFauxStockage(initial: Record<string, string> = {}) {
+  const contenu = { ...initial };
+  const compteur = { setItem: 0 };
   (globalThis as unknown as { localStorage: unknown }).localStorage = {
     getItem: (cle: string) => (cle in contenu ? contenu[cle] : null),
     setItem: (cle: string, valeur: string) => {
-      if (refuser?.(cle)) throw new Error('QuotaExceededError');
       compteur.setItem += 1;
       contenu[cle] = valeur;
     },
@@ -87,52 +86,6 @@ test('données 0.2.1 : accueil déjà vu, plats vides, liaisons par défaut', ()
   assert.equal(res.convives[0].foyerId, 'foyer-martin');
   assert.deepEqual(res.foyers, exemple.foyers);
   assert.deepEqual(res.invitations, exemple.invitations);
-});
-
-// Copie brute, une seule fois, d'une donnée v1 avant que le premier enregistrement v2 ne l'écrase.
-const brutV1 = () =>
-  JSON.stringify({
-    version: 1,
-    foyers: [],
-    invitations: [],
-    settings: { theme: 'appareil', prescriptionMois: 6 },
-    contraintes: [{ id: 'tag-arachides', libelle: 'Arachides', niveau: 'strict' }],
-    convives: [{ id: 'conv-lea', nomAffiche: 'Léa', contraintesIds: ['tag-arachides'], contrainteLibre: '' }],
-  });
-
-test('chargement v1 : copie brute gardée sous attables_db_v1_avant_v2', () => {
-  const brut = brutV1();
-  const stockage = installerFauxStockage({ attables_db_v1: brut });
-  const data = creerStockage(false).charger();
-  assert.equal(stockage.contenu.attables_db_v1_avant_v2, brut);
-  assert.deepEqual(data.convives[0].contraintes[0].allergenes, ['arachides']);
-  // Sans version : traitée comme une v1, copiée aussi.
-  const sansVersion = JSON.stringify({ ...JSON.parse(brut), version: undefined });
-  const autre = installerFauxStockage({ attables_db_v1: sansVersion });
-  creerStockage(false).charger();
-  assert.equal(autre.contenu.attables_db_v1_avant_v2, sansVersion);
-});
-
-test('copie v1 : jamais écrasée, jamais pour une v2, jamais en démo', () => {
-  const ancienne = installerFauxStockage({ attables_db_v1: brutV1(), attables_db_v1_avant_v2: 'copie précédente' });
-  creerStockage(false).charger();
-  assert.equal(ancienne.contenu.attables_db_v1_avant_v2, 'copie précédente');
-
-  const v2 = installerFauxStockage({ attables_db_v1: JSON.stringify(createEmptyData()) });
-  creerStockage(false).charger();
-  assert.equal('attables_db_v1_avant_v2' in v2.contenu, false);
-
-  const demo = installerFauxStockage({ attables_db_v1: brutV1() });
-  creerStockage(true).charger();
-  assert.equal(demo.setItem, 0);
-  assert.equal('attables_db_v1_avant_v2' in demo.contenu, false);
-});
-
-test('copie v1 : stockage plein, le chargement continue', () => {
-  installerFauxStockage({ attables_db_v1: brutV1() }, (cle) => cle === 'attables_db_v1_avant_v2');
-  const data = creerStockage(false).charger();
-  assert.equal(data.convives[0].nomAffiche, 'Léa');
-  assert.deepEqual(data.convives[0].contraintes[0].allergenes, ['arachides']);
 });
 
 test('icône inconnue retirée (v1 et v2)', () => {
@@ -233,34 +186,9 @@ test('exemples v2 : mêmes personnes et contraintes qu\'avant', () => {
   assert.deepEqual(lib('conv-nadia'), ['Porc/preference', 'Fruits à coque/strict']);
 });
 
-test('export compatible : relu par la logique v1, mêmes alertes', () => {
-  const d: AppData = { ...createEmptyData(), plats: [{ id: 'p1', libelle: 'Salade', services: ['entree'], allergenes: ['autre:Kiwi', 'arachides'] }],
-    convives: [
-      c('conv-lea', 'Léa', el('ctr-k1', 'Kiwi', 'strict', ['autre:Kiwi']), el('ctr-a1', 'Arachides', 'strict', ['arachides'])),
-      c('conv-marc', 'Marc', el('ctr-k2', 'Kiwi', 'preference', ['autre:kiwi'])),
-    ] };
-  const e = preparerExport(d) as any;
-  assert.deepEqual(e.contraintes.map((t: any) => [t.id, t.niveau, t.allergenes]), [
-    ['ctr-k1', 'strict', []], ['ctr-a1', 'strict', ['arachides']], ['ctr-k2', 'preference', []]]);
-  assert.deepEqual(e.convives.map((x: any) => x.contraintesIds), [['ctr-k1', 'ctr-a1'], ['ctr-k2']]);
-  assert.deepEqual([...e.plats[0].allergenes].sort(), ['arachides', 'autre:Kiwi', 'ctr-k1', 'ctr-k2'].sort());
-  // Ancienne règle v1, recopiée ici : concerné si tag.id === a || tag.allergenes.includes(a) ; strict l'emporte.
-  const v1Niveau = (conv: any, a: string) => {
-    let n: string | undefined;
-    for (const id of conv.contraintesIds) {
-      const t = e.contraintes.find((x: any) => x.id === id);
-      if (t && (t.id === a || t.allergenes.includes(a))) n = t.niveau === 'strict' ? 'strict' : (n ?? 'preference');
-    }
-    return n;
-  };
-  const niveau = (conv: any) => e.plats[0].allergenes.map((a: string) => v1Niveau(conv, a)).filter(Boolean);
-  assert.ok(niveau(e.convives[0]).includes('strict'));          // Léa : arachides et kiwi
-  assert.deepEqual([...new Set(niveau(e.convives[1]))], ['preference']); // Marc : kiwi
-});
-
 test('aller-retour : export puis restauration redonnent les mêmes données', () => {
   const d = createSampleData();
-  assert.deepEqual(migrateAndValidateAppData(JSON.parse(JSON.stringify(preparerExport(d)))), d);
+  assert.deepEqual(migrateAndValidateAppData(JSON.parse(JSON.stringify(d))), d);
 });
 
 // Exemples tels qu'ils étaient en version 1 (contraintes partagées), avec le « Dîner d'automne ».
@@ -323,9 +251,7 @@ test('aller-retour avec aliments libres et « Aucun de ces allergènes »', () =
       { id: 'p1', libelle: 'Pavlova', services: ['dessert'], allergenes: ['autre:Kiwi', 'oeufs'] },
       { id: 'p2', libelle: 'Pain', services: ['entree'], allergenes: [], sansAllergene: true },
     ] };
-  const restaure = migrateAndValidateAppData(JSON.parse(JSON.stringify(preparerExport(d))));
-  assert.deepEqual(restaure, d);
-  assert.ok(restaure.plats.every((p) => p.allergenes.every((a) => !a.startsWith('ctr-'))));
+  assert.deepEqual(migrateAndValidateAppData(JSON.parse(JSON.stringify(d))), d);
 });
 
 test('version future (≥ 2) : validée comme la v2, les contraintes par personne restent', () => {

@@ -4,7 +4,7 @@ import { useAutoHideChrome } from '../hooks/useAutoHideChrome';
 import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import { focaliserTitreVue, rendreFocus } from '../hooks/focusVues';
 import { URL_NOTES_DE_VERSION, ouvrirLien } from '../services/liens';
-import { migrateAndValidateAppData, preparerExport } from '../services/storage';
+import { migrateAndValidateAppData } from '../services/storage';
 import { AppData, ThemeMode } from '../types/models';
 import { getTodayIso } from '../utils/dishes';
 import {
@@ -118,7 +118,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   });
 
   const handleExportJson = () => {
-    const json = JSON.stringify(preparerExport(data), null, 2);
+    const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
