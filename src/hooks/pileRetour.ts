@@ -87,5 +87,10 @@ export function creerPileRetour(historique: HistoriqueMinimal) {
     }
   }
 
-  return { empiler, retirer, surPopState };
+  /** Vrai si la couche `id` est la dernière empilée (celle du dessus). */
+  function estAuDessus(id: string): boolean {
+    return pile.length > 0 && pile[pile.length - 1].id === id;
+  }
+
+  return { empiler, retirer, surPopState, estAuDessus };
 }

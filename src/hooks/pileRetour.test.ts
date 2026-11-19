@@ -212,3 +212,15 @@ test('Retour utilisateur avec une orpheline sous la couche du dessus', async () 
   assert.deepEqual(fermetures, ['dessus', 'base']);
   assert.equal(h.historique.state, null);
 });
+
+test('estAuDessus : seule la dernière couche empilée', () => {
+  const h = fauxHistorique();
+  const pile = creerPileRetour(h.historique);
+  const a = pile.empiler(() => {});
+  const b = pile.empiler(() => {});
+  assert.equal(pile.estAuDessus(b), true);
+  assert.equal(pile.estAuDessus(a), false);
+  pile.retirer(b);
+  assert.equal(pile.estAuDessus(a), true);
+  assert.equal(pile.estAuDessus('inconnue'), false);
+});

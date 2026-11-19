@@ -43,17 +43,17 @@ export const ConfirmModal: React.FC<{
 }) => {
   const panneau = useRef<HTMLDivElement>(null);
   const titreRef = useRef<HTMLHeadingElement>(null);
-  useAndroidBack(open, onCancel);
+  const estAuDessus = useAndroidBack(open, onCancel);
   usePiegeFocus(open, panneau, titreRef);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === 'Escape' && estAuDessus()) onCancel();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onCancel]);
+  }, [open, onCancel, estAuDessus]);
 
   if (!open) return null;
 
@@ -116,17 +116,17 @@ export const BottomSheet: React.FC<{
 }> = ({ open, title, onClose, zClass = 'z-50', children }) => {
   const panneau = useRef<HTMLDivElement>(null);
   const titreRef = useRef<HTMLHeadingElement>(null);
-  useAndroidBack(open, onClose);
+  const estAuDessus = useAndroidBack(open, onClose);
   usePiegeFocus(open, panneau, titreRef);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && estAuDessus()) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open, onClose, estAuDessus]);
 
   if (!open) return null;
 
