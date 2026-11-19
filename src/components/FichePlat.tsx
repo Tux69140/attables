@@ -11,7 +11,7 @@ import { formatJourMois, moisAvantRetour } from '../utils/dates';
 import { getElapsedTimeInfo } from '../utils/dishes';
 import { allergenesRenseignes, type PlatConnu } from '../utils/plats';
 import { Icone } from './Icone';
-import { IconBan, IconEdit, IconHeart, IconPlus, IconThumbUp, IconTrash } from './Icons';
+import { IconBan, IconClock, IconEdit, IconHeart, IconPlus, IconThumbUp, IconTrash } from './Icons';
 import { BottomSheet } from './SharedUI';
 
 /** Encadré d'état d'un plat, avec ce qu'il implique pour le resservir. */
@@ -21,7 +21,7 @@ const EncadreEtat: React.FC<{ plat: PlatConnu; aujourdHui: string; prescriptionM
   prescriptionMois,
 }) => {
   const servi = plat.derniereServie ? getElapsedTimeInfo(plat.derniereServie.date, aujourdHui) : undefined;
-  const [classe, texte] = (() => {
+  const [classe, texte, icone] = ((): [string, string, React.ReactNode?] => {
     switch (plat.etat) {
       case 'a_eviter':
         return ['bg-[var(--error-bg)] text-[var(--error)]', 'Marqué « À éviter » lors d’un repas.'];
@@ -30,6 +30,7 @@ const EncadreEtat: React.FC<{ plat: PlatConnu; aujourdHui: string; prescriptionM
         return [
           'bg-[var(--warning-bg)] text-[var(--warning)]',
           `Servi ${servi?.label} — attendre encore ${reste} mois pour le resservir aux mêmes convives.`,
+          <IconClock size={17} className="shrink-0 mt-0.5" />,
         ];
       }
       case 'peut_revenir':
@@ -45,7 +46,10 @@ const EncadreEtat: React.FC<{ plat: PlatConnu; aujourdHui: string; prescriptionM
   })();
   return (
     <div className={`px-3.5 py-2.5 rounded-xl text-[15px] font-semibold flex flex-col gap-1 ${classe}`}>
-      <span>{texte}</span>
+      <span className="flex items-start gap-2">
+        {icone}
+        <span>{texte}</span>
+      </span>
       {plat.coupDeCoeur && (
         <span className="inline-flex items-center gap-1.5 text-[var(--success)]">
           <IconHeart size={15} filled /> Coup de cœur

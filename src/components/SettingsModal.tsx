@@ -202,7 +202,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--ink)] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
                   <FoyerPictoIcon picto="soleil" size={22} />
                 </div>
                 <div className="min-w-0">
@@ -224,7 +224,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-[var(--warning-bg)] text-[var(--warning)] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
                   <IconClock size={22} />
                 </div>
                 <div className="min-w-0">
@@ -246,7 +246,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-[var(--success-bg)] text-[var(--success)] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
                   <IconDownload size={21} />
                 </div>
                 <div className="min-w-0">
@@ -269,7 +269,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--ink)] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
                   <IconShield size={22} />
                 </div>
                 <div className="min-w-0">
@@ -290,7 +290,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               className="w-full min-h-[72px] px-4 py-3.5 flex items-center justify-between gap-3.5 text-left hover:bg-[var(--surface-elevated)]/60 active:bg-[var(--surface-active)]/50 transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-[var(--indic)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--primary-ink)] flex items-center justify-center shrink-0">
                   <IconUtensils size={22} />
                 </div>
                 <div className="min-w-0">
@@ -325,12 +325,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       type="button"
                       onClick={() => onChangePrescriptionMois(mois)}
                       aria-pressed={active}
-                      className={`min-h-[48px] px-3 rounded-xl border text-[15px] font-semibold tabular-nums transition-colors ${
+                      className={`min-h-[48px] px-3 rounded-xl border text-[15px] font-semibold tabular-nums inline-flex items-center justify-center gap-1.5 transition-colors ${
                         active
-                          ? 'bg-[var(--primary)] text-[var(--on-primary)] border-[var(--primary)]'
+                          ? 'bg-[var(--ink)] text-[var(--card)] border-[var(--ink)]'
                           : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink)]'
                       }`}
                     >
+                      {active && <IconCheck size={16} />}
                       {mois} mois
                     </button>
                   );

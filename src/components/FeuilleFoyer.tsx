@@ -14,7 +14,7 @@ export const FormulaireFoyer: React.FC<{ foyer?: Foyer; onEnregistrer: (f: Foyer
   onEnregistrer,
 }) => {
   const [nom, setNom] = useState(foyer?.nom ?? '');
-  const [couleur, setCouleur] = useState<FoyerColorId>(foyer?.couleur ?? 'corail');
+  const [couleur, setCouleur] = useState<FoyerColorId>(foyer?.couleur ?? 'lagon');
   const [picto, setPicto] = useState<FoyerPictoId>(foyer?.picto ?? 'maison');
 
   const enregistrer = (e: React.FormEvent) => {

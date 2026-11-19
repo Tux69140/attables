@@ -67,6 +67,15 @@
   --encre-tuile-filet: rgb(26 38 60 / 0.15);
 }
 
+/* Focus clavier : un seul contour pour tout ce qui se touche. Les titres de vue et les champs qui changent de filet
+   l'écartent eux-mêmes (focus:outline-none), ce qui l'emporte sur cette couche de base. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--primary-ink);
+    outline-offset: 2px;
+  }
+}
+
 html,
 body {
   background-color: var(--bg);

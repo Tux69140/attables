@@ -21,6 +21,7 @@ import {
   memeAllergene,
   REGIMES,
   resumeAllergiesStrictes,
+  texteEvite,
 } from './allergenes';
 
 const c = (id: string, nom: string, ...els: ContrainteConvive[]): Convive => ({ id, nomAffiche: nom, contraintes: els, contrainteLibre: '' });
@@ -166,4 +167,15 @@ test('avecSaisieAutre : le texte resté dans « Autre… » compte comme « Ajou
   // Aliment libre déjà connu : sa graphie est gardée, sans doublon.
   assert.deepEqual(avecSaisieAutre([], 'KIWI', ['autre:Kiwi']), ['autre:Kiwi']);
   assert.deepEqual(avecSaisieAutre(['autre:Kiwi'], 'kiwi', []), ['autre:Kiwi']);
+});
+
+test('texteEvite : un seul allergène garde son libellé en minuscules', () => {
+  assert.equal(texteEvite(el('ctr-1', 'Lait', 'preference', ['lait'])), 'lait');
+  assert.equal(texteEvite(el('ctr-2', 'Coriandre', 'preference', [])), 'coriandre');
+});
+
+test('texteEvite : plusieurs allergènes, puis le libellé entre parenthèses', () => {
+  const vegetarien = el('ctr-3', 'Végétarien', 'preference', ['viande', 'poissons', 'crustaces', 'mollusques']);
+  assert.equal(texteEvite(vegetarien), 'viande, poissons, crustacés, mollusques (végétarien)');
+  assert.equal(texteEvite(el('ctr-4', 'Fruits de mer', 'preference', ['crustaces', 'autre:Kiwi'])), 'crustacés, kiwi (fruits de mer)');
 });

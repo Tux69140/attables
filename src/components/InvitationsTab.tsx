@@ -107,7 +107,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   if (parcours.affichage === 'complet') {
     return (
       <div className="flex flex-col gap-4 pb-below-nav">
-        <h1 className="sr-only" tabIndex={-1} data-titre-vue>Invitations</h1>
+        <h1 className="sr-only focus:outline-none" tabIndex={-1} data-titre-vue>Invitations</h1>
         <ParcoursGuide
           etat={parcours}
           resume={resumeProches}
@@ -145,7 +145,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
 
   return (
     <div className="flex flex-col gap-4 pb-below-fab">
-      <h1 className="sr-only" tabIndex={-1} data-titre-vue>Invitations</h1>
+      <h1 className="sr-only focus:outline-none" tabIndex={-1} data-titre-vue>Invitations</h1>
       {parcours.affichage === 'ligne' && !ligneParcoursFermee && <LigneDerniereEtape onFermer={onFermerLigneParcours} />}
 
       {recherche !== null ? (

@@ -742,17 +742,17 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               disabled={members.length === 0}
                               className={`min-h-[56px] p-2 pr-3.5 rounded-xl border flex items-center justify-between gap-3 text-left transition-colors ${
                                 allSelected
-                                  ? 'bg-[var(--success-bg)] border-[var(--success)]'
-                                  : 'bg-[var(--surface-elevated)]/60 border-[var(--border)] hover:bg-[var(--surface-elevated)]'
+                                  ? 'bg-[var(--ink)] border-[var(--ink)]'
+                                  : 'bg-[var(--surface-elevated)] border-[var(--border)]'
                               }`}
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <FoyerTile color={f.couleur} picto={f.picto} sizePx={44} />
                                 <div className="min-w-0">
-                                  <div className="text-[15px] font-semibold text-[var(--ink)] break-words min-w-0">
+                                  <div className={`text-[15px] font-semibold break-words min-w-0 ${allSelected ? 'text-[var(--card)]' : 'text-[var(--ink)]'}`}>
                                     {f.nom}
                                   </div>
-                                  <div className="text-[13px] text-[var(--ink-muted)] tabular-nums">
+                                  <div className={`text-[13px] tabular-nums ${allSelected ? 'text-[var(--card)]' : 'text-[var(--ink-muted)]'}`}>
                                     {selectedCount}/{members.length} présents
                                   </div>
                                 </div>
@@ -760,12 +760,12 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               <div
                                 className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 ${
                                   allSelected
-                                    ? 'bg-[var(--success)] border-[var(--success)] text-[var(--card)]'
+                                    ? 'bg-[var(--card)] border-[var(--card)] text-[var(--ink)]'
                                     : 'border-[var(--outline)] bg-[var(--card)]'
                                 }`}
                                 aria-hidden="true"
                               >
-                                {allSelected && <IconCheck size={15} />}
+                                {allSelected && <IconCheck size={16} />}
                               </div>
                             </button>
                           );
@@ -798,8 +798,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               aria-pressed={checked}
                               className={`min-h-[44px] px-3.5 rounded-xl border text-[15px] font-semibold inline-flex items-center gap-2 transition-colors ${
                                 checked
-                                  ? 'bg-[var(--success)] text-[var(--card)] border-[var(--success)]'
-                                  : 'bg-[var(--card)] text-[var(--ink)] border-[var(--border)] hover:bg-[var(--surface-elevated)]'
+                                  ? 'bg-[var(--ink)] text-[var(--card)] border-[var(--ink)]'
+                                  : 'bg-[var(--surface-elevated)] text-[var(--ink)] border-[var(--border)]'
                               }`}
                             >
                               {checked && <IconCheck size={16} />}
@@ -870,7 +870,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                     <h2 className="font-display text-[19px] text-[var(--ink)]">Déjà servi à ces convives</h2>
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       {servedDishes.some((d) => d.isRecent) && (
-                        <span className="px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] text-[13px] font-bold tabular-nums">
+                        <span className="px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] text-[13px] font-bold tabular-nums inline-flex items-center gap-1">
+                          <IconClock size={12} />
                           {servedDishes.filter((d) => d.isRecent).length} récent{servedDishes.filter((d) => d.isRecent).length > 1 ? 's' : ''}
                         </span>
                       )}
@@ -1215,6 +1216,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                     : 'bg-[var(--card)] border-[var(--border)] text-[var(--ink-muted)]'
                                 }`}
                               >
+                                {active && <IconCheck size={14} />}
                                 <Icon size={14} />
                                 <span>{label}</span>
                               </button>
@@ -1279,6 +1281,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                                   : 'bg-[var(--card)] border-[var(--border)] text-[var(--ink-muted)]'
                               }`}
                             >
+                              {active && <IconCheck size={14} />}
                               <Icon size={14} />
                               <span>{label}</span>
                             </button>
@@ -1325,6 +1328,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                           : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink-muted)]'
                       }`}
                     >
+                      {active && <IconCheck size={15} className="shrink-0" />}
                       <Icon size={15} />
                       <span className="break-words min-w-0">{label}</span>
                     </button>
@@ -1497,21 +1501,26 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             <span className="text-[14px] font-semibold text-[var(--ink-muted)]">
               Type de repas
             </span>
-            <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)]">
-              {(['Déjeuner', 'Dîner', 'Apéro dînatoire'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setAiOptions((o) => ({ ...o, mealType: t }))}
-                  className={`min-h-[44px] px-2 rounded-lg text-[13px] font-semibold transition-colors ${
-                    aiOptions.mealType === t
-                      ? 'bg-[var(--card)] text-[var(--ink)] border border-[var(--border)] shadow-sm'
-                      : 'text-[var(--ink-muted)]'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
+            <div role="group" aria-label="Type de repas" className="grid grid-cols-3 gap-2">
+              {(['Déjeuner', 'Dîner', 'Apéro dînatoire'] as const).map((t) => {
+                const choisi = aiOptions.mealType === t;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    aria-pressed={choisi}
+                    onClick={() => setAiOptions((o) => ({ ...o, mealType: t }))}
+                    className={`min-h-[44px] px-2 rounded-xl border text-[14px] font-semibold leading-tight inline-flex items-center justify-center gap-1.5 transition-colors ${
+                      choisi
+                        ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--card)]'
+                        : 'bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--ink)]'
+                    }`}
+                  >
+                    {choisi && <IconCheck size={16} className="shrink-0" />}
+                    <span className="break-words min-w-0">{t}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

@@ -23,18 +23,12 @@ import {
   REGIMES,
 } from '../utils/allergenes';
 import { normalizeForCompare } from '../utils/dishes';
+import { ceQueNeMangePas } from '../utils/elision';
 import { ChoixAllergenes, ChoixPictogramme } from './ChoixAllergenes';
 import { Puces } from './Controles';
 import { Icone } from './Icone';
 import { IconAlert, IconClose, IconPlus } from './Icons';
 import { BottomSheet } from './SharedUI';
-
-/** « Ce que Léa… », « Ce qu’Anne… » ; « cette personne » tant que le nom est vide. */
-export function ceQueNeMangePas(prenom: string): string {
-  if (!prenom) return 'Ce que cette personne ne mange pas';
-  const voyelle = /^[aeiouy]/i.test(prenom.normalize('NFD'));
-  return `${voyelle ? 'Ce qu’' : 'Ce que '}${prenom} ne mange pas`;
-}
 
 /** Forme comparable d'un élément : champs dans un ordre fixe, sans pictogramme absent. */
 export function formeElement(c: ContrainteConvive): ContrainteConvive {

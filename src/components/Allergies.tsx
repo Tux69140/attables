@@ -7,7 +7,7 @@
  */
 import React, { useRef } from 'react';
 import type { ContrainteConvive, Convive } from '../types/models';
-import { type ConflitAllergene, iconeContrainte, listePrenoms } from '../utils/allergenes';
+import { type ConflitAllergene, iconeContrainte, listePrenoms, texteEvite } from '../utils/allergenes';
 import type { AggregatedConstraints } from '../utils/dishes';
 import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import { Icone } from './Icone';
@@ -77,7 +77,7 @@ export const BlocTablee: React.FC<{ constraints: AggregatedConstraints }> = ({ c
           ))}
           {evite.length > 0 && (
             <span className="text-[var(--pref)] break-words min-w-0">
-              évite : {evite.map((e) => e.libelle.toLowerCase()).join(', ')}
+              évite : {evite.map(texteEvite).join(', ')}
             </span>
           )}
           {note && <span className="text-[var(--ink)] break-words min-w-0">« {note} »</span>}

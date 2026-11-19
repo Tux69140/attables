@@ -29,6 +29,7 @@ import {
 } from './services/storage';
 import { alimentsLibresConnus } from './utils/allergenes';
 import { getTodayIso } from './utils/dishes';
+import { dePrenom } from './utils/elision';
 import { enregistrerFiche, type ValeursPlat } from './utils/plats';
 import { effacerExemples, resteDesExemples } from './utils/exemples';
 import { etatParcours, resumeProches } from './utils/parcours';
@@ -333,7 +334,7 @@ export default function App() {
         : [...prev.convives, convive];
       return { ...prev, convives };
     });
-    if (annulable) showUndo(`Fiche de ${convive.nomAffiche} enregistrée`, snapshot);
+    if (annulable) showUndo(`Fiche ${dePrenom(convive.nomAffiche)} enregistrée`, snapshot);
   };
 
   const handleDeleteConvive = (conviveId: string) => {

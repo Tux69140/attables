@@ -29,7 +29,7 @@ export const BandeauExemples: React.FC<BandeauExemplesProps> = ({ demo, onCommen
       <button
         type="button"
         onClick={onCommencer}
-        className="flex-1 min-h-[44px] px-3 py-2 leading-tight rounded-xl bg-[var(--primary)] text-[var(--on-primary)] font-semibold text-[15px] active:scale-[0.98] transition-transform"
+        className="flex-1 min-h-[44px] px-3 py-2 leading-tight rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--ink)] font-semibold text-[15px] active:scale-[0.98] transition-transform"
       >
         Commencer avec mes proches
       </button>

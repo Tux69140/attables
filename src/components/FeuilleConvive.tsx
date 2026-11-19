@@ -6,6 +6,7 @@
 import React, { useImperativeHandle, useRef, useState } from 'react';
 import type { ContrainteConvive, Convive, Foyer } from '../types/models';
 import { affaiblissements } from '../utils/allergenes';
+import { dePrenom } from '../utils/elision';
 import { ElementsPersonne, FeuilleAjoutElement, FeuilleElement, memesElements } from './ContraintesPersonne';
 import { BottomSheet, ConfirmModal } from './SharedUI';
 
@@ -181,7 +182,7 @@ export const FormulaireConvive: React.FC<
       )}
       <ConfirmModal
         open={confirmation !== null}
-        title={`Retirer une allergie de ${confirmation?.convive.nomAffiche ?? ''} ?`}
+        title={`Retirer une allergie ${dePrenom(confirmation?.convive.nomAffiche ?? '')} ?`}
         description={`Les alertes ne signaleront plus : ${confirmation?.affaiblies.join(', ') ?? ''}. Vous pourrez annuler juste après.`}
         confirmLabel="Continuer"
         cancelLabel="Revenir à la fiche"

@@ -185,7 +185,7 @@ export const PlatsTab: React.FC<{
 
   return (
     <div className="flex flex-col gap-4 pb-below-nav">
-      <h1 className="sr-only" tabIndex={-1} data-titre-vue>Plats</h1>
+      <h1 className="sr-only focus:outline-none" tabIndex={-1} data-titre-vue>Plats</h1>
       <div className="relative">
         <IconSearch size={19} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] pointer-events-none" />
         <input

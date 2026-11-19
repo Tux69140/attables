@@ -240,6 +240,16 @@ export function iconeContrainte(c: { icone?: NomIcone; allergenes: string[] }): 
   return 'tag';
 }
 
+/**
+ * Ce qu'évite une personne, en minuscules : le libellé seul pour un élément à un allergène (« lait »),
+ * les allergènes puis le libellé entre parenthèses au-delà (« viande, poissons, crustacés, mollusques (végétarien) »).
+ */
+export function texteEvite(element: ContrainteConvive): string {
+  const libelle = element.libelle.toLowerCase();
+  if (element.allergenes.length < 2) return libelle;
+  return `${element.allergenes.map((a) => libelleAllergene(a).toLowerCase()).join(', ')} (${libelle})`;
+}
+
 /** Prénoms en phrase : « Léa », « Léa et Nadia », « Léa, Nadia et Paul ». */
 export function listePrenoms(convives: Convive[]): string {
   const noms = convives.map((g) => g.nomAffiche);

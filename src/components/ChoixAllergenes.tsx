@@ -35,7 +35,7 @@ const Tuile: React.FC<{ icone: NomIcone; libelle: string; choisie: boolean; onCl
     }`}
   >
     <Icone nom={icone} size={22} className={choisie ? undefined : 'text-[var(--primary-ink)]'} />
-    <span className="text-[12px] font-semibold leading-tight">{libelle}</span>
+    <span className="text-[13px] font-semibold leading-tight">{libelle}</span>
   </button>
 );
 

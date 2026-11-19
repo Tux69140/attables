@@ -54,7 +54,7 @@ export const CarteInvitation: React.FC<{
         type="button"
         data-focus-cle={`inv-${inv.id}`}
         onClick={onOuvrir}
-        className="w-full text-left flex flex-col focus-visible:outline-2 focus-visible:outline-[var(--primary-ink)] active:bg-[var(--surface-active)]/40 transition-colors"
+        className="w-full text-left flex flex-col active:bg-[var(--surface-active)]/40 transition-colors"
       >
         {strict.length > 0 && (
           <div className="px-4 py-2 bg-[var(--alerte)] text-[var(--on-alerte)] text-[14px] font-bold flex items-center gap-2">
@@ -137,7 +137,7 @@ export const CarteRealisee: React.FC<{
       type="button"
       data-focus-cle={`inv-${inv.id}`}
       onClick={onOuvrir}
-      className="carte w-full text-left px-4 py-3 flex items-center gap-3 focus-visible:outline-2 focus-visible:outline-[var(--primary-ink)] active:bg-[var(--surface-active)]/40 transition-colors"
+      className="carte w-full text-left px-4 py-3 flex items-center gap-3 active:bg-[var(--surface-active)]/40 transition-colors"
     >
       <span className="min-w-0 flex-1">
         <span className="block font-display text-[18px] leading-snug text-[var(--ink)] break-words min-w-0">{titreInvitation(inv)}</span>
