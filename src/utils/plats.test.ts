@@ -174,6 +174,35 @@ test('platsProches propose tous les plats proches, du plus proche au moins proch
   assert.equal(platsProches(tartes, 'tarte aux pommes').some((p) => p.libelle === 'Tarte aux pommes'), false);
 });
 
+test('pas de faux amis : mots courts, première lettre différente, plat contenu en mots entiers seulement', () => {
+  const carnet = repertoire(
+    ['Crêpes', 'Crème caramel', 'Œufs mimosa', 'Moules frites', 'Steak tartare', 'Pot-au-feu', 'Riz au lait', 'Tarte aux pommes'].map(
+      (nom, i) => inv(`2026-10-${String(10 + i)}`, 'plat', nom)
+    )
+  );
+  const noms = (saisie: string) => platsProches(carnet, saisie).map((p) => p.libelle);
+  assert.deepEqual(noms('Crème anglaise'), []);
+  assert.deepEqual(noms('Crêpe'), ['Crêpes']);
+  assert.deepEqual(noms('Bœuf bourguignon'), []);
+  assert.deepEqual(noms('Poule au pot'), []);
+  assert.deepEqual(noms('Potée aux feuilles de chou'), []);
+  assert.deepEqual(noms('Rizotto au lait de coco'), []);
+  assert.deepEqual(noms('Riz au lait de coco'), ['Riz au lait']);
+  const trouves = (saisie: string) => rechercherPlats(carnet, saisie).resultats.map((p) => p.libelle);
+  assert.deepEqual(trouves('crêpes'), ['Crêpes']);
+  assert.deepEqual(trouves('bœuf'), []);
+  assert.deepEqual(trouves('poule'), []);
+  assert.deepEqual(trouves('tarte'), ['Tarte aux pommes']);
+});
+
+test('rechercherPlats : la saisie exacte avant les correspondances approchées', () => {
+  const liste = repertoire([
+    inv('2026-11-20', 'plat', 'Potimarron farci'),
+    inv('2026-11-10', 'plat', 'Gratin de potimaron'),
+  ]);
+  assert.deepEqual(rechercherPlats(liste, 'potimaron').resultats.map((p) => p.libelle), ['Gratin de potimaron', 'Potimarron farci']);
+});
+
 test('enregistrerFiche fusionne', () => {
   const res = enregistrerFiche([fiche('Tarte Tatin', ['dessert'])], { libelle: 'tarte tatin', services: ['entree'], allergenes: ['oeufs'] }, 'plat-2');
   assert.equal(res.length, 1);

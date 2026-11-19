@@ -159,9 +159,9 @@ export function compterFiltres(liste: PlatConnu[]): {
 }
 
 /**
- * Plats qui contiennent la saisie, ou dont les mots retrouvent chacun des mots saisis (début de mot,
- * dans n'importe quel ordre, une faute de frappe tolérée) ; proposer de l'enregistrer s'il n'est pas
- * déjà connu sous ce nom.
+ * Plats qui contiennent la saisie, puis ceux dont les mots retrouvent chacun des mots saisis (début de
+ * mot, dans n'importe quel ordre, une faute de frappe tolérée) ; proposer de l'enregistrer s'il n'est
+ * pas déjà connu sous ce nom.
  */
 export function rechercherPlats(
   liste: PlatConnu[],
@@ -170,8 +170,10 @@ export function rechercherPlats(
   const q = cleDePlat(saisie);
   if (!q) return { resultats: liste, proposerEnregistrement: false };
   const motsQ = mots(q);
+  const exacts = liste.filter((p) => p.cle.includes(q));
+  const approches = motsQ.length > 0 ? liste.filter((p) => !p.cle.includes(q) && fautes(motsQ, mots(p.cle)) >= 0) : [];
   return {
-    resultats: liste.filter((p) => p.cle.includes(q) || (motsQ.length > 0 && fautes(motsQ, mots(p.cle)) >= 0)),
+    resultats: [...exacts, ...approches],
     proposerEnregistrement: !liste.some((p) => p.cle === q),
   };
 }
@@ -200,12 +202,13 @@ function distance(a: string, b: string): number {
 }
 
 /**
- * Mot saisi retrouvé dans un mot du plat : 0 s'il en est le début, 1 avec une faute de frappe
- * (mots de 5 lettres et plus, mot entier ou début de mot en cours de saisie), -1 sinon.
+ * Mot saisi retrouvé dans un mot du plat : 0 s'il en est le début, 1 avec une faute de frappe, -1 sinon.
+ * La faute n'est tolérée qu'à partir de 7 lettres et avec la même première lettre : en deçà, trop de
+ * plats différents sont à une lettre l'un de l'autre (crème/crêpe, bœuf/œuf, poule/moule).
  */
 function correspondanceMot(q: string, w: string): number {
   if (w.startsWith(q)) return 0;
-  if (q.length < 5) return -1;
+  if (q.length < 7 || q[0] !== w[0]) return -1;
   for (const n of [q.length - 1, q.length, q.length + 1]) {
     if (n <= w.length && distance(q, w.slice(0, n)) <= 1) return 1;
   }
@@ -240,8 +243,8 @@ function signature(cle: string): string {
  * Plats connus qui ressemblent au nom tapé, sans être le même, du plus proche au moins proche
  * (`max` au plus) : d'abord ceux qui ont les mêmes mots (au pluriel et aux petits mots près), puis
  * ceux qui contiennent tous les mots tapés (début de mot, une faute de frappe tolérée par mot), le
- * moins de fautes puis le moins de mots en plus d'abord, enfin ceux dont tous les mots sont dans le
- * nom tapé. Rien sous 4 lettres tapées.
+ * moins de fautes puis le moins de mots en plus d'abord, enfin ceux dont tous les mots sont des mots
+ * du nom tapé. Rien sous 4 lettres tapées.
  */
 export function platsProches(liste: PlatConnu[], saisie: string, max = 5): PlatConnu[] {
   const cle = cleDePlat(saisie);
@@ -263,9 +266,11 @@ export function platsProches(liste: PlatConnu[], saisie: string, max = 5): PlatC
       notes.push({ plat: p, score: f * 100 + (motsP.length - motsQ.length) });
       continue;
     }
-    // Plat connu contenu dans le nom tapé (« Potimarron farci » pour « Potimarron farci au four ») : après les autres.
-    const g = motsP.join('').length >= 4 ? fautes(motsP, motsQ) : -1;
-    if (g >= 0) notes.push({ plat: p, score: 1000 + g * 100 + (motsQ.length - motsP.length) });
+    // Plat connu contenu dans le nom tapé, en mots entiers (« Potimarron farci » pour « Potimarron farci
+    // au four », mais pas « Pot-au-feu » pour « Potée aux feuilles ») : après les autres.
+    if (motsP.join('').length >= 4 && motsP.every((w) => motsQ.includes(w))) {
+      notes.push({ plat: p, score: 1000 + (motsQ.length - motsP.length) });
+    }
   }
   return notes
     .sort((a, b) => a.score - b.score)
