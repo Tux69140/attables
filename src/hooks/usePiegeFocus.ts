@@ -19,37 +19,42 @@ function focalisablesVisibles(conteneur: HTMLElement): HTMLElement[] {
   );
 }
 
-/** Éléments masqués aux lecteurs d'écran par les feuilles ouvertes, avec le nombre de feuilles qui les masquent. */
-const masques = new Map<Element, number>();
+/**
+ * Éléments masqués aux lecteurs d'écran par les feuilles ouvertes : nombre de feuilles qui les masquent
+ * et valeur d'aria-hidden d'avant (null : absent), remise quand la dernière se ferme.
+ */
+const masques = new Map<Element, { nb: number; avant: string | null }>();
 
 /**
  * Masque aux lecteurs d'écran (TalkBack lisait la liste derrière la feuille) tout ce qui n'est pas la
- * feuille : les frères du conteneur et de chacun de ses ancêtres. Un élément déjà caché par l'appli
- * (aria-hidden posé ailleurs) n'est pas touché. Renvoie de quoi tout rendre visible.
+ * feuille : les frères du conteneur et de chacun de ses ancêtres. Un élément déjà caché (aria-hidden
+ * « true ») n'est pas touché. React ne doit piloter aria-hidden sur aucun de ces frères : le poser sur
+ * un conteneur intérieur (voir les boutons flottants). Renvoie de quoi tout rendre comme avant.
  */
 function masquerLeReste(conteneur: HTMLElement): () => void {
   const pris: Element[] = [];
   for (let n: Element = conteneur; n.parentElement && n !== document.body; n = n.parentElement) {
     for (const frere of Array.from(n.parentElement.children)) {
       if (frere === n || frere.tagName === 'SCRIPT') continue;
-      const nb = masques.get(frere);
-      if (nb !== undefined) masques.set(frere, nb + 1);
+      const deja = masques.get(frere);
+      if (deja) deja.nb += 1;
       else if (frere.getAttribute('aria-hidden') === 'true') continue;
       else {
+        masques.set(frere, { nb: 1, avant: frere.getAttribute('aria-hidden') });
         frere.setAttribute('aria-hidden', 'true');
-        masques.set(frere, 1);
       }
       pris.push(frere);
     }
   }
   return () => {
     for (const el of pris) {
-      const nb = (masques.get(el) ?? 1) - 1;
-      if (nb > 0) masques.set(el, nb);
-      else {
-        masques.delete(el);
-        el.removeAttribute('aria-hidden');
-      }
+      const m = masques.get(el);
+      if (!m) continue;
+      m.nb -= 1;
+      if (m.nb > 0) continue;
+      masques.delete(el);
+      if (m.avant === null) el.removeAttribute('aria-hidden');
+      else el.setAttribute('aria-hidden', m.avant);
     }
   };
 }

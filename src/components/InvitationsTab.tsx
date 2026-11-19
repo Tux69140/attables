@@ -234,12 +234,12 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
       {invitations.length > 0 && (
         <div
           ref={boutonFlottant}
-          aria-hidden={!chromeVisible}
           className={`fixed bottom-above-nav left-0 right-0 z-30 pointer-events-none flex justify-center px-safe chrome-mouvement ${
             chromeVisible ? 'translate-y-0 opacity-100' : 'translate-y-[160px] opacity-0'
           }`}
         >
-          <div className="w-full max-w-[1080px] flex justify-end">
+          {/* aria-hidden sur ce conteneur interne : usePiegeFocus peut masquer le conteneur fixe sous une feuille. */}
+          <div aria-hidden={!chromeVisible} className="w-full max-w-[1080px] flex justify-end">
             <button
               type="button"
               tabIndex={chromeVisible ? 0 : -1}
