@@ -33,6 +33,8 @@ function fauxHistorique() {
     historique,
     brancher: (f: () => void) => (surPopState = f),
     attendre: () => new Promise((r) => setTimeout(r, 5)),
+    /** Rang de l'entrée courante (0 = l'entrée d'origine). */
+    profondeur: () => index,
   };
 }
 
@@ -223,4 +225,51 @@ test('estAuDessus : seule la dernière couche empilée', () => {
   pile.retirer(b);
   assert.equal(pile.estAuDessus(a), true);
   assert.equal(pile.estAuDessus('inconnue'), false);
+});
+
+test('couche ré-armée par son Retour, puis confirmation par-dessus, fermées ensemble par l’interface', async () => {
+  // Comme `useAndroidBack` quand `onBack` renvoie false (fiche modifiée qui affaiblit une allergie) :
+  // la couche reprend une entrée pendant `surPopState`, puis la confirmation s'ouvre au rendu suivant.
+  for (const ordre of ['confirmation d’abord', 'fiche d’abord']) {
+    const h = fauxHistorique();
+    const pile = creerPileRetour(h.historique);
+    h.brancher(pile.surPopState);
+    const fermetures: string[] = [];
+    pile.empiler(() => fermetures.push('onglet'));
+    const etatOnglet = h.historique.state;
+    const base = h.profondeur();
+
+    let fiche: string | null = null;
+    let confirmation: string | null = null;
+    const armer = () => {
+      fiche = pile.empiler(() => {
+        fiche = null;
+        fermetures.push('fiche refuse');
+        armer(); // ré-armée pendant surPopState
+        queueMicrotask(() => {
+          confirmation = pile.empiler(() => fermetures.push('confirmation'));
+        });
+      });
+    };
+    armer();
+    await h.attendre();
+
+    h.historique.back(); // Retour : la fiche reste, la confirmation s'ouvre
+    await h.attendre();
+    assert.ok(fiche && confirmation, ordre);
+    assert.equal(h.profondeur(), base + 2, `${ordre} : une entrée pour la fiche, une pour la confirmation`);
+
+    // « Continuer » : fiche et confirmation se démontent dans le même rendu, dans un ordre non garanti.
+    const ids = ordre === 'confirmation d’abord' ? [confirmation!, fiche!] : [fiche!, confirmation!];
+    ids.forEach((id) => pile.retirer(id));
+    await h.attendre();
+    await h.attendre();
+    assert.equal(h.profondeur(), base, `${ordre} : retour à la profondeur de l’onglet`);
+    assert.equal(h.historique.state, etatOnglet, `${ordre} : aucune entrée orpheline`);
+
+    h.historique.back(); // un seul Retour ferme l'onglet
+    await h.attendre();
+    assert.deepEqual(fermetures, ['fiche refuse', 'onglet'], ordre);
+    assert.equal(h.profondeur(), 0, ordre);
+  }
 });
