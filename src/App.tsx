@@ -388,13 +388,18 @@ export default function App() {
     showUndo('Exemples rechargés', snapshot);
   };
 
-  // Fiches de plat (onglet Plats)
+  // Fiches de plat (onglet Plats, ligne « vérifier » de l'éditeur)
+  // Chaque enregistrement d'une fiche (bouton ou fermeture d'une feuille modifiée) est annulable.
   const handleEnregistrerFiche = (v: ValeursPlat) => {
+    const snapshot = data;
     setData((prev) => ({ ...prev, plats: enregistrerFiche(prev.plats, v, `plat-${Date.now()}`) }));
+    showUndo('Plat enregistré', snapshot);
   };
 
   const handleRemplacerFiche = (fiche: PlatFiche) => {
+    const snapshot = data;
     setData((prev) => ({ ...prev, plats: prev.plats.map((p) => (p.id === fiche.id ? fiche : p)) }));
+    showUndo('Plat enregistré', snapshot);
   };
 
   const handleSupprimerFiche = (id: string) => {

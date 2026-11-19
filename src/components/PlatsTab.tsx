@@ -115,20 +115,24 @@ export const PlatsTab: React.FC<{
     setErreur(undefined);
   };
 
-  const enregistrer = (v: ValeursPlat) => {
+  /** Faux si la feuille reste ouverte : le nouveau nom est déjà celui d'un autre plat. */
+  const enregistrer = (v: ValeursPlat): boolean => {
     if (feuille?.mode === 'nouveau') {
       onEnregistrerFiche(v);
       setSaisie('');
       fermerFeuille();
-      return;
+      return true;
     }
-    if (!platFeuille) return;
+    if (!platFeuille) {
+      fermerFeuille();
+      return true;
+    }
     if (platFeuille.fiche) {
       const nouveauNom = feuille?.mode === 'modifier' ? v.libelle : platFeuille.fiche.libelle;
       const autre = liste.find((p) => p.cle !== platFeuille.cle && p.cle === cleDePlat(nouveauNom));
       if (autre) {
         setErreur(`« ${autre.libelle} » existe déjà.`);
-        return;
+        return false;
       }
       const { sansAllergene: _ancien, ...fiche } = platFeuille.fiche;
       onRemplacerFiche({
@@ -138,11 +142,13 @@ export const PlatsTab: React.FC<{
         allergenes: v.allergenes,
         ...(v.sansAllergene && v.allergenes.length === 0 ? { sansAllergene: true } : {}),
       });
-      if (feuille?.mode === 'modifier') setCleOuverte(cleDePlat(nouveauNom));
     } else {
       onEnregistrerFiche({ ...v, libelle: platFeuille.libelle });
     }
+    // Bandeau « Annuler » à suivre : la fiche du plat se ferme aussi, sinon son voile le cacherait.
+    setCleOuverte(null);
     fermerFeuille();
+    return true;
   };
 
   const ligne = (plat: PlatConnu) => {

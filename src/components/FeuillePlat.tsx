@@ -3,7 +3,7 @@
  * Copyright (C) 2026 Stéphane MICHEL <stephane@biovibralyon.fr>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-import React, { useState } from 'react';
+import React, { useImperativeHandle, useRef, useState } from 'react';
 import { ICONE_SERVICE } from '../icones/services';
 import { COURSE_KEYS, COURSE_LABELS, type CourseKey } from '../types/models';
 import { avecSaisieAutre } from '../utils/allergenes';
@@ -27,11 +27,24 @@ interface FormulairePlatProps {
   libresConnus: string[];
   erreur?: string;
   libelleBouton: string;
-  onEnregistrer: (v: ValeursPlat) => void;
+  /** Chaque enregistrement est suivi du bandeau « Plat enregistré · Annuler ». Renvoie `false` si la feuille reste ouverte (erreur affichée). */
+  onEnregistrer: (v: ValeursPlat) => boolean | void;
   onOuvrirPlat: (cle: string) => void;
 }
 
-const FormulairePlat: React.FC<FormulairePlatProps> = ({
+/** Ce que la feuille autour du formulaire peut lui demander. */
+interface PoigneePlat {
+  /**
+   * Fermeture (Retour, voile, Échap, Fermer) : fiche inchangée ou invalide (sans nom ni service) → `onFermer` ;
+   * sinon enregistrement, comme « Enregistrer ». Renvoie `false` si la feuille reste ouverte (erreur affichée).
+   */
+  fermer: () => boolean;
+}
+
+const memesListes = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && a.every((x) => b.includes(x));
+
+const FormulairePlat: React.FC<FormulairePlatProps & { onFermer: () => void; ref?: React.Ref<PoigneePlat> }> = ({
   initial,
   nomModifiable,
   allergenesOuverts,
@@ -42,6 +55,8 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
   libelleBouton,
   onEnregistrer,
   onOuvrirPlat,
+  onFermer,
+  ref,
 }) => {
   const [libelle, setLibelle] = useState(initial.libelle);
   const [services, setServices] = useState<CourseKey[]>(initial.services);
@@ -57,12 +72,33 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
   const basculer = (k: CourseKey) =>
     setServices((prev) => (prev.includes(k) ? prev.filter((s) => s !== k) : COURSE_KEYS.filter((c) => c === k || prev.includes(c))));
 
+  // Un texte resté dans « Autre… » compte comme si « Ajouter » avait été touché.
+  const construire = (): ValeursPlat => {
+    const finaux = avecSaisieAutre(allergenes, autre, libresConnus);
+    return { libelle: formatDishInput(libelle), services, allergenes: finaux, sansAllergene: sansAllergene && finaux.length === 0 };
+  };
+
+  const inchangee = (v: ValeursPlat) =>
+    v.libelle === formatDishInput(initial.libelle) &&
+    memesListes(v.services, initial.services) &&
+    memesListes(v.allergenes, initial.allergenes) &&
+    v.sansAllergene === (initial.sansAllergene && initial.allergenes.length === 0);
+
+  useImperativeHandle(ref, () => ({
+    fermer: () => {
+      const v = construire();
+      if (!valide || inchangee(v)) {
+        onFermer();
+        return true;
+      }
+      return onEnregistrer(v) !== false;
+    },
+  }));
+
   const enregistrer = (e: React.FormEvent) => {
     e.preventDefault();
     if (!valide) return;
-    // Un texte resté dans « Autre… » compte comme si « Ajouter » avait été touché.
-    const finaux = avecSaisieAutre(allergenes, autre, libresConnus);
-    onEnregistrer({ libelle: formatDishInput(libelle), services, allergenes: finaux, sansAllergene: sansAllergene && finaux.length === 0 });
+    onEnregistrer(construire());
   };
 
   return (
@@ -157,7 +193,6 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
   );
 };
 
-/** Feuille d'enregistrement ou de modification d'une fiche de plat. */
 /** « Voir ce plat » : lien d'un plat proposé ; zone tactile de 44 px par un pseudo-élément invisible. */
 const BoutonVoirPlat: React.FC<{ plat: PlatConnu; onOuvrirPlat: (cle: string) => void }> = ({ plat, onOuvrirPlat }) => (
   <button
@@ -170,10 +205,24 @@ const BoutonVoirPlat: React.FC<{ plat: PlatConnu; onOuvrirPlat: (cle: string) =>
   </button>
 );
 
+/** Feuille d'enregistrement ou de modification d'une fiche de plat : sa fermeture passe par la fiche (`PoigneePlat`). */
 export const FeuillePlat: React.FC<
   FormulairePlatProps & { ouverte: boolean; titre: string; onFermer: () => void }
-> = ({ ouverte, titre, onFermer, ...formulaire }) => (
-  <BottomSheet open={ouverte} title={titre} zClass="z-[55]" onClose={onFermer}>
-    <FormulairePlat key={`${formulaire.cleActuelle ?? 'nouveau'}-${formulaire.initial.libelle}`} {...formulaire} />
-  </BottomSheet>
-);
+> = ({ ouverte, titre, onFermer, ...formulaire }) => {
+  const fiche = useRef<PoigneePlat>(null);
+  return (
+    <BottomSheet
+      open={ouverte}
+      title={titre}
+      zClass="z-[55]"
+      onClose={() => (fiche.current ? fiche.current.fermer() : (onFermer(), true))}
+    >
+      <FormulairePlat
+        key={`${formulaire.cleActuelle ?? 'nouveau'}-${formulaire.initial.libelle}`}
+        ref={fiche}
+        {...formulaire}
+        onFermer={onFermer}
+      />
+    </BottomSheet>
+  );
+};
