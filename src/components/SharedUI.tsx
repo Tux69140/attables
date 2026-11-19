@@ -140,7 +140,7 @@ export const BottomSheet: React.FC<{
     >
       <div
         ref={panneau}
-        className="w-full sm:max-w-lg max-h-[88vh] flex flex-col bg-[var(--card)] border-t sm:border border-[var(--border)] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full sm:max-w-lg max-h-[88vh] flex flex-col bg-[var(--card)] border-t sm:border border-[var(--border)] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden pb-[env(safe-area-inset-bottom)] sm:pb-0"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-4 pt-2.5 pb-3 border-b border-[var(--border)] shrink-0">
@@ -164,7 +164,7 @@ export const BottomSheet: React.FC<{
             </button>
           </div>
         </div>
-        <div className="overflow-y-auto px-5 py-4 pb-safe">{children}</div>
+        <div className="overflow-y-auto px-5 pt-4 pb-2">{children}</div>
       </div>
     </div>
   );
