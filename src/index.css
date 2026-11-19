@@ -97,8 +97,8 @@ body {
   padding-top: var(--haut-systeme);
 }
 
-/* Voile des feuilles et confirmations : la feuille se pose entre les deux barres Android, dont la
-   nappe reste visible sous le voile ; centrée à partir de 640 px (tablette, paysage). */
+/* Voile des feuilles et confirmations : la feuille se pose entre les deux barres Android, où la
+   nappe reste vive (elle passe au-dessus du voile) ; centrée à partir de 40rem (tablette, paysage). */
 .voile-feuille {
   padding-top: var(--haut-systeme);
   padding-bottom: env(safe-area-inset-bottom);
@@ -116,14 +116,16 @@ body {
 }
 
 /* Nappe : bande fixe sous la barre d'état, jamais masquée au défilement.
-   Vichy safran ; reste discret pour garder les icônes lisibles. */
+   Vichy safran ; reste discret pour garder les icônes lisibles.
+   Au-dessus de tout (feuilles et voiles z-50 à 60, présentation z-70) : identique sur tous les
+   écrans, jamais assombrie par le voile d'une feuille. */
 .nappe {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: var(--haut-systeme);
-  z-index: 50;
+  z-index: 80;
   background-color: var(--bg);
   background-image:
     linear-gradient(90deg, rgba(240, 180, 41, 0.4) 50%, transparent 50%),
