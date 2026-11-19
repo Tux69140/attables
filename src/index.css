@@ -74,6 +74,11 @@
     outline: 2px solid var(--primary-ink);
     outline-offset: 2px;
   }
+  /* Un conteneur qui rogne (cartes à bords arrondis) couperait le contour d'un bouton pleine largeur :
+     à l'intérieur d'un tel conteneur, le contour se dessine en dedans. Les feuilles du bas gardent leurs marges. */
+  .overflow-hidden:not(.panneau-feuille) :focus-visible {
+    outline-offset: -2px;
+  }
 }
 
 html,
