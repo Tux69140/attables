@@ -158,37 +158,111 @@ export function compterFiltres(liste: PlatConnu[]): {
   };
 }
 
-/** Plats qui contiennent la saisie ; proposer de l'enregistrer s'il n'est pas déjà connu sous ce nom. */
+/**
+ * Plats qui contiennent la saisie, ou dont les mots retrouvent chacun des mots saisis (début de mot,
+ * dans n'importe quel ordre, une faute de frappe tolérée) ; proposer de l'enregistrer s'il n'est pas
+ * déjà connu sous ce nom.
+ */
 export function rechercherPlats(
   liste: PlatConnu[],
   saisie: string
 ): { resultats: PlatConnu[]; proposerEnregistrement: boolean } {
   const q = cleDePlat(saisie);
   if (!q) return { resultats: liste, proposerEnregistrement: false };
+  const motsQ = mots(q);
   return {
-    resultats: liste.filter((p) => p.cle.includes(q)),
+    resultats: liste.filter((p) => p.cle.includes(q) || (motsQ.length > 0 && fautes(motsQ, mots(p.cle)) >= 0)),
     proposerEnregistrement: !liste.some((p) => p.cle === q),
   };
 }
 
 const MOTS_VIDES = new Set(['de', 'du', 'des', 'a', 'au', 'aux', 'la', 'le', 'les', 'l', 'd', 'et', 'en']);
 
-/** Mots significatifs d'un nom, sans pluriel en -s/-x, triés : « lasagne legume ». */
-function signature(cle: string): string {
+/** Mots significatifs d'une clé de plat, dans l'ordre et sans pluriel en -s/-x : « veloute potimarron verrine ». */
+function mots(cle: string): string[] {
   return cle
     .split(/[\s']+/)
     .filter((m) => m && !MOTS_VIDES.has(m))
-    .map((m) => (m.length > 3 ? m.replace(/[sx]$/, '') : m))
-    .sort()
-    .join(' ');
+    .map((m) => (m.length > 3 ? m.replace(/[sx]$/, '') : m));
 }
 
-/** Plat connu « presque identique » (mêmes mots, au pluriel et aux petits mots près), mais pas le même. */
+/** Distance d'édition : lettre ajoutée, retirée, remplacée, ou deux lettres voisines inversées. */
+function distance(a: string, b: string): number {
+  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [i, ...new Array<number>(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+  }
+  return d[a.length][b.length];
+}
+
+/**
+ * Mot saisi retrouvé dans un mot du plat : 0 s'il en est le début, 1 avec une faute de frappe
+ * (mots de 5 lettres et plus, mot entier ou début de mot en cours de saisie), -1 sinon.
+ */
+function correspondanceMot(q: string, w: string): number {
+  if (w.startsWith(q)) return 0;
+  if (q.length < 5) return -1;
+  for (const n of [q.length - 1, q.length, q.length + 1]) {
+    if (n <= w.length && distance(q, w.slice(0, n)) <= 1) return 1;
+  }
+  return -1;
+}
+
+/** Nombre de fautes de frappe pour retrouver chaque mot saisi dans le plat, ou -1 si l'un n'y est pas. */
+function fautes(motsSaisie: string[], motsPlat: string[]): number {
+  let total = 0;
+  for (const q of motsSaisie) {
+    let meilleur = -1;
+    for (const w of motsPlat) {
+      const c = correspondanceMot(q, w);
+      if (c === 0) {
+        meilleur = 0;
+        break;
+      }
+      if (c === 1) meilleur = 1;
+    }
+    if (meilleur < 0) return -1;
+    total += meilleur;
+  }
+  return total;
+}
+
+/** Mots significatifs d'un nom, sans pluriel en -s/-x, triés : « lasagne legume ». */
+function signature(cle: string): string {
+  return mots(cle).sort().join(' ');
+}
+
+/**
+ * Plat connu qui ressemble au nom tapé, mais pas le même : d'abord mêmes mots (au pluriel et aux petits
+ * mots près) ; sinon un plat qui contient tous les mots tapés (début de mot, une faute de frappe tolérée
+ * par mot), le moins de fautes puis le moins de mots en plus l'emportant. Rien sous 4 lettres tapées.
+ */
 export function platProche(liste: PlatConnu[], saisie: string): PlatConnu | undefined {
   const cle = cleDePlat(saisie);
   const sig = signature(cle);
   if (!sig) return undefined;
-  return liste.find((p) => p.cle !== cle && signature(p.cle) === sig);
+  const autres = liste.filter((p) => p.cle !== cle);
+  const memesMots = autres.find((p) => signature(p.cle) === sig);
+  if (memesMots) return memesMots;
+  const motsQ = mots(cle);
+  if (motsQ.join('').length < 4) return undefined;
+  let choix: PlatConnu | undefined;
+  let meilleurScore = Infinity;
+  for (const p of autres) {
+    const motsP = mots(p.cle);
+    const f = fautes(motsQ, motsP);
+    if (f < 0) continue;
+    const score = f * 100 + (motsP.length - motsQ.length);
+    if (score < meilleurScore) {
+      meilleurScore = score;
+      choix = p;
+    }
+  }
+  return choix;
 }
 
 /** Enregistre une fiche ; si le plat a déjà une fiche, la complète (services unis, allergènes remplacés). */
