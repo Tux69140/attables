@@ -98,6 +98,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   const isFrozen = isRealisee && !unlockedEdit;
 
   const [date, setDate] = useState(source?.date ?? getTodayIso());
+  // Jour du repas arrivé ou passé : « Valider réalisée » devient l'action mise en avant.
+  const jourArrive = date <= getTodayIso();
   const { visible: chromeVisible } = useAutoHideChrome(existing?.id ?? (initialDraft ? 'reinvite' : 'new'));
   // Hauteurs réelles de l'en-tête et de la barre d'actions (grand texte) : voir useHauteurMesuree.
   const enteteRef = useRef<HTMLElement>(null);
@@ -1340,17 +1342,22 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           </div>
         ) : (
           <div className="max-w-[1080px] mx-auto px-safe py-3 flex flex-wrap items-center gap-2.5">
+            {/* Mise en avant selon la date : à venir → « Enregistrer prévue » ; jour arrivé ou passé → « Valider réalisée ». */}
             <button
               type="button"
               onClick={() => handleSubmit('prevue')}
-              className="flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)] font-semibold text-[14px] active:scale-[0.98] transition-transform"
+              className={`flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl font-semibold text-[14px] active:scale-[0.98] transition-transform ${
+                jourArrive ? 'border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)]' : 'bg-[var(--primary)] text-[var(--on-primary)]'
+              }`}
             >
               Enregistrer prévue
             </button>
             <button
               type="button"
               onClick={() => handleSubmit('realisee')}
-              className="flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl bg-[var(--success)] text-[var(--card)] font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
+              className={`flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform ${
+                jourArrive ? 'bg-[var(--success)] text-[var(--card)]' : 'border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)]'
+              }`}
             >
               <IconCheck size={17} />
               <span>Valider réalisée</span>
