@@ -91,6 +91,23 @@ export function allergeneDeReference(saisie: string): string | undefined {
   return ALLERGENES.find((a) => cleSansPluriel(a.libelle) === cle)?.id;
 }
 
+/**
+ * Identifiant que désigne une saisie « Autre… » : l'allergène de référence, sinon l'aliment libre déjà connu
+ * (graphie conservée), sinon un nouvel aliment libre.
+ */
+export function idDepuisSaisieAutre(saisie: string, connus: string[]): string {
+  const saisi = idAutre(saisie);
+  return allergeneDeReference(saisie) ?? connus.find((c) => memeAllergene(c, saisi)) ?? saisi;
+}
+
+/** Allergènes avec, en plus, le texte resté dans « Autre… » (comme si « Ajouter » avait été touché) ; inchangés si le texte est vide. */
+export function avecSaisieAutre(allergenes: string[], saisie: string, connus: string[]): string[] {
+  const texte = saisie.trim();
+  if (!texte) return allergenes;
+  const id = idDepuisSaisieAutre(texte, [...allergenes, ...connus]);
+  return allergenes.some((a) => memeAllergene(a, id)) ? allergenes : [...allergenes, id];
+}
+
 /** Même allergène : même identifiant, ou deux aliments libres dont les libellés ne diffèrent que par la casse ou les accents. */
 export function memeAllergene(a: string, b: string): boolean {
   if (a === b) return true;

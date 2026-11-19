@@ -10,6 +10,7 @@ import {
   affaiblissements,
   alimentsLibresConnus,
   allergeneDeReference,
+  avecSaisieAutre,
   choixAllergenes,
   conflitsPlat,
   dejaPresent,
@@ -139,4 +140,15 @@ test('allergeneDeReference : libellé de référence, pluriel ou accents tolér�
   assert.equal(allergeneDeReference('Fruit à coque'), 'fruits-a-coque');
   assert.equal(allergeneDeReference('kiwi'), undefined);
   assert.equal(allergeneDeReference(''), undefined);
+});
+
+test('avecSaisieAutre : le texte resté dans « Autre… » compte comme « Ajouter »', () => {
+  assert.deepEqual(avecSaisieAutre(['lait'], '', []), ['lait']);
+  assert.deepEqual(avecSaisieAutre(['lait'], '  ', []), ['lait']);
+  assert.deepEqual(avecSaisieAutre([], 'kiwi', []), [idAutre('kiwi')]);
+  assert.deepEqual(avecSaisieAutre(['lait'], 'oeuf', []), ['lait', 'oeufs']);
+  assert.deepEqual(avecSaisieAutre(['oeufs'], 'Œuf', []), ['oeufs']);
+  // Aliment libre déjà connu : sa graphie est gardée, sans doublon.
+  assert.deepEqual(avecSaisieAutre([], 'KIWI', ['autre:Kiwi']), ['autre:Kiwi']);
+  assert.deepEqual(avecSaisieAutre(['autre:Kiwi'], 'kiwi', []), ['autre:Kiwi']);
 });

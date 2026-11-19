@@ -12,6 +12,7 @@ import type { ContrainteConvive } from '../types/models';
 import {
   ALLERGENES,
   allergeneDeReference,
+  avecSaisieAutre,
   dejaPresent,
   estAutre,
   iconeContrainte,
@@ -142,8 +143,11 @@ export const FormulaireElement: React.FC<{
   valeur: ContrainteConvive;
   onChange: (c: ContrainteConvive) => void;
   libresConnus: string[];
+  /** Texte du champ « Autre… », tenu par la feuille pour être pris en compte à l'enregistrement. */
+  autre: string;
+  onAutreChange: (v: string) => void;
   onValider: () => void;
-}> = ({ valeur, onChange, libresConnus, onValider }) => {
+}> = ({ valeur, onChange, libresConnus, autre, onAutreChange, onValider }) => {
   // Les aliments libres de l'élément restent proposés, même décochés.
   const [libres] = useState(() => {
     const propres = valeur.allergenes.filter(estAutre);
@@ -187,7 +191,7 @@ export const FormulaireElement: React.FC<{
       <div className="flex flex-col gap-2">
         <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Allergènes concernés</span>
         <p className="text-[13px] text-[var(--ink-muted)] -mt-1">Un plat qui en contient déclenchera une alerte.</p>
-        <ChoixAllergenes valeur={valeur.allergenes} onChange={(allergenes) => changer({ allergenes })} libresConnus={libres} autreLibre />
+        <ChoixAllergenes valeur={valeur.allergenes} onChange={(allergenes) => changer({ allergenes })} libresConnus={libres} autreLibre autre={autre} onAutreChange={onAutreChange} />
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-[14px] font-semibold text-[var(--ink-muted)]">Pictogramme</span>
@@ -214,14 +218,24 @@ export const FeuilleElement: React.FC<{
   onFermer: () => void;
 }> = ({ element, libresConnus, onAppliquer, onFermer }) => {
   const [brouillon, setBrouillon] = useState(element);
+  const [autre, setAutre] = useState('');
   const fermer = () => {
-    const final = formeElement({ ...brouillon, libelle: brouillon.libelle.trim() || element.libelle });
+    // Un texte resté dans « Autre… » compte comme si « Ajouter » avait été touché.
+    const allergenes = avecSaisieAutre(brouillon.allergenes, autre, libresConnus);
+    const final = formeElement({ ...brouillon, allergenes, libelle: brouillon.libelle.trim() || element.libelle });
     if (!memesElements([final], [element])) onAppliquer(final);
     onFermer();
   };
   return (
     <BottomSheet open title={`Modifier « ${element.libelle} »`} zClass="z-[60]" onClose={fermer}>
-      <FormulaireElement valeur={brouillon} onChange={setBrouillon} libresConnus={libresConnus} onValider={fermer} />
+      <FormulaireElement
+        valeur={brouillon}
+        onChange={setBrouillon}
+        libresConnus={libresConnus}
+        autre={autre}
+        onAutreChange={setAutre}
+        onValider={fermer}
+      />
     </BottomSheet>
   );
 };

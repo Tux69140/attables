@@ -6,11 +6,10 @@
 import React, { useState } from 'react';
 import type { NomIcone } from '../icones/donnees';
 import {
-  allergeneDeReference,
   choixAllergenes,
   estAutre,
   iconeAllergene,
-  idAutre,
+  idDepuisSaisieAutre,
   libelleAllergene,
   memeAllergene,
   PICTOS_CONTRAINTE,
@@ -76,10 +75,15 @@ export const ChoixAllergenes: React.FC<{
   replie?: boolean;
   aucun?: { valeur: boolean; onChange: (v: boolean) => void };
   autreLibre?: boolean;
-}> = ({ valeur, onChange, libresConnus, replie = false, aucun, autreLibre = false }) => {
+  /** Texte du champ « Autre… », tenu par le parent pour qu'un texte non ajouté soit pris en compte à l'enregistrement (`avecSaisieAutre`). */
+  autre?: string;
+  onAutreChange?: (v: string) => void;
+}> = ({ valeur, onChange, libresConnus, replie = false, aucun, autreLibre = false, autre: autreParent, onAutreChange }) => {
   const [ouvert, setOuvert] = useState(!replie);
   const [ajoutes, setAjoutes] = useState<string[]>([]);
-  const [autre, setAutre] = useState('');
+  const [autreLocal, setAutreLocal] = useState('');
+  const autre = autreParent ?? autreLocal;
+  const setAutre = onAutreChange ?? setAutreLocal;
   // Un aliment libre ajouté ici reste proposé, même décoché.
   const connus = [...libresConnus];
   for (const id of ajoutes) if (!connus.some((c) => memeAllergene(c, id))) connus.push(id);
@@ -103,8 +107,7 @@ export const ChoixAllergenes: React.FC<{
   const ajouterAutre = () => {
     const texte = autre.trim();
     if (!texte) return;
-    const saisi = idAutre(texte);
-    const id = allergeneDeReference(texte) ?? connus.find((c) => memeAllergene(c, saisi)) ?? saisi;
+    const id = idDepuisSaisieAutre(texte, connus);
     if (estAutre(id) && !connus.some((c) => memeAllergene(c, id))) setAjoutes((prev) => [...prev, id]);
     if (!choisi(id)) changer([...valeur, id]);
     setAutre('');
