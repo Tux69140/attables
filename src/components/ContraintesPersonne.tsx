@@ -290,7 +290,7 @@ export const FeuilleAjoutElement: React.FC<{
     else if (retourGrille) grille.current?.querySelector('h3')?.focus();
   }, [choix, retourGrille]);
 
-  const libre = (c: Choix) => !dejaPresent(contraintes, c.allergenes);
+  const libre = (c: Choix) => !dejaPresent(contraintes, c);
   const depuisAllergene = (groupe: 'reglementaire' | 'autre'): Choix[] =>
     ALLERGENES.filter((a) => a.groupe === groupe).map((a) => ({ libelle: a.libelle, allergenes: [a.id] })).filter(libre);
   const regimes: Choix[] = REGIMES.map((r) => ({ libelle: r.libelle, allergenes: r.allergenes, icone: r.icone })).filter(libre);

@@ -149,15 +149,13 @@ export function avecSaisieAutre(allergenes: string[], saisie: string, connus: st
 const referenceDe = (id: string): string | undefined => (estAutre(id) ? allergeneDeReference(libelleAutre(id)) : id);
 
 /**
- * Même allergène : même identifiant, deux aliments libres dont les libellés ne diffèrent que par la casse
- * ou les accents, ou un aliment libre dont le nom désigne un allergène de référence (« autre:Cacahuètes »
- * = arachides, données d'avant les synonymes comprises).
+ * Même allergène : même identifiant, ou deux aliments libres dont les libellés ne diffèrent que par la casse
+ * ou les accents. Jamais par synonyme (« autre:Fromage » n'est pas « lait ») : cocher, décocher, dédoublonner
+ * ou reproposer un choix se fait à l'identique. Les alertes, elles, passent par `memeAlerte`.
  */
 export function memeAllergene(a: string, b: string): boolean {
   if (a === b) return true;
-  if (estAutre(a) && estAutre(b) && normalizeForCompare(libelleAutre(a)) === normalizeForCompare(libelleAutre(b))) return true;
-  const ra = referenceDe(a);
-  return ra !== undefined && ra === referenceDe(b);
+  return estAutre(a) && estAutre(b) && normalizeForCompare(libelleAutre(a)) === normalizeForCompare(libelleAutre(b));
 }
 
 /**
@@ -169,15 +167,44 @@ export function affaiblissements(avant: ContrainteConvive[], apres: ContrainteCo
     .filter((a) => {
       if (a.niveau !== 'strict') return false;
       const b = apres.find((x) => x.id === a.id);
-      return !b || b.niveau !== 'strict' || a.allergenes.some((x) => !b.allergenes.some((y) => memeAllergene(x, y)));
+      return !b || b.niveau !== 'strict' || a.allergenes.some((x) => !b.allergenes.some((y) => memeAlerte(x, y)));
     })
     .map((a) => a.libelle);
 }
 
-/** Vrai si un élément porte exactement ces allergènes (même ensemble, voir `memeAllergene`) : choix à ne pas reproposer. */
-export function dejaPresent(contraintes: ContrainteConvive[], allergenes: string[]): boolean {
+/**
+ * Vrai si la personne a déjà cet élément : même libellé (casse et accents près) et exactement les mêmes
+ * allergènes (voir `memeAllergene`) ; choix à ne pas reproposer. « Évite : Fromage » (lait) laisse donc
+ * proposer « Lait », pour pouvoir noter une allergie au lait.
+ */
+export function dejaPresent(contraintes: ContrainteConvive[], choix: { libelle: string; allergenes: string[] }): boolean {
   const inclus = (xs: string[], ys: string[]) => xs.every((x) => ys.some((y) => memeAllergene(x, y)));
-  return contraintes.some((c) => inclus(c.allergenes, allergenes) && inclus(allergenes, c.allergenes));
+  const libelle = normalizeForCompare(choix.libelle);
+  return contraintes.some(
+    (c) =>
+      normalizeForCompare(c.libelle) === libelle && inclus(c.allergenes, choix.allergenes) && inclus(choix.allergenes, c.allergenes)
+  );
+}
+
+/** Vrai si la tuile `id` est cochée dans `valeur` (un aliment libre écrit autrement compte comme le même). */
+export function allergeneChoisi(valeur: string[], id: string): boolean {
+  return valeur.some((v) => memeAllergene(v, id));
+}
+
+/** Coche ou décoche la tuile `id` : décocher « Fromage » ne retire que lui, jamais le lait. */
+export function basculerAllergene(valeur: string[], id: string): string[] {
+  return allergeneChoisi(valeur, id) ? valeur.filter((v) => !memeAllergene(v, id)) : [...valeur, id];
+}
+
+/**
+ * Même alerte : même allergène (`memeAllergene`), ou deux identifiants qui désignent le même allergène
+ * de référence (« autre:Cacahuètes » = arachides, « autre:Crevettes » = « autre:Homard » = crustacés).
+ * Sert seulement à décider si un plat concerne une personne : mieux vaut une alerte de trop.
+ */
+export function memeAlerte(a: string, b: string): boolean {
+  if (memeAllergene(a, b)) return true;
+  const ra = referenceDe(a);
+  return ra !== undefined && ra === referenceDe(b);
 }
 
 /** Pictogrammes proposés pour une contrainte : ceux des allergènes, puis des aliments courants. */
@@ -226,19 +253,20 @@ export function iconeAllergene(id: string): NomIcone {
 
 /**
  * Allergènes du plat qui concernent les convives : un convive est concerné par l'allergène `a`
- * si l'un de ses éléments contient `a` (même aliment libre compris, voir `memeAllergene`).
+ * si l'un de ses éléments contient `a` (même aliment libre ou synonyme compris, voir `memeAlerte` :
+ * « autre:Cacahuètes » d'une personne alerte avec un plat aux arachides, et inversement).
  * Une seule entrée par (allergène, niveau) ; une allergie stricte l'emporte sur une préférence
  * pour un même convive. Strict d'abord, puis ordre de ALLERGENES.
  */
 export function conflitsPlat(allergenesPlat: string[], convives: Convive[]): ConflitAllergene[] {
   const distincts: string[] = [];
-  for (const a of allergenesPlat) if (!distincts.some((d) => memeAllergene(d, a))) distincts.push(a);
+  for (const a of allergenesPlat) if (!distincts.some((d) => memeAlerte(d, a))) distincts.push(a);
   const groupes = new Map<string, ConflitAllergene>();
   for (const a of distincts) {
     for (const convive of convives) {
       let niveau: ContrainteNiveau | undefined;
       for (const element of convive.contraintes) {
-        if (!element.allergenes.some((x) => memeAllergene(x, a))) continue;
+        if (!element.allergenes.some((x) => memeAlerte(x, a))) continue;
         niveau = element.niveau === 'strict' ? 'strict' : (niveau ?? 'preference');
       }
       if (!niveau) continue;

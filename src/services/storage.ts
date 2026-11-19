@@ -10,7 +10,7 @@ import {
   Invitation,
   PlatFiche,
 } from '../types/models';
-import { ALLERGENES, estAutre, idAutre, LIAISONS_PAR_DEFAUT, libelleAutre, memeAllergene } from '../utils/allergenes';
+import { ALLERGENES, estAutre, idAutre, LIAISONS_PAR_DEFAUT, libelleAutre, memeAlerte, memeAllergene } from '../utils/allergenes';
 import { cleDePlat } from '../utils/plats';
 
 const STORAGE_KEY = 'attables_db_v1';
@@ -404,7 +404,8 @@ export function preparerExport(data: AppData): Record<string, unknown> {
       for (const a of p.allergenes) {
         if (!estAutre(a)) continue;
         for (const e of elements) {
-          if (e.allergenes.some((x) => memeAllergene(x, a)) && !allergenes.includes(e.id)) allergenes.push(e.id);
+          // `memeAlerte` : un aliment libre « Cacahuètes » du plat alerte aussi une personne « Arachides » en v1.
+          if (e.allergenes.some((x) => memeAlerte(x, a)) && !allergenes.includes(e.id)) allergenes.push(e.id);
         }
       }
       return { ...p, allergenes };

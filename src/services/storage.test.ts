@@ -211,6 +211,16 @@ test('v2 : « Aucun de ces allergènes » conservé sur une fiche sans allergèn
   assert.equal(migrateAndValidateAppData(v2).plats[0].sansAllergene, true);
 });
 
+test('v2 : deux aliments libres d\'une même famille ne sont pas fusionnés', () => {
+  const v2 = { version: 2, foyers: [], invitations: [],
+    convives: [{ id: 'conv-lea', nomAffiche: 'Léa', contrainteLibre: '',
+      contraintes: [{ id: 'ctr-1', libelle: 'Fruits de mer', niveau: 'strict', allergenes: ['autre:Moules', 'autre:Calamars', 'mollusques'] }] }],
+    plats: [{ id: 'p1', libelle: 'Paella', services: ['plat'], allergenes: ['autre:Moules', 'autre:Calamars', 'autre:Fromage', 'lait'] }] };
+  const d = migrateAndValidateAppData(v2);
+  assert.deepEqual(d.convives[0].contraintes[0].allergenes, ['autre:Moules', 'autre:Calamars', 'mollusques']);
+  assert.deepEqual(d.plats[0].allergenes, ['autre:Moules', 'autre:Calamars', 'autre:Fromage', 'lait']);
+});
+
 test('exemples v2 : mêmes personnes et contraintes qu\'avant', () => {
   const d = createSampleData();
   assert.equal(d.version, 2);

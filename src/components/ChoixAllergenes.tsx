@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import type { NomIcone } from '../icones/donnees';
 import {
+  allergeneChoisi,
+  basculerAllergene,
   choixAllergenes,
   estAutre,
   iconeAllergene,
@@ -88,13 +90,13 @@ export const ChoixAllergenes: React.FC<{
   const connus = [...libresConnus];
   for (const id of ajoutes) if (!connus.some((c) => memeAllergene(c, id))) connus.push(id);
   const { reglementaires, autres, libres } = choixAllergenes(connus);
-  // Un aliment libre écrit autrement (casse, accents) compte comme le même.
-  const choisi = (id: string) => valeur.some((v) => memeAllergene(v, id));
+  // Un aliment libre écrit autrement (casse, accents) compte comme le même ; un synonyme (« Fromage ») reste distinct du lait.
+  const choisi = (id: string) => allergeneChoisi(valeur, id);
   const changer = (v: string[]) => {
     if (v.length > 0 && aucun?.valeur) aucun.onChange(false);
     onChange(v);
   };
-  const basculer = (id: string) => changer(choisi(id) ? valeur.filter((v) => !memeAllergene(v, id)) : [...valeur, id]);
+  const basculer = (id: string) => changer(basculerAllergene(valeur, id));
   const basculerAucun = () => {
     if (!aucun) return;
     if (aucun.valeur) {
