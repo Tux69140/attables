@@ -28,6 +28,16 @@ export function estAMarquer(inv: Invitation, aujourdHui: string): boolean {
   return inv.statut === 'prevue' && inv.date <= aujourdHui;
 }
 
+/**
+ * Éditeur : « Valider réalisée » mis en avant plutôt qu'« Enregistrer prévue » ? Pour un repas déjà
+ * enregistré, dès que son jour est arrivé ; pour une nouvelle invitation (date proposée : aujourd'hui),
+ * seulement si la date est passée. Date vide : celle du jour, que prend l'enregistrement.
+ */
+export function realiseeMiseEnAvant(dateIso: string, aujourdHui: string, nouvelle: boolean): boolean {
+  const jour = dateIso || aujourdHui;
+  return nouvelle ? jour < aujourdHui : jour <= aujourdHui;
+}
+
 /** Ordre de l'onglet « À venir » : à marquer (plus anciennes d'abord), puis futures par date croissante. */
 export function trierAVenir(invitations: Invitation[], aujourdHui: string): Invitation[] {
   return [...invitations].sort((a, b) => {

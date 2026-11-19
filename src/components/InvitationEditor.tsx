@@ -48,6 +48,7 @@ import {
 import { ICONE_SERVICE } from '../icones/services';
 import { ALLERGENES, conflitsPlat, iconeContrainte } from '../utils/allergenes';
 import { trouverFiche } from '../utils/plats';
+import { realiseeMiseEnAvant } from '../utils/dates';
 import { AlertesAllergenes, BandeauAllergies, BlocTablee } from './Allergies';
 import { Puces } from './Controles';
 import { Icone } from './Icone';
@@ -98,8 +99,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
   const isFrozen = isRealisee && !unlockedEdit;
 
   const [date, setDate] = useState(source?.date ?? getTodayIso());
-  // Jour du repas arrivé ou passé : « Valider réalisée » devient l'action mise en avant.
-  const jourArrive = date <= getTodayIso();
+  // Action mise en avant selon la date (nouvelle invitation : seulement si la date est passée).
+  const jourArrive = realiseeMiseEnAvant(date, getTodayIso(), !existing);
   const { visible: chromeVisible } = useAutoHideChrome(existing?.id ?? (initialDraft ? 'reinvite' : 'new'));
   // Hauteurs réelles de l'en-tête et de la barre d'actions (grand texte) : voir useHauteurMesuree.
   const enteteRef = useRef<HTMLElement>(null);

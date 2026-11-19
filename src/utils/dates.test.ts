@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Invitation } from '../types/models';
 import { getElapsedTimeInfo } from './dishes';
-import { delaiRelatif, estAMarquer, formatDateCourte, formatJourMois, moisAvantRetour, trierAVenir } from './dates';
+import { delaiRelatif, estAMarquer, formatDateCourte, formatJourMois, moisAvantRetour, realiseeMiseEnAvant, trierAVenir } from './dates';
 
 const AUJ = '2026-11-17';
 const inv = (date: string, statut: Invitation['statut'] = 'prevue'): Invitation => ({
@@ -66,4 +66,19 @@ test('moisAvantRetour : jusqu’à la fin du délai de prescription', () => {
   assert.equal(moisAvantRetour('2026-10-18', 6, AUJ), 5);
   assert.equal(moisAvantRetour('2026-11-10', 6, AUJ), 6);
   assert.equal(moisAvantRetour('2026-05-20', 6, AUJ), 1);
+});
+
+test('realiseeMiseEnAvant : jour arrivé pour un repas existant, date passée seulement pour une nouvelle invitation', () => {
+  const AUJ = '2026-11-19';
+  // Invitation existante (prévue) : « Valider réalisée » dès le jour du repas.
+  assert.equal(realiseeMiseEnAvant('2026-11-18', AUJ, false), true);
+  assert.equal(realiseeMiseEnAvant('2026-11-19', AUJ, false), true);
+  assert.equal(realiseeMiseEnAvant('2026-11-20', AUJ, false), false);
+  // Nouvelle invitation : la date proposée est aujourd'hui, on prépare en général un repas à venir.
+  assert.equal(realiseeMiseEnAvant('2026-11-18', AUJ, true), true);
+  assert.equal(realiseeMiseEnAvant('2026-11-19', AUJ, true), false);
+  assert.equal(realiseeMiseEnAvant('2026-11-20', AUJ, true), false);
+  // Date vide : l'enregistrement prend la date du jour.
+  assert.equal(realiseeMiseEnAvant('', AUJ, true), false);
+  assert.equal(realiseeMiseEnAvant('', AUJ, false), true);
 });
