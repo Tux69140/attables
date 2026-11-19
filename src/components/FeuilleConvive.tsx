@@ -7,6 +7,15 @@ import React, { useImperativeHandle, useRef, useState } from 'react';
 import type { ContrainteConvive, Convive, Foyer } from '../types/models';
 import { affaiblissements } from '../utils/allergenes';
 import { dePrenom } from '../utils/elision';
+import {
+  ajouterLigne,
+  elementsActifs,
+  lignesDepuis,
+  modifierLigne,
+  restaurerLigne,
+  retirerLigne,
+  retraitsConfirmes,
+} from '../utils/lignesElements';
 import { ElementsPersonne, FeuilleAjoutElement, FeuilleElement, memesElements } from './ContraintesPersonne';
 import { BottomSheet, ConfirmModal } from './SharedUI';
 
@@ -37,12 +46,12 @@ export const FormulaireConvive: React.FC<
   const [nom, setNom] = useState(convive?.nomAffiche ?? '');
   const [foyerId, setFoyerId] = useState(convive?.foyerId ?? foyerIdInitial ?? '');
   const [libre, setLibre] = useState(convive?.contrainteLibre ?? '');
-  const [contraintes, setContraintes] = useState<ContrainteConvive[]>(convive?.contraintes ?? []);
+  // Un élément retiré garde sa ligne (« Retiré : … · Annuler ») tant que la fiche est ouverte.
+  const [lignes, setLignes] = useState(() => lignesDepuis(convive?.contraintes ?? []));
+  const contraintes = elementsActifs(lignes);
   const [enEdition, setEnEdition] = useState<ContrainteConvive | null>(null);
   const [ajoutOuvert, setAjoutOuvert] = useState(false);
   const [confirmation, setConfirmation] = useState<{ convive: Convive; affaiblies: string[] } | null>(null);
-  // Allergies retirées par leur ✕ après confirmation : l'enregistrement ne redemande pas pour elles.
-  const [retraitsConfirmes, setRetraitsConfirmes] = useState<string[]>([]);
   const prenom = nom.trim();
 
   // Nom vidé sur une fiche existante : on garde l'ancien plutôt que de perdre la personne.
@@ -63,7 +72,7 @@ export const FormulaireConvive: React.FC<
 
   /** Enregistre, ou demande d'abord confirmation si une allergie est affaiblie ; vrai si c'est fait. */
   const enregistrer = (c: Convive): boolean => {
-    const affaiblies = affaiblissements(convive?.contraintes ?? [], c.contraintes, retraitsConfirmes);
+    const affaiblies = affaiblissements(convive?.contraintes ?? [], c.contraintes, retraitsConfirmes(lignes));
     if (affaiblies.length > 0) {
       setConfirmation({ convive: c, affaiblies });
       return false;
@@ -132,12 +141,10 @@ export const FormulaireConvive: React.FC<
 
         <ElementsPersonne
           prenom={prenom}
-          contraintes={contraintes}
+          lignes={lignes}
           onOuvrir={setEnEdition}
-          onRetirer={(idElement, allergieConfirmee) => {
-            if (allergieConfirmee) setRetraitsConfirmes((prev) => [...prev, idElement]);
-            setContraintes((prev) => prev.filter((x) => x.id !== idElement));
-          }}
+          onRetirer={(idElement, allergieConfirmee) => setLignes((prev) => retirerLigne(prev, idElement, allergieConfirmee))}
+          onRestaurer={(idElement) => setLignes((prev) => restaurerLigne(prev, idElement))}
           onAjouter={() => setAjoutOuvert(true)}
         />
 
@@ -172,7 +179,7 @@ export const FormulaireConvive: React.FC<
         <FeuilleElement
           element={enEdition}
           libresConnus={libresConnus}
-          onAppliquer={(c) => setContraintes((prev) => prev.map((x) => (x.id === c.id ? c : x)))}
+          onAppliquer={(c) => setLignes((prev) => modifierLigne(prev, c))}
           onFermer={() => setEnEdition(null)}
         />
       )}
@@ -181,7 +188,7 @@ export const FormulaireConvive: React.FC<
           prenom={prenom}
           contraintes={contraintes}
           libresConnus={libresConnus}
-          onAjouter={(c) => setContraintes((prev) => [...prev, c])}
+          onAjouter={(c) => setLignes((prev) => ajouterLigne(prev, c))}
           onFermer={() => setAjoutOuvert(false)}
         />
       )}

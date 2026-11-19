@@ -23,11 +23,12 @@ import {
   REGIMES,
 } from '../utils/allergenes';
 import { normalizeForCompare } from '../utils/dishes';
+import type { LigneElement } from '../utils/lignesElements';
 import { ceQueNeMangePas, dePrenom } from '../utils/elision';
 import { ChoixAllergenes, ChoixPictogramme } from './ChoixAllergenes';
 import { Puces } from './Controles';
 import { Icone } from './Icone';
-import { IconAlert, IconClose, IconPlus } from './Icons';
+import { IconAlert, IconClose, IconPlus, IconUndo } from './Icons';
 import { BottomSheet, ConfirmModal } from './SharedUI';
 
 /** Forme comparable d'un élément : champs dans un ordre fixe, sans pictogramme absent. */
@@ -64,43 +65,79 @@ const MotNiveau: React.FC<{ strict: boolean }> = ({ strict }) =>
 /**
  * Section « Ce que Léa ne mange pas » : une ligne par élément, puis « + Ajouter ».
  * Le ✕ d'une allergie demande confirmation tout de suite ; celui d'un « Évite » retire sans question.
+ * Un élément retiré laisse à sa place la ligne « Retiré : Arachides » et son « Annuler », tant que la fiche est ouverte.
  */
 export const ElementsPersonne: React.FC<{
   prenom: string;
-  contraintes: ContrainteConvive[];
+  lignes: LigneElement[];
   onOuvrir: (c: ContrainteConvive) => void;
   /** `allergieConfirmee` : retrait d'une allergie déjà confirmé ici, à ne pas redemander à l'enregistrement. */
   onRetirer: (id: string, allergieConfirmee: boolean) => void;
+  onRestaurer: (id: string) => void;
   onAjouter: () => void;
-}> = ({ prenom, contraintes, onOuvrir, onRetirer, onAjouter }) => {
-  const boutonAjouter = useRef<HTMLButtonElement>(null);
-  // Le bouton « Retirer » disparaît avec sa ligne : le focus passe à « + Ajouter ».
-  const [retrait, setRetrait] = useState(0);
+}> = ({ prenom, lignes, onOuvrir, onRetirer, onRestaurer, onAjouter }) => {
+  const section = useRef<HTMLElement>(null);
+  // Le bouton touché disparaît avec sa ligne : le focus passe à « Annuler » après un retrait, à la ligne remise après « Annuler ».
+  const [aFocaliser, setAFocaliser] = useState<{ id: string; cible: 'annuler' | 'ligne' } | null>(null);
   useEffect(() => {
-    if (retrait > 0) boutonAjouter.current?.focus();
-  }, [retrait]);
+    if (!aFocaliser) return;
+    section.current
+      ?.querySelector<HTMLElement>(`[data-element="${CSS.escape(aFocaliser.id)}"] [data-cible="${aFocaliser.cible}"]`)
+      ?.focus();
+  }, [aFocaliser]);
+  // Zone d'annonce toujours présente : un message inséré avec sa zone n'est pas toujours lu.
+  const [annonce, setAnnonce] = useState('');
   const [allergieARetirer, setAllergieARetirer] = useState<ContrainteConvive | null>(null);
   const retirer = (c: ContrainteConvive, allergieConfirmee: boolean) => {
     onRetirer(c.id, allergieConfirmee);
-    setRetrait((n) => n + 1);
+    setAnnonce(`Retiré : ${c.libelle}`);
+    setAFocaliser({ id: c.id, cible: 'annuler' });
+  };
+  const restaurer = (c: ContrainteConvive) => {
+    onRestaurer(c.id);
+    setAnnonce('');
+    setAFocaliser({ id: c.id, cible: 'ligne' });
   };
 
   return (
-    <section aria-labelledby="titre-elements-personne" className="flex flex-col gap-2">
+    <section ref={section} aria-labelledby="titre-elements-personne" className="flex flex-col gap-2">
       <h3 id="titre-elements-personne" className="text-[14px] font-semibold text-[var(--ink-muted)]">
         {ceQueNeMangePas(prenom)}
       </h3>
-      {contraintes.length === 0 ? (
+      <p role="status" className="sr-only">
+        {annonce}
+      </p>
+      {lignes.length === 0 ? (
         <p className="text-[14px] text-[var(--ink-muted)]">Rien de noté pour l’instant.</p>
       ) : (
         <ul className="rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] divide-y divide-[var(--border)]">
-          {contraintes.map((c) => {
+          {lignes.map(({ element: c, retrait }) => {
+            if (retrait) {
+              return (
+                <li key={c.id} data-element={c.id} className="flex items-center gap-2 min-h-[52px] pl-3 pr-1 py-1">
+                  <span className="flex-1 min-w-0 break-words text-[15px] text-[var(--ink-muted)] leading-snug">
+                    Retiré : {c.libelle}
+                  </span>
+                  <button
+                    type="button"
+                    data-cible="annuler"
+                    onClick={() => restaurer(c)}
+                    aria-label={`Annuler le retrait ${dePrenom(c.libelle)}`}
+                    className="shrink-0 min-h-[44px] min-w-[44px] px-3 rounded-xl text-[var(--primary-ink)] font-semibold text-[15px] inline-flex items-center gap-1.5"
+                  >
+                    <IconUndo size={16} />
+                    Annuler
+                  </button>
+                </li>
+              );
+            }
             const strict = c.niveau === 'strict';
             const liste = c.allergenes.length > 1 ? listeAllergenes(c) : '';
             return (
-              <li key={c.id} className="flex items-stretch">
+              <li key={c.id} data-element={c.id} className="flex items-stretch">
                 <button
                   type="button"
+                  data-cible="ligne"
                   onClick={() => onOuvrir(c)}
                   aria-label={`${c.libelle}${liste ? ` (${liste})` : ''}, ${strict ? 'allergie' : 'évite'}`}
                   className="flex-1 min-w-0 min-h-[52px] pl-3 pr-1 py-2 flex items-center gap-2.5 text-left"
@@ -126,7 +163,6 @@ export const ElementsPersonne: React.FC<{
         </ul>
       )}
       <button
-        ref={boutonAjouter}
         type="button"
         onClick={onAjouter}
         className="self-start min-h-[44px] px-3.5 rounded-xl border border-dashed border-[var(--primary-ink)] text-[var(--primary-ink)] font-semibold text-[15px] inline-flex items-center gap-2"
@@ -137,7 +173,7 @@ export const ElementsPersonne: React.FC<{
       <ConfirmModal
         open={allergieARetirer !== null}
         title={`Retirer l’allergie ${allergieARetirer?.libelle ?? ''} ${prenom ? dePrenom(prenom) : 'de cette personne'} ?`}
-        description="Les plats qui en contiennent ne seront plus signalés. Vous pourrez annuler juste après."
+        description="Les plats qui en contiennent ne seront plus signalés. Vous pourrez l’annuler dans la fiche."
         confirmLabel="Retirer"
         cancelLabel="Garder"
         onConfirm={() => {
