@@ -319,7 +319,10 @@ export function migrateAndValidateAppData(input: unknown): AppData {
       Boolean(f && typeof f === 'object' && typeof (f as Foyer).id === 'string' && typeof (f as Foyer).nom === 'string')
   );
 
-  const { convives, plats } = obj.version === 2 ? validerV2(obj) : migrerV1(obj);
+  // Version 2 ou plus récente (fichier d'une version future) : validée comme la v2, sans erreur,
+  // pour ne pas jeter en silence les contraintes par personne. Sinon : migration depuis la v1.
+  const v2OuPlus = typeof obj.version === 'number' && obj.version >= 2;
+  const { convives, plats } = v2OuPlus ? validerV2(obj) : migrerV1(obj);
 
   const invitations: Invitation[] = obj.invitations
     .filter(

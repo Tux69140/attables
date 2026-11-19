@@ -6,7 +6,8 @@
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 import type { AppData, ContrainteConvive, ContrainteNiveau, Convive } from '../types/models';
-import { conflitsPlat } from '../utils/allergenes';
+import { conflitsPlat, LIAISONS_PAR_DEFAUT } from '../utils/allergenes';
+import { aggregateConstraints } from '../utils/dishes';
 import { createEmptyData, createSampleData, creerStockage, migrateAndValidateAppData, preparerExport } from './storage';
 
 const c = (id: string, nom: string, ...els: ContrainteConvive[]): Convive => ({ id, nomAffiche: nom, contraintes: els, contrainteLibre: '' });
@@ -202,6 +203,80 @@ test('export compatible : relu par la logique v1, mêmes alertes', () => {
 test('aller-retour : export puis restauration redonnent les mêmes données', () => {
   const d = createSampleData();
   assert.deepEqual(migrateAndValidateAppData(JSON.parse(JSON.stringify(preparerExport(d)))), d);
+});
+
+// Exemples tels qu'ils étaient en version 1 (contraintes partagées), avec le « Dîner d'automne ».
+const CONTRAINTES_V1 = [
+  { id: 'tag-arachides', libelle: 'Arachides', niveau: 'strict' },
+  { id: 'tag-fruits-coque', libelle: 'Fruits à coque', niveau: 'strict' },
+  { id: 'tag-crustaces', libelle: 'Crustacés', niveau: 'strict' },
+  { id: 'tag-gluten', libelle: 'Sans gluten', niveau: 'strict' },
+  { id: 'tag-lactose', libelle: 'Sans lactose', niveau: 'preference' },
+  { id: 'tag-vegetarien', libelle: 'Végétarien', niveau: 'preference' },
+  { id: 'tag-vegan', libelle: 'Végan', niveau: 'preference' },
+  { id: 'tag-sans-porc', libelle: 'Sans porc', niveau: 'preference' },
+  { id: 'tag-sans-alcool', libelle: 'Sans alcool', niveau: 'preference' },
+].map((t) => ({ ...t, allergenes: LIAISONS_PAR_DEFAUT[t.id] }));
+const exemplesV1 = (avecContraintes: boolean) => ({
+  version: 1,
+  foyers: [],
+  plats: [],
+  ...(avecContraintes ? { contraintes: CONTRAINTES_V1 } : {}),
+  convives: [
+    ['conv-paul', 'Paul', ['tag-crustaces']],
+    ['conv-julie', 'Julie', ['tag-vegetarien']],
+    ['conv-marc', 'Marc', []],
+    ['conv-sophie', 'Sophie', ['tag-lactose']],
+    ['conv-lea', 'Léa', ['tag-arachides']],
+    ['conv-claire', 'Claire', ['tag-sans-alcool']],
+    ['conv-tom', 'Tom', []],
+    ['conv-nadia', 'Nadia', ['tag-sans-porc', 'tag-fruits-coque']],
+  ].map(([id, nomAffiche, contraintesIds]) => ({ id, nomAffiche, contraintesIds, contrainteLibre: '' })),
+  invitations: [{ id: 'inv-1', statut: 'prevue', date: '2026-11-28', titre: 'Dîner d’automne', hoteType: 'moi', hoteLabel: 'Moi',
+    convivesIds: ['conv-marc', 'conv-sophie', 'conv-lea', 'conv-nadia'], menu: {} }],
+});
+
+for (const avecContraintes of [true, false]) {
+  test(`v1 → v2 : exemples v1 ${avecContraintes ? 'avec' : 'sans'} le tableau de contraintes`, () => {
+    const d = migrateAndValidateAppData(JSON.parse(JSON.stringify(exemplesV1(avecContraintes))));
+    const els = (id: string) => d.convives.find((x) => x.id === id)!.contraintes.map((e) => [e.libelle, e.niveau, e.allergenes]);
+    assert.deepEqual(els('conv-paul'), [['Crustacés', 'strict', ['crustaces']]]);
+    assert.deepEqual(els('conv-julie'), [['Végétarien', 'preference', ['viande', 'poissons', 'crustaces', 'mollusques']]]);
+    assert.deepEqual(els('conv-marc'), []);
+    assert.deepEqual(els('conv-sophie'), [['Sans lactose', 'preference', ['lait']]]);
+    assert.deepEqual(els('conv-lea'), [['Arachides', 'strict', ['arachides']]]);
+    assert.deepEqual(els('conv-claire'), [['Sans alcool', 'preference', ['alcool']]]);
+    assert.deepEqual(els('conv-tom'), []);
+    assert.deepEqual(els('conv-nadia'), [['Sans porc', 'preference', ['porc']], ['Fruits à coque', 'strict', ['fruits-a-coque']]]);
+    assert.equal(d.convives.find((x) => x.id === 'conv-julie')!.contraintes[0].icone, 'leaf');
+    const inv = d.invitations.find((i) => i.id === 'inv-1')!;
+    const { strict } = aggregateConstraints(inv.convivesIds, new Map(d.convives.map((x) => [x.id, x])));
+    assert.deepEqual(strict.map((g) => [g.libelle, g.guests.map((x) => x.nomAffiche)]), [['Arachides', ['Léa']], ['Fruits à coque', ['Nadia']]]);
+  });
+}
+
+test('aller-retour avec aliments libres et « Aucun de ces allergènes »', () => {
+  const d: AppData = { ...createEmptyData(),
+    convives: [
+      c('conv-lea', 'Léa', el('ctr-k1', 'Kiwi', 'strict', ['autre:Kiwi'])),
+      c('conv-marc', 'Marc', el('ctr-k2', 'Kiwi', 'preference', ['autre:kiwi'])),
+    ],
+    plats: [
+      { id: 'p1', libelle: 'Pavlova', services: ['dessert'], allergenes: ['autre:Kiwi', 'oeufs'] },
+      { id: 'p2', libelle: 'Pain', services: ['entree'], allergenes: [], sansAllergene: true },
+    ] };
+  const restaure = migrateAndValidateAppData(JSON.parse(JSON.stringify(preparerExport(d))));
+  assert.deepEqual(restaure, d);
+  assert.ok(restaure.plats.every((p) => p.allergenes.every((a) => !a.startsWith('ctr-'))));
+});
+
+test('version future (≥ 2) : validée comme la v2, les contraintes par personne restent', () => {
+  const v3 = { version: 3, foyers: [], invitations: [], plats: [],
+    convives: [{ id: 'conv-lea', nomAffiche: 'Léa', contrainteLibre: '',
+      contraintes: [{ id: 'ctr-1', libelle: 'Arachides', niveau: 'strict', allergenes: ['arachides'] }] }] };
+  const d = migrateAndValidateAppData(v3);
+  assert.equal(d.version, 2);
+  assert.deepEqual(d.convives[0].contraintes, [{ id: 'ctr-1', libelle: 'Arachides', niveau: 'strict', allergenes: ['arachides'] }]);
 });
 
 test('mode démo : les exemples chargés sont en v2', () => {
