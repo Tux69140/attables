@@ -81,14 +81,51 @@ function cleSansPluriel(texte: string): string {
 }
 
 /**
- * Allergène de référence que désigne une saisie libre (« oeuf », « Arachide », « fruit à coque »), pluriel,
- * casse et accents tolérés ; sinon `undefined`. Évite qu'un aliment libre double un allergène de référence
- * sans que les alertes des plats le retrouvent.
+ * Mots courants rattachés à un allergène de référence (« cacahuète » → arachides, « noisette » → fruits à coque).
+ * Une saisie « Autre… » qui en est un coche l'allergène, et un aliment libre portant ce nom alerte comme lui :
+ * mieux vaut une alerte de trop qu'une allergie oubliée. Comparés comme les libellés (casse, accents, pluriel).
+ */
+const SYNONYMES: Record<string, string[]> = {
+  arachides: ['cacahuète', 'arachide'],
+  lait: ['lactose', 'beurre', 'crème', 'fromage', 'yaourt'],
+  crustaces: ['crevette', 'homard', 'langouste', 'langoustine', 'crabe', 'écrevisse'],
+  'fruits-a-coque': ['noix', 'noisette', 'amande', 'cajou', 'pistache', 'noix de pécan', 'noix du brésil', 'macadamia'],
+  gluten: ['blé', 'seigle', 'orge', 'épeautre', 'avoine', 'kamut'],
+  mollusques: ['moule', 'huître', 'calamar', 'seiche', 'poulpe', 'escargot', 'coquille saint-jacques', 'pétoncle', 'bulot'],
+  poissons: ['saumon', 'thon', 'cabillaud', 'anchois', 'sardine', 'truite'],
+  soja: ['tofu'],
+  oeufs: ['œuf'],
+  sesame: ['tahini'],
+  sulfites: ['vin'],
+};
+
+/** Clé de comparaison (sans pluriel) → allergène de référence : libellés de référence, puis synonymes. */
+const REFERENCE_PAR_CLE = new Map<string, string>([
+  ...ALLERGENES.map((a): [string, string] => [cleSansPluriel(a.libelle), a.id]),
+  ...Object.entries(SYNONYMES).flatMap(([id, mots]) => mots.map((m): [string, string] => [cleSansPluriel(m), id])),
+]);
+
+/**
+ * Allergène de référence que désigne une saisie libre (« oeuf », « Arachide », « fruit à coque », « cacahuètes »),
+ * pluriel, casse et accents tolérés, synonymes courants compris (mot entier seulement) ; sinon `undefined`.
+ * Évite qu'un aliment libre double un allergène de référence sans que les alertes des plats le retrouvent.
  */
 export function allergeneDeReference(saisie: string): string | undefined {
   const cle = cleSansPluriel(saisie);
   if (!cle) return undefined;
-  return ALLERGENES.find((a) => cleSansPluriel(a.libelle) === cle)?.id;
+  return REFERENCE_PAR_CLE.get(cle);
+}
+
+/**
+ * Élément que crée une saisie « Autre… » qui désigne un allergène de référence : le libellé de référence
+ * si c'est lui qui est écrit, sinon le mot de la personne, mis en forme (« Noisettes » → fruits à coque).
+ */
+export function elementDepuisReference(saisie: string): { libelle: string; allergenes: string[] } | undefined {
+  const id = allergeneDeReference(saisie);
+  const reference = ALLERGENES.find((a) => a.id === id);
+  if (!reference) return undefined;
+  const memeMot = cleSansPluriel(saisie) === cleSansPluriel(reference.libelle);
+  return { libelle: memeMot ? reference.libelle : formatDishInput(saisie), allergenes: [reference.id] };
 }
 
 /**
@@ -108,10 +145,19 @@ export function avecSaisieAutre(allergenes: string[], saisie: string, connus: st
   return allergenes.some((a) => memeAllergene(a, id)) ? allergenes : [...allergenes, id];
 }
 
-/** Même allergène : même identifiant, ou deux aliments libres dont les libellés ne diffèrent que par la casse ou les accents. */
+/** Allergène de référence d'un identifiant : lui-même, ou celui que désigne le nom d'un aliment libre (« autre:Cacahuètes »). */
+const referenceDe = (id: string): string | undefined => (estAutre(id) ? allergeneDeReference(libelleAutre(id)) : id);
+
+/**
+ * Même allergène : même identifiant, deux aliments libres dont les libellés ne diffèrent que par la casse
+ * ou les accents, ou un aliment libre dont le nom désigne un allergène de référence (« autre:Cacahuètes »
+ * = arachides, données d'avant les synonymes comprises).
+ */
 export function memeAllergene(a: string, b: string): boolean {
   if (a === b) return true;
-  return estAutre(a) && estAutre(b) && normalizeForCompare(libelleAutre(a)) === normalizeForCompare(libelleAutre(b));
+  if (estAutre(a) && estAutre(b) && normalizeForCompare(libelleAutre(a)) === normalizeForCompare(libelleAutre(b))) return true;
+  const ra = referenceDe(a);
+  return ra !== undefined && ra === referenceDe(b);
 }
 
 /**

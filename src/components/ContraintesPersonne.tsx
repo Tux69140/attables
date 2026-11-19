@@ -11,9 +11,9 @@ import type { NomIcone } from '../icones/donnees';
 import type { ContrainteConvive } from '../types/models';
 import {
   ALLERGENES,
-  allergeneDeReference,
   avecSaisieAutre,
   dejaPresent,
+  elementDepuisReference,
   estAutre,
   iconeContrainte,
   idAutre,
@@ -301,12 +301,12 @@ export const FeuilleAjoutElement: React.FC<{
     const texte = autre.trim();
     if (!texte) return;
     const cle = normalizeForCompare(texte);
-    const idReference = allergeneDeReference(texte);
-    const reference = ALLERGENES.find((a) => a.id === idReference);
+    // Allergène de référence : son libellé, ou le mot de la personne pour un synonyme (« Noisettes » → fruits à coque).
+    const reference = elementDepuisReference(texte);
     const regime = REGIMES.find((r) => normalizeForCompare(r.libelle) === cle);
     const connu = libresConnus.find((l) => memeAllergene(l, idAutre(texte)));
     const c: Choix = reference
-      ? { libelle: reference.libelle, allergenes: [reference.id] }
+      ? reference
       : regime
         ? { libelle: regime.libelle, allergenes: regime.allergenes, icone: regime.icone }
         : { libelle: libelleAutre(connu ?? idAutre(texte)), allergenes: [connu ?? idAutre(texte)] };

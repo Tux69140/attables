@@ -14,6 +14,7 @@ import {
   choixAllergenes,
   conflitsPlat,
   dejaPresent,
+  elementDepuisReference,
   iconeContrainte,
   idAutre,
   libelleAllergene,
@@ -23,6 +24,7 @@ import {
   resumeAllergiesStrictes,
   texteEvite,
 } from './allergenes';
+import { memesElements } from '../components/ContraintesPersonne';
 
 const c = (id: string, nom: string, ...els: ContrainteConvive[]): Convive => ({ id, nomAffiche: nom, contraintes: els, contrainteLibre: '' });
 const el = (id: string, libelle: string, niveau: ContrainteNiveau, allergenes: string[]): ContrainteConvive => ({ id, libelle, niveau, allergenes });
@@ -141,6 +143,32 @@ test('affaiblissements', () => {
   assert.deepEqual(affaiblissements([ara], [{ ...ara, libelle: 'Cacahuètes' }]), []); // renommée : rien
 });
 
+test('affaiblissements : aliment libre réécrit avec une autre casse, pas d\'affaiblissement', () => {
+  const kiwi = el('ctr-1', 'Kiwi', 'strict', ['autre:Kiwi']);
+  assert.deepEqual(affaiblissements([kiwi], [{ ...kiwi, allergenes: ['autre:kiwi'] }]), []);
+  assert.deepEqual(affaiblissements([{ ...kiwi, allergenes: ['autre:kiwi'] }], [kiwi]), []);
+  assert.deepEqual(affaiblissements([kiwi], [{ ...kiwi, allergenes: ['autre:Ananas'] }]), ['Kiwi']); // autre aliment : affaiblie
+});
+
+// `memesElements` (fiche d'une personne) : décide si la fiche a changé, donc si fermer enregistre.
+test('memesElements : mêmes éléments, quel que soit l\'ordre des champs ou un pictogramme absent', () => {
+  const ara = el('ctr-1', 'Arachides', 'strict', ['arachides']);
+  assert.ok(memesElements([], []));
+  assert.ok(memesElements([ara], [{ allergenes: ['arachides'], niveau: 'strict', libelle: 'Arachides', id: 'ctr-1' }]));
+  assert.ok(memesElements([ara], [{ ...ara, icone: undefined }]));
+});
+
+test('memesElements : toute modification compte', () => {
+  const ara = el('ctr-1', 'Arachides', 'strict', ['arachides']);
+  const lait = el('ctr-2', 'Lait', 'preference', ['lait']);
+  assert.ok(!memesElements([ara], [{ ...ara, libelle: 'Cacahuètes' }]));
+  assert.ok(!memesElements([ara], [{ ...ara, niveau: 'preference' }]));
+  assert.ok(!memesElements([ara], [{ ...ara, allergenes: ['arachides', 'autre:Kiwi'] }]));
+  assert.ok(!memesElements([ara], [{ ...ara, icone: 'nut' }]));
+  assert.ok(!memesElements([ara, lait], [ara]));
+  assert.ok(!memesElements([ara, lait], [lait, ara])); // l'ordre est celui de la fiche
+});
+
 test('dejaPresent', () => {
   assert.ok(dejaPresent([el('ctr-1', 'Œufs', 'strict', ['oeufs'])], ['oeufs']));
   assert.ok(!dejaPresent([el('ctr-1', 'Végan', 'preference', ['oeufs', 'lait'])], ['oeufs']));
@@ -156,6 +184,68 @@ test('allergeneDeReference : libellé de référence, pluriel ou accents tolér�
   assert.equal(allergeneDeReference('Fruit à coque'), 'fruits-a-coque');
   assert.equal(allergeneDeReference('kiwi'), undefined);
   assert.equal(allergeneDeReference(''), undefined);
+});
+
+test('allergeneDeReference : mots courants rattachés à leur allergène de référence', () => {
+  const attendus: Record<string, string[]> = {
+    arachides: ['cacahuète', 'Cacahuètes', 'arachide'],
+    lait: ['lactose', 'beurre', 'crème', 'Fromages', 'yaourt'],
+    crustaces: ['crevette', 'homards', 'langouste', 'langoustines', 'crabe', 'écrevisse'],
+    'fruits-a-coque': ['noix', 'Noisettes', 'amande', 'cajou', 'pistaches', 'noix de pécan', 'Noix du Brésil', 'macadamia'],
+    gluten: ['blé', 'seigle', 'orge', 'épeautre', 'avoine', 'kamut'],
+    mollusques: ['moules', 'huître', 'calamars', 'seiche', 'poulpe', 'escargots', 'Coquilles Saint-Jacques', 'pétoncle', 'bulot'],
+    poissons: ['saumon', 'thon', 'cabillaud', 'anchois', 'sardines', 'truite'],
+    soja: ['tofu'],
+    oeufs: ['œuf'],
+    sesame: ['tahini'],
+    sulfites: ['vin'],
+  };
+  for (const [id, mots] of Object.entries(attendus)) {
+    for (const mot of mots) assert.equal(allergeneDeReference(mot), id, mot);
+  }
+});
+
+test('allergeneDeReference : pas de rapprochement abusif', () => {
+  for (const mot of ['kiwi', 'noix de coco', 'lait de coco', 'beurre de karité', 'pois', 'vinaigre', 'thé', 'ail', 'bl', 'no', 'mou', 'riz']) {
+    assert.equal(allergeneDeReference(mot), undefined, mot);
+  }
+});
+
+test('elementDepuisReference : le mot de la personne est gardé pour un synonyme', () => {
+  assert.deepEqual(elementDepuisReference('noisettes'), { libelle: 'Noisettes', allergenes: ['fruits-a-coque'] });
+  assert.deepEqual(elementDepuisReference('cacahuètes'), { libelle: 'Cacahuètes', allergenes: ['arachides'] });
+  // Libellé de référence lui-même : la forme de référence.
+  assert.deepEqual(elementDepuisReference('arachide'), { libelle: 'Arachides', allergenes: ['arachides'] });
+  assert.deepEqual(elementDepuisReference('oeuf'), { libelle: 'Œufs', allergenes: ['oeufs'] });
+  assert.equal(elementDepuisReference('kiwi'), undefined);
+});
+
+test('synonymes : alerte dans les deux sens', () => {
+  // Personne « Cacahuètes », créée par « Autre… » (allergène de référence) ou héritée de la v1 (aliment libre).
+  const lea = c('conv-lea', 'Léa', el('ctr-1', 'Cacahuètes', 'strict', ['arachides']));
+  const nadia = c('conv-nadia', 'Nadia', el('ctr-2', 'Cacahuètes', 'strict', ['autre:Cacahuètes']));
+  const res = conflitsPlat(['arachides'], [lea, nadia]);
+  assert.equal(res.length, 1);
+  assert.deepEqual(res[0].convives.map((g) => g.nomAffiche), ['Léa', 'Nadia']);
+  // Plat noté « Cacahuètes » en aliment libre : Paul (Arachides) est alerté.
+  const paul = c('conv-paul', 'Paul', el('ctr-3', 'Arachides', 'strict', ['arachides']));
+  assert.deepEqual(conflitsPlat(['autre:Cacahuètes'], [paul]).map((x) => x.convives[0].nomAffiche), ['Paul']);
+  // Plat noté « Noisette » ↔ personne « Fruits à coque » ; « Lactose » ↔ « Lait » (évite).
+  const marc = c('conv-marc', 'Marc', el('ctr-4', 'Fruits à coque', 'strict', ['fruits-a-coque']), el('ctr-5', 'Lait', 'preference', ['lait']));
+  const conflits = conflitsPlat(['autre:Noisette', 'autre:Lactose'], [marc]);
+  assert.deepEqual(conflits.map((x) => x.niveau), ['strict', 'preference']);
+  // Le même allergène sous deux noms ne compte qu'une fois.
+  assert.equal(conflitsPlat(['arachides', 'autre:Cacahuète'], [paul]).length, 1);
+  assert.ok(memeAllergene('autre:Cacahuètes', 'arachides'));
+  assert.ok(memeAllergene('autre:Crevettes', 'autre:homard'));
+  assert.ok(!memeAllergene('autre:Kiwi', 'arachides'));
+  assert.deepEqual(conflitsPlat(['autre:Kiwi'], [paul]), []);
+});
+
+test('avecSaisieAutre : un synonyme coche l\'allergène de référence', () => {
+  assert.deepEqual(avecSaisieAutre([], 'Cacahuètes', []), ['arachides']);
+  assert.deepEqual(avecSaisieAutre(['arachides'], 'cacahuète', []), ['arachides']);
+  assert.deepEqual(avecSaisieAutre(['lait'], 'crevettes', []), ['lait', 'crustaces']);
 });
 
 test('avecSaisieAutre : le texte resté dans « Autre… » compte comme « Ajouter »', () => {
