@@ -50,7 +50,7 @@ export const FeuilleAjouter: React.FC<{
   libresConnus: string[];
   onEtape: (etat: EtatAjout) => void;
   onEnregistrerFoyer: (f: Foyer) => void;
-  onEnregistrerConvive: (c: Convive, annulable: boolean) => void;
+  onEnregistrerConvive: (c: Convive) => void;
   onFermer: () => void;
 }> = ({ ajout, foyers, libresConnus, onEtape, onEnregistrerFoyer, onEnregistrerConvive, onFermer }) => {
   // Étape convive : la fermeture passe par la fiche (elle enregistre une fiche remplie).

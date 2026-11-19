@@ -146,6 +146,15 @@ test('affaiblissements', () => {
   assert.deepEqual(affaiblissements([ara], [{ ...ara, libelle: 'Cacahuètes' }]), []); // renommée : rien
 });
 
+test('affaiblissements : un retrait déjà confirmé n\'est plus redemandé', () => {
+  const ara = el('ctr-1', 'Arachides', 'strict', ['arachides']);
+  const oeufs = el('ctr-2', 'Œufs', 'strict', ['oeufs']);
+  assert.deepEqual(affaiblissements([ara, oeufs], [oeufs], ['ctr-1']), []);
+  // Les autres affaiblissements restent demandés.
+  assert.deepEqual(affaiblissements([ara, oeufs], [{ ...oeufs, niveau: 'preference' }], ['ctr-1']), ['Œufs']);
+  assert.deepEqual(affaiblissements([ara, oeufs], [], ['ctr-1']), ['Œufs']);
+});
+
 test('affaiblissements : aliment libre réécrit avec une autre casse, pas d\'affaiblissement', () => {
   const kiwi = el('ctr-1', 'Kiwi', 'strict', ['autre:Kiwi']);
   assert.deepEqual(affaiblissements([kiwi], [{ ...kiwi, allergenes: ['autre:kiwi'] }]), []);

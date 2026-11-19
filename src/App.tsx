@@ -325,7 +325,7 @@ export default function App() {
   };
 
   // Convive handlers
-  const handleSaveConvive = (convive: Convive, annulable: boolean) => {
+  const handleSaveConvive = (convive: Convive) => {
     const snapshot = data;
     setData((prev) => {
       const exists = prev.convives.some((c) => c.id === convive.id);
@@ -334,7 +334,7 @@ export default function App() {
         : [...prev.convives, convive];
       return { ...prev, convives };
     });
-    if (annulable) showUndo(`Fiche ${dePrenom(convive.nomAffiche)} enregistrée`, snapshot);
+    showUndo(`Fiche ${dePrenom(convive.nomAffiche)} enregistrée`, snapshot);
   };
 
   const handleDeleteConvive = (conviveId: string) => {
@@ -428,8 +428,8 @@ export default function App() {
         handleSaveFoyer(foyer);
         setAjout({ etape: 'convive', foyerId: foyer.id });
       }}
-      onEnregistrerConvive={(convive, annulable) => {
-        handleSaveConvive(convive, annulable);
+      onEnregistrerConvive={(convive) => {
+        handleSaveConvive(convive);
         const apres = ajout?.etape === 'convive' ? ajout.apres : undefined;
         setAjout(null);
         apres?.(convive);

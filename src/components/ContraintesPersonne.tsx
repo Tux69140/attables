@@ -23,12 +23,12 @@ import {
   REGIMES,
 } from '../utils/allergenes';
 import { normalizeForCompare } from '../utils/dishes';
-import { ceQueNeMangePas } from '../utils/elision';
+import { ceQueNeMangePas, dePrenom } from '../utils/elision';
 import { ChoixAllergenes, ChoixPictogramme } from './ChoixAllergenes';
 import { Puces } from './Controles';
 import { Icone } from './Icone';
 import { IconAlert, IconClose, IconPlus } from './Icons';
-import { BottomSheet } from './SharedUI';
+import { BottomSheet, ConfirmModal } from './SharedUI';
 
 /** Forme comparable d'un élément : champs dans un ordre fixe, sans pictogramme absent. */
 export function formeElement(c: ContrainteConvive): ContrainteConvive {
@@ -61,12 +61,16 @@ const MotNiveau: React.FC<{ strict: boolean }> = ({ strict }) =>
     </span>
   );
 
-/** Section « Ce que Léa ne mange pas » : une ligne par élément, puis « + Ajouter ». */
+/**
+ * Section « Ce que Léa ne mange pas » : une ligne par élément, puis « + Ajouter ».
+ * Le ✕ d'une allergie demande confirmation tout de suite ; celui d'un « Évite » retire sans question.
+ */
 export const ElementsPersonne: React.FC<{
   prenom: string;
   contraintes: ContrainteConvive[];
   onOuvrir: (c: ContrainteConvive) => void;
-  onRetirer: (id: string) => void;
+  /** `allergieConfirmee` : retrait d'une allergie déjà confirmé ici, à ne pas redemander à l'enregistrement. */
+  onRetirer: (id: string, allergieConfirmee: boolean) => void;
   onAjouter: () => void;
 }> = ({ prenom, contraintes, onOuvrir, onRetirer, onAjouter }) => {
   const boutonAjouter = useRef<HTMLButtonElement>(null);
@@ -75,6 +79,11 @@ export const ElementsPersonne: React.FC<{
   useEffect(() => {
     if (retrait > 0) boutonAjouter.current?.focus();
   }, [retrait]);
+  const [allergieARetirer, setAllergieARetirer] = useState<ContrainteConvive | null>(null);
+  const retirer = (c: ContrainteConvive, allergieConfirmee: boolean) => {
+    onRetirer(c.id, allergieConfirmee);
+    setRetrait((n) => n + 1);
+  };
 
   return (
     <section aria-labelledby="titre-elements-personne" className="flex flex-col gap-2">
@@ -105,10 +114,7 @@ export const ElementsPersonne: React.FC<{
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    onRetirer(c.id);
-                    setRetrait((n) => n + 1);
-                  }}
+                  onClick={() => (strict ? setAllergieARetirer(c) : retirer(c, false))}
                   aria-label={`Retirer ${c.libelle}`}
                   className="shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-[var(--ink-muted)]"
                 >
@@ -128,6 +134,18 @@ export const ElementsPersonne: React.FC<{
         <IconPlus size={18} />
         Ajouter
       </button>
+      <ConfirmModal
+        open={allergieARetirer !== null}
+        title={`Retirer l’allergie ${allergieARetirer?.libelle ?? ''} ${prenom ? dePrenom(prenom) : 'de cette personne'} ?`}
+        description="Les plats qui en contiennent ne seront plus signalés. Vous pourrez annuler juste après."
+        confirmLabel="Retirer"
+        cancelLabel="Garder"
+        onConfirm={() => {
+          if (allergieARetirer) retirer(allergieARetirer, true);
+          setAllergieARetirer(null);
+        }}
+        onCancel={() => setAllergieARetirer(null)}
+      />
     </section>
   );
 };

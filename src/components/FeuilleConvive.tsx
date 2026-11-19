@@ -25,8 +25,8 @@ interface FormulaireConviveProps {
   foyers: Foyer[];
   /** Aliments libres déjà portés par des personnes ou des plats (`alimentsLibresConnus`). */
   libresConnus: string[];
-  /** `annulable` : le bandeau « Annuler » doit suivre (allergie affaiblie confirmée, ou fermeture qui enregistre). */
-  onEnregistrer: (c: Convive, annulable: boolean) => void;
+  /** Chaque enregistrement est suivi du bandeau « Annuler » (« Fiche de Léa enregistrée »). */
+  onEnregistrer: (c: Convive) => void;
 }
 
 /** Formulaire de création ou de modification d'un convive (sans feuille autour). */
@@ -41,6 +41,8 @@ export const FormulaireConvive: React.FC<
   const [enEdition, setEnEdition] = useState<ContrainteConvive | null>(null);
   const [ajoutOuvert, setAjoutOuvert] = useState(false);
   const [confirmation, setConfirmation] = useState<{ convive: Convive; affaiblies: string[] } | null>(null);
+  // Allergies retirées par leur ✕ après confirmation : l'enregistrement ne redemande pas pour elles.
+  const [retraitsConfirmes, setRetraitsConfirmes] = useState<string[]>([]);
   const prenom = nom.trim();
 
   // Nom vidé sur une fiche existante : on garde l'ancien plutôt que de perdre la personne.
@@ -60,13 +62,13 @@ export const FormulaireConvive: React.FC<
     memesElements(c.contraintes, convive.contraintes);
 
   /** Enregistre, ou demande d'abord confirmation si une allergie est affaiblie ; vrai si c'est fait. */
-  const enregistrer = (c: Convive, annulable: boolean): boolean => {
-    const affaiblies = affaiblissements(convive?.contraintes ?? [], c.contraintes);
+  const enregistrer = (c: Convive): boolean => {
+    const affaiblies = affaiblissements(convive?.contraintes ?? [], c.contraintes, retraitsConfirmes);
     if (affaiblies.length > 0) {
       setConfirmation({ convive: c, affaiblies });
       return false;
     }
-    onEnregistrer(c, annulable);
+    onEnregistrer(c);
     return true;
   };
 
@@ -81,14 +83,14 @@ export const FormulaireConvive: React.FC<
         onFermer();
         return true;
       }
-      return enregistrer(c, true);
+      return enregistrer(c);
     },
   }));
 
   const soumettre = (e: React.FormEvent) => {
     e.preventDefault();
     if (!prenom) return;
-    enregistrer(construire(), false);
+    enregistrer(construire());
   };
 
   return (
@@ -132,7 +134,10 @@ export const FormulaireConvive: React.FC<
           prenom={prenom}
           contraintes={contraintes}
           onOuvrir={setEnEdition}
-          onRetirer={(idElement) => setContraintes((prev) => prev.filter((x) => x.id !== idElement))}
+          onRetirer={(idElement, allergieConfirmee) => {
+            if (allergieConfirmee) setRetraitsConfirmes((prev) => [...prev, idElement]);
+            setContraintes((prev) => prev.filter((x) => x.id !== idElement));
+          }}
           onAjouter={() => setAjoutOuvert(true)}
         />
 
@@ -189,7 +194,7 @@ export const FormulaireConvive: React.FC<
         onConfirm={() => {
           if (!confirmation) return;
           setConfirmation(null);
-          onEnregistrer(confirmation.convive, true);
+          onEnregistrer(confirmation.convive);
         }}
         onCancel={() => setConfirmation(null)}
       />

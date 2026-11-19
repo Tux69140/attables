@@ -161,11 +161,12 @@ export function memeAllergene(a: string, b: string): boolean {
 /**
  * Allergies affaiblies entre deux versions des éléments d'une personne : libellés des éléments `strict`
  * d'`avant` qui, dans `apres` (même `id`), ont disparu, sont passés à « Évite » ou ont perdu un allergène.
+ * `confirmes` : identifiants des allergies dont le retrait a déjà été confirmé (✕ d'une ligne), à ne pas redemander.
  */
-export function affaiblissements(avant: ContrainteConvive[], apres: ContrainteConvive[]): string[] {
+export function affaiblissements(avant: ContrainteConvive[], apres: ContrainteConvive[], confirmes: string[] = []): string[] {
   return avant
     .filter((a) => {
-      if (a.niveau !== 'strict') return false;
+      if (a.niveau !== 'strict' || confirmes.includes(a.id)) return false;
       const b = apres.find((x) => x.id === a.id);
       return !b || b.niveau !== 'strict' || a.allergenes.some((x) => !b.allergenes.some((y) => memeAlerte(x, y)));
     })

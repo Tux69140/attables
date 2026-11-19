@@ -42,7 +42,7 @@ interface ConvivesTabProps {
   chromeVisible?: boolean;
   onSaveFoyer: (foyer: Foyer) => void;
   onDeleteFoyer: (foyerId: string) => void;
-  onSaveConvive: (convive: Convive, annulable: boolean) => void;
+  onSaveConvive: (convive: Convive) => void;
   /** Aliments libres déjà notés (`alimentsLibresConnus`), proposés dans la fiche d'une personne. */
   libresConnus: string[];
   onDeleteConvive: (conviveId: string) => void;
@@ -90,11 +90,10 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   const openEditConvive = (convive: Convive) => setFeuilleConvive({ convive });
   const openEditFoyer = (foyer: Foyer) => setFeuilleFoyer(foyer);
 
-  const enregistrerConvive = (saved: Convive, annulable: boolean) => {
-    onSaveConvive(saved, annulable);
+  const enregistrerConvive = (saved: Convive) => {
+    onSaveConvive(saved);
     // Bandeau « Annuler » à suivre : la fiche détaillée se ferme aussi, sinon son voile le cacherait.
-    if (annulable) setViewedConvive(null);
-    else if (viewedConvive?.id === saved.id) setViewedConvive(saved);
+    setViewedConvive(null);
     setFeuilleConvive(null);
   };
 
