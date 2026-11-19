@@ -14,12 +14,13 @@ import { createEmptyData, createSampleData, creerStockage, migrateAndValidateApp
 const c = (id: string, nom: string, ...els: ContrainteConvive[]): Convive => ({ id, nomAffiche: nom, contraintes: els, contrainteLibre: '' });
 const el = (id: string, libelle: string, niveau: ContrainteNiveau, allergenes: string[]): ContrainteConvive => ({ id, libelle, niveau, allergenes });
 
-function installerFauxStockage(initial: Record<string, string> = {}) {
-  const contenu = { ...initial };
-  const compteur = { setItem: 0 };
+function installerFauxStockage(initial: Record<string, string> = {}, refuser?: (cle: string) => boolean) {
+  const contenu: Record<string, string> = { ...initial };
+  const compteur = { setItem: 0, contenu };
   (globalThis as unknown as { localStorage: unknown }).localStorage = {
     getItem: (cle: string) => (cle in contenu ? contenu[cle] : null),
     setItem: (cle: string, valeur: string) => {
+      if (refuser?.(cle)) throw new Error('QuotaExceededError');
       compteur.setItem += 1;
       contenu[cle] = valeur;
     },
@@ -86,6 +87,52 @@ test('données 0.2.1 : accueil déjà vu, plats vides, liaisons par défaut', ()
   assert.equal(res.convives[0].foyerId, 'foyer-martin');
   assert.deepEqual(res.foyers, exemple.foyers);
   assert.deepEqual(res.invitations, exemple.invitations);
+});
+
+// Copie brute, une seule fois, d'une donnée v1 avant que le premier enregistrement v2 ne l'écrase.
+const brutV1 = () =>
+  JSON.stringify({
+    version: 1,
+    foyers: [],
+    invitations: [],
+    settings: { theme: 'appareil', prescriptionMois: 6 },
+    contraintes: [{ id: 'tag-arachides', libelle: 'Arachides', niveau: 'strict' }],
+    convives: [{ id: 'conv-lea', nomAffiche: 'Léa', contraintesIds: ['tag-arachides'], contrainteLibre: '' }],
+  });
+
+test('chargement v1 : copie brute gardée sous attables_db_v1_avant_v2', () => {
+  const brut = brutV1();
+  const stockage = installerFauxStockage({ attables_db_v1: brut });
+  const data = creerStockage(false).charger();
+  assert.equal(stockage.contenu.attables_db_v1_avant_v2, brut);
+  assert.deepEqual(data.convives[0].contraintes[0].allergenes, ['arachides']);
+  // Sans version : traitée comme une v1, copiée aussi.
+  const sansVersion = JSON.stringify({ ...JSON.parse(brut), version: undefined });
+  const autre = installerFauxStockage({ attables_db_v1: sansVersion });
+  creerStockage(false).charger();
+  assert.equal(autre.contenu.attables_db_v1_avant_v2, sansVersion);
+});
+
+test('copie v1 : jamais écrasée, jamais pour une v2, jamais en démo', () => {
+  const ancienne = installerFauxStockage({ attables_db_v1: brutV1(), attables_db_v1_avant_v2: 'copie précédente' });
+  creerStockage(false).charger();
+  assert.equal(ancienne.contenu.attables_db_v1_avant_v2, 'copie précédente');
+
+  const v2 = installerFauxStockage({ attables_db_v1: JSON.stringify(createEmptyData()) });
+  creerStockage(false).charger();
+  assert.equal('attables_db_v1_avant_v2' in v2.contenu, false);
+
+  const demo = installerFauxStockage({ attables_db_v1: brutV1() });
+  creerStockage(true).charger();
+  assert.equal(demo.setItem, 0);
+  assert.equal('attables_db_v1_avant_v2' in demo.contenu, false);
+});
+
+test('copie v1 : stockage plein, le chargement continue', () => {
+  installerFauxStockage({ attables_db_v1: brutV1() }, (cle) => cle === 'attables_db_v1_avant_v2');
+  const data = creerStockage(false).charger();
+  assert.equal(data.convives[0].nomAffiche, 'Léa');
+  assert.deepEqual(data.convives[0].contraintes[0].allergenes, ['arachides']);
 });
 
 test('icône inconnue retirée (v1 et v2)', () => {

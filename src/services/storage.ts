@@ -14,6 +14,22 @@ import { ALLERGENES, estAutre, idAutre, LIAISONS_PAR_DEFAUT, libelleAutre, memeA
 import { cleDePlat } from '../utils/plats';
 
 const STORAGE_KEY = 'attables_db_v1';
+/** Copie brute d'une donnée v1, faite une seule fois avant que le premier enregistrement v2 ne l'écrase. */
+const CLE_COPIE_AVANT_V2 = 'attables_db_v1_avant_v2';
+
+/**
+ * Rien ne se perd : avant la migration d'une donnée stockée d'avant la version 2, garde le texte brut
+ * sous `attables_db_v1_avant_v2`, si aucune copie n'existe. Stockage plein : tant pis, on continue.
+ */
+function garderCopieAvantV2(raw: string, parsed: unknown): void {
+  const version = parsed && typeof parsed === 'object' ? (parsed as { version?: unknown }).version : undefined;
+  if (typeof version === 'number' && version >= 2) return;
+  try {
+    if (localStorage.getItem(CLE_COPIE_AVANT_V2) === null) localStorage.setItem(CLE_COPIE_AVANT_V2, raw);
+  } catch {
+    // Quota dépassé : la migration se fait quand même.
+  }
+}
 export const CURRENT_DATA_VERSION = 2;
 
 /** Contrainte partagée des versions 1 (`AppData.contraintes`), lue seulement pour la migration. */
@@ -288,6 +304,7 @@ export function creerStockage(demo: boolean): {
         return vide;
       }
       const parsed = JSON.parse(raw);
+      garderCopieAvantV2(raw, parsed);
       return migrateAndValidateAppData(parsed);
     } catch {
       const vide = createEmptyData();
