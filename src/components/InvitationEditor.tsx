@@ -193,6 +193,8 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
     () => aggregateConstraints(convivesIds, convivesById),
     [convivesIds, convivesById]
   );
+  // Allergies de la tablée, pour la ligne « vérifier » sous chaque plat.
+  const allergiesTablee = useMemo(() => constraints.parPersonne.flatMap((p) => p.strict), [constraints]);
 
   // Répertoire des plats et aliments libres connus, pour la fiche de plat ouverte depuis un menu.
   const listePlats = useMemo(
@@ -740,6 +742,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                               type="button"
                               onClick={() => toggleFoyer(f.id)}
                               disabled={members.length === 0}
+                              aria-pressed={allSelected}
                               className={`min-h-[56px] p-2 pr-3.5 rounded-xl border flex items-center justify-between gap-3 text-left transition-colors ${
                                 allSelected
                                   ? 'bg-[var(--ink)] border-[var(--ink)]'
@@ -1032,7 +1035,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                   const conflitsAllergenes = fiche
                     ? conflitsPlat(fiche.allergenes, selectedGuests)
                     : [];
-                  const allergenesAVerifier = aVerifier(value, fiche, constraints.strict.length > 0);
+                  const allergenesAVerifier = aVerifier(value, fiche, allergiesTablee);
 
                   return (
                     <div key={courseKey} className="relative flex flex-col gap-1.5">

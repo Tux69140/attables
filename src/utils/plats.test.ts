@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import type { Convive, CourseKey, DishVerdict, Invitation, PlatFiche } from '../types/models';
+import type { ContrainteConvive, Convive, CourseKey, DishVerdict, Invitation, PlatFiche } from '../types/models';
 import {
   aVerifier,
   allergenesRenseignes,
@@ -242,13 +242,28 @@ test('allergenesRenseignes', () => {
 });
 
 test('aVerifier : plat saisi, tablée avec allergie, allergènes non renseignés', () => {
-  assert.equal(aVerifier('', undefined, true), false);
-  assert.equal(aVerifier('   ', undefined, true), false);
-  assert.equal(aVerifier('Flan', undefined, false), false);
-  assert.equal(aVerifier('Flan', undefined, true), true);
-  assert.equal(aVerifier('Flan', fiche('Flan'), true), true);
-  assert.equal(aVerifier('Flan', { ...fiche('Flan'), sansAllergene: true }, true), false);
-  assert.equal(aVerifier('Flan', fiche('Flan', ['plat'], ['oeufs']), true), false);
+  const allergie: ContrainteConvive[] = [{ id: 'ctr-1', libelle: 'Arachides', niveau: 'strict', allergenes: ['arachides'] }];
+  assert.equal(aVerifier('', undefined, allergie), false);
+  assert.equal(aVerifier('   ', undefined, allergie), false);
+  assert.equal(aVerifier('Flan', undefined, []), false);
+  assert.equal(aVerifier('Flan', undefined, allergie), true);
+  assert.equal(aVerifier('Flan', fiche('Flan'), allergie), true);
+  assert.equal(aVerifier('Flan', { ...fiche('Flan'), sansAllergene: true }, allergie), false);
+  assert.equal(aVerifier('Flan', fiche('Flan', ['plat'], ['oeufs']), allergie), false);
+});
+
+test('aVerifier : « Aucun de ces allergènes » ne couvre pas un aliment libre de la tablée', () => {
+  const aucun = { ...fiche('Flan'), sansAllergene: true };
+  const kiwi: ContrainteConvive = { id: 'ctr-2', libelle: 'Kiwi', niveau: 'strict', allergenes: ['autre:Kiwi'] };
+  const arachides: ContrainteConvive = { id: 'ctr-1', libelle: 'Arachides', niveau: 'strict', allergenes: ['arachides'] };
+  // Kiwi n'était peut-être pas dans la grille quand le plat a été marqué : à vérifier.
+  assert.equal(aVerifier('Flan', aucun, [arachides, kiwi]), true);
+  // Un aliment libre seulement évité ne compte pas.
+  assert.equal(aVerifier('Flan', aucun, [arachides]), false);
+  // Un aliment libre dont le nom désigne un allergène de la grille (« Cacahuètes ») est couvert.
+  assert.equal(aVerifier('Flan', aucun, [{ ...kiwi, libelle: 'Cacahuètes', allergenes: ['autre:Cacahuètes'] }]), false);
+  // Un allergène coché reste « renseigné ».
+  assert.equal(aVerifier('Flan', fiche('Flan', ['plat'], ['oeufs']), [kiwi]), false);
 });
 
 test('renommerIdee', () => {

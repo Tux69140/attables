@@ -5,6 +5,7 @@
  */
 import {
   COURSE_KEYS,
+  type ContrainteConvive,
   type Convive,
   type CourseKey,
   type DishVerdict,
@@ -12,6 +13,7 @@ import {
   type InvitationStatut,
   type PlatFiche,
 } from '../types/models';
+import { allergeneDeReference, estAutre, libelleAutre } from './allergenes';
 import { formatDishInput, getElapsedTimeInfo, normalizeForCompare } from './dishes';
 
 /** Clé de comparaison d'un nom de plat : casse, accents, espaces, apostrophes et tirets ignorés. */
@@ -292,9 +294,18 @@ export function allergenesRenseignes(fiche: PlatFiche | undefined): boolean {
   return Boolean(fiche && (fiche.allergenes.length > 0 || fiche.sansAllergene));
 }
 
-/** Vrai quand un plat saisi, servi à une tablée qui compte une allergie, n'a pas ses allergènes renseignés. */
-export function aVerifier(valeurPlat: string, fiche: PlatFiche | undefined, tableeAvecAllergie: boolean): boolean {
-  return valeurPlat.trim() !== '' && tableeAvecAllergie && !allergenesRenseignes(fiche);
+/**
+ * Vrai quand un plat saisi, servi à une tablée qui compte une allergie (`allergiesTablee` : ses éléments `strict`),
+ * n'a pas ses allergènes renseignés. « Aucun de ces allergènes » ne vaut pas pour un aliment libre de la tablée
+ * (Kiwi…) : il n'était peut-être pas dans la grille quand le plat a été marqué.
+ */
+export function aVerifier(valeurPlat: string, fiche: PlatFiche | undefined, allergiesTablee: ContrainteConvive[]): boolean {
+  if (valeurPlat.trim() === '' || !allergiesTablee.some((e) => e.niveau === 'strict')) return false;
+  if (!allergenesRenseignes(fiche)) return true;
+  const allergieLibre = allergiesTablee.some(
+    (e) => e.niveau === 'strict' && e.allergenes.some((a) => estAutre(a) && !allergeneDeReference(libelleAutre(a)))
+  );
+  return Boolean(fiche?.sansAllergene) && allergieLibre;
 }
 
 /** Enregistre une fiche ; si le plat a déjà une fiche, la complète (services unis, allergènes remplacés). */
