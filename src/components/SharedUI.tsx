@@ -179,6 +179,30 @@ export const UndoBanner: React.FC<{
   onPause: () => void;
   onReprise: () => void;
 }> = ({ annonce, bottomOffsetClass = 'bottom-above-bar', onUndo, onDismiss, onPause, onReprise }) => {
+  const bandeau = useRef<HTMLDivElement>(null);
+  const masquer = useRef(onDismiss);
+  useEffect(() => {
+    masquer.current = onDismiss;
+  });
+  const idAnnonce = annonce?.id;
+
+  // Tout toucher hors du bandeau le masque aussitôt (il cache le contenu sur un petit écran) ; le toucher
+  // garde son effet (ni preventDefault ni stopPropagation). Écoute en capture : rien ne peut l'arrêter avant.
+  // Un événement antérieur à l'apparition (le toucher même qui l'a fait naître) est ignoré.
+  useEffect(() => {
+    if (!idAnnonce) return;
+    const apparition = performance.now();
+    const surToucher = (e: PointerEvent) => {
+      // Anciennes WebView : timeStamp en millisecondes depuis 1970 plutôt que depuis le chargement.
+      const instant = e.timeStamp > 1e12 ? e.timeStamp - (Date.now() - performance.now()) : e.timeStamp;
+      if (instant < apparition) return;
+      if (e.target instanceof Node && bandeau.current?.contains(e.target)) return;
+      masquer.current();
+    };
+    document.addEventListener('pointerdown', surToucher, true);
+    return () => document.removeEventListener('pointerdown', surToucher, true);
+  }, [idAnnonce]);
+
   return (
     <>
       {/* Toujours dans le DOM : une zone vivante n'est annoncée que si elle existe avant son contenu.
@@ -191,6 +215,7 @@ export const UndoBanner: React.FC<{
           className={`fixed ${bottomOffsetClass} left-4 right-4 z-40 flex justify-center pointer-events-none chrome-mouvement`}
         >
           <div
+            ref={bandeau}
             data-bandeau-annuler
             onFocus={onPause}
             onBlur={(e) => {
