@@ -237,32 +237,40 @@ function signature(cle: string): string {
 }
 
 /**
- * Plat connu qui ressemble au nom tapé, mais pas le même : d'abord mêmes mots (au pluriel et aux petits
- * mots près) ; sinon un plat qui contient tous les mots tapés (début de mot, une faute de frappe tolérée
- * par mot), le moins de fautes puis le moins de mots en plus l'emportant. Rien sous 4 lettres tapées.
+ * Plats connus qui ressemblent au nom tapé, sans être le même, du plus proche au moins proche
+ * (`max` au plus) : d'abord ceux qui ont les mêmes mots (au pluriel et aux petits mots près), puis
+ * ceux qui contiennent tous les mots tapés (début de mot, une faute de frappe tolérée par mot), le
+ * moins de fautes puis le moins de mots en plus d'abord, enfin ceux dont tous les mots sont dans le
+ * nom tapé. Rien sous 4 lettres tapées.
  */
-export function platProche(liste: PlatConnu[], saisie: string): PlatConnu | undefined {
+export function platsProches(liste: PlatConnu[], saisie: string, max = 5): PlatConnu[] {
   const cle = cleDePlat(saisie);
   const sig = signature(cle);
-  if (!sig) return undefined;
-  const autres = liste.filter((p) => p.cle !== cle);
-  const memesMots = autres.find((p) => signature(p.cle) === sig);
-  if (memesMots) return memesMots;
+  if (!sig) return [];
   const motsQ = mots(cle);
-  if (motsQ.join('').length < 4) return undefined;
-  let choix: PlatConnu | undefined;
-  let meilleurScore = Infinity;
-  for (const p of autres) {
+  const partiel = motsQ.join('').length >= 4;
+  const notes: { plat: PlatConnu; score: number }[] = [];
+  for (const p of liste) {
+    if (p.cle === cle) continue;
+    if (signature(p.cle) === sig) {
+      notes.push({ plat: p, score: -1 });
+      continue;
+    }
+    if (!partiel) continue;
     const motsP = mots(p.cle);
     const f = fautes(motsQ, motsP);
-    if (f < 0) continue;
-    const score = f * 100 + (motsP.length - motsQ.length);
-    if (score < meilleurScore) {
-      meilleurScore = score;
-      choix = p;
+    if (f >= 0) {
+      notes.push({ plat: p, score: f * 100 + (motsP.length - motsQ.length) });
+      continue;
     }
+    // Plat connu contenu dans le nom tapé (« Potimarron farci » pour « Potimarron farci au four ») : après les autres.
+    const g = motsP.join('').length >= 4 ? fautes(motsP, motsQ) : -1;
+    if (g >= 0) notes.push({ plat: p, score: 1000 + g * 100 + (motsQ.length - motsP.length) });
   }
-  return choix;
+  return notes
+    .sort((a, b) => a.score - b.score)
+    .slice(0, max)
+    .map((n) => n.plat);
 }
 
 /** Enregistre une fiche ; si le plat a déjà une fiche, la complète (services unis, allergènes remplacés). */

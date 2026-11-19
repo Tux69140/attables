@@ -10,7 +10,7 @@ import {
   cleDePlat,
   compterFiltres,
   enregistrerFiche,
-  platProche,
+  platsProches,
   rechercherPlats,
   renommerIdee,
   repertoirePlats,
@@ -108,15 +108,15 @@ test('rechercherPlats', () => {
   assert.deepEqual(rechercherPlats(liste, '   '), { resultats: liste, proposerEnregistrement: false });
 });
 
-test('platProche', () => {
+test('platsProches : mêmes mots', () => {
   const lasagnes = repertoire([inv('2026-10-18', 'plat', 'Lasagnes aux légumes')]);
-  assert.equal(platProche(lasagnes, 'Lasagne aux légume')?.libelle, 'Lasagnes aux légumes');
-  assert.equal(platProche(lasagnes, 'lasagnes aux légumes'), undefined);
+  assert.equal(platsProches(lasagnes, 'Lasagne aux légume')[0]?.libelle, 'Lasagnes aux légumes');
+  assert.equal(platsProches(lasagnes, 'lasagnes aux légumes').length, 0);
   // Nom tapé contenu dans un plat connu : proposé (simple suggestion, l'enregistrement reste possible).
   const grilles = repertoire([inv('2026-10-18', 'plat', 'Lasagnes aux légumes grillés')]);
-  assert.equal(platProche(grilles, 'Lasagne aux légumes')?.libelle, 'Lasagnes aux légumes grillés');
+  assert.equal(platsProches(grilles, 'Lasagne aux légumes')[0]?.libelle, 'Lasagnes aux légumes grillés');
   const poires = repertoire([inv('2026-10-18', 'dessert', 'Tarte aux poires')]);
-  assert.equal(platProche(poires, 'Tarte aux pommes'), undefined);
+  assert.equal(platsProches(poires, 'Tarte aux pommes').length, 0);
 });
 
 test('rechercherPlats tolère une faute de frappe et l\'ordre des mots', () => {
@@ -130,25 +130,48 @@ test('rechercherPlats tolère une faute de frappe et l\'ordre des mots', () => {
   assert.equal(rechercherPlats(liste, 'potimaron').proposerEnregistrement, true);
 });
 
-test('platProche : nom partiel ou faute de frappe', () => {
+test('platsProches : nom partiel ou faute de frappe', () => {
   const veloute = repertoire([inv('2026-11-28', 'apero', 'Velouté de potimarron en verrine')]);
-  assert.equal(platProche(veloute, 'Potimar')?.libelle, 'Velouté de potimarron en verrine');
-  assert.equal(platProche(veloute, 'Potimaron')?.libelle, 'Velouté de potimarron en verrine');
-  assert.equal(platProche(veloute, 'velouté potimaron')?.libelle, 'Velouté de potimarron en verrine');
-  assert.equal(platProche(veloute, 'Potiron'), undefined);
-  assert.equal(platProche(veloute, 'Pot'), undefined);
-  assert.equal(platProche(veloute, 'Velouté de potimarron en verrine maison'), undefined);
+  assert.equal(platsProches(veloute, 'Potimar')[0]?.libelle, 'Velouté de potimarron en verrine');
+  assert.equal(platsProches(veloute, 'Potimaron')[0]?.libelle, 'Velouté de potimarron en verrine');
+  assert.equal(platsProches(veloute, 'velouté potimaron')[0]?.libelle, 'Velouté de potimarron en verrine');
+  assert.equal(platsProches(veloute, 'Potiron').length, 0);
+  assert.equal(platsProches(veloute, 'Pot').length, 0);
+  assert.equal(platsProches(veloute, 'Velouté de potimarron en verrine maison')[0]?.libelle, 'Velouté de potimarron en verrine');
   // Mêmes mots d'abord, puis le plat le plus proche (le moins de mots en plus).
   const deux = repertoire([
     inv('2026-10-18', 'plat', 'Lasagnes aux légumes grillés'),
     inv('2026-10-11', 'plat', 'Lasagnes aux légumes'),
   ]);
-  assert.equal(platProche(deux, 'Lasagne aux légume')?.libelle, 'Lasagnes aux légumes');
+  assert.equal(platsProches(deux, 'Lasagne aux légume')[0]?.libelle, 'Lasagnes aux légumes');
   const tartes = repertoire([
     inv('2026-10-18', 'dessert', 'Tarte aux pommes caramélisées'),
     inv('2026-10-11', 'dessert', 'Tarte Tatin'),
   ]);
-  assert.equal(platProche(tartes, 'Tarte')?.libelle, 'Tarte Tatin');
+  assert.equal(platsProches(tartes, 'Tarte')[0]?.libelle, 'Tarte Tatin');
+});
+
+test('platsProches propose tous les plats proches, du plus proche au moins proche, 5 au plus', () => {
+  const potimarrons = repertoire([
+    inv('2026-11-28', 'apero', 'Velouté de potimarron en verrine'),
+    inv('2026-10-11', 'plat', 'Potimarron farci'),
+  ]);
+  assert.deepEqual(platsProches(potimarrons, 'Potimaron').map((p) => p.libelle), ['Potimarron farci', 'Velouté de potimarron en verrine']);
+  // Plat connu contenu dans le nom tapé : proposé aussi, après ceux qui contiennent le nom tapé.
+  assert.deepEqual(platsProches(potimarrons, 'Potimarron farci au four').map((p) => p.libelle), ['Potimarron farci']);
+  assert.deepEqual(platsProches(potimarrons, 'Potimarron').map((p) => p.libelle), ['Potimarron farci', 'Velouté de potimarron en verrine']);
+  const deux = repertoire([
+    inv('2026-10-18', 'plat', 'Lasagnes aux légumes grillés'),
+    inv('2026-10-11', 'plat', 'Lasagnes aux légumes'),
+  ]);
+  assert.deepEqual(platsProches(deux, 'Lasagne aux légume').map((p) => p.libelle), ['Lasagnes aux légumes', 'Lasagnes aux légumes grillés']);
+  const tartes = repertoire(
+    ['Tatin', 'aux pommes', 'aux poires', 'au citron', 'aux fraises', 'aux mirabelles', 'aux noix'].map((g, i) =>
+      inv(`2026-10-${String(10 + i)}`, 'dessert', `Tarte ${g}`)
+    )
+  );
+  assert.equal(platsProches(tartes, 'Tarte').length, 5);
+  assert.equal(platsProches(tartes, 'tarte aux pommes').some((p) => p.libelle === 'Tarte aux pommes'), false);
 });
 
 test('enregistrerFiche fusionne', () => {

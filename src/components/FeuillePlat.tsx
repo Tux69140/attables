@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { ICONE_SERVICE } from '../icones/services';
 import { COURSE_KEYS, COURSE_LABELS, type ContrainteTag, type CourseKey } from '../types/models';
 import { formatDishInput } from '../utils/dishes';
-import { cleDePlat, platProche, type PlatConnu } from '../utils/plats';
+import { cleDePlat, platsProches, type PlatConnu } from '../utils/plats';
 import { ChoixAllergenes } from './ChoixAllergenes';
 import { Icone } from './Icone';
 import { BottomSheet } from './SharedUI';
@@ -51,7 +51,7 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
 
   const cle = cleDePlat(libelle);
   const connu = !cleActuelle && cle ? liste.find((p) => p.cle === cle) : undefined;
-  const proche = nomModifiable && !connu ? platProche(liste.filter((p) => p.cle !== cleActuelle), libelle) : undefined;
+  const proches = nomModifiable && !connu ? platsProches(liste.filter((p) => p.cle !== cleActuelle), libelle) : [];
   const valide = Boolean(cle) && services.length > 0;
 
   const basculer = (k: CourseKey) =>
@@ -84,17 +84,24 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
               « {connu.libelle} » est déjà connu : sa fiche sera complétée.
             </p>
           )}
-          {proche && (
+          {proches.length === 1 && (
             <p className="mt-1.5 text-[14px] text-[var(--ink)] flex flex-wrap items-center gap-x-2">
-              <span>Vous voulez dire « {proche.libelle} » ?</span>
-              <button
-                type="button"
-                onClick={() => onOuvrirPlat(proche.cle)}
-                className="relative min-h-[36px] font-semibold text-[var(--primary-ink)] underline underline-offset-2 after:absolute after:-inset-y-1 after:inset-x-0 after:content-['']"
-              >
-                Voir ce plat
-              </button>
+              <span>Vous voulez dire « {proches[0].libelle} » ?</span>
+              <BoutonVoirPlat plat={proches[0]} onOuvrirPlat={onOuvrirPlat} />
             </p>
+          )}
+          {proches.length > 1 && (
+            <div className="mt-1.5 text-[14px] text-[var(--ink)]">
+              <p id="plats-proches">Vous voulez dire :</p>
+              <ul aria-labelledby="plats-proches" className="mt-0.5">
+                {proches.map((p) => (
+                  <li key={p.cle} className="min-h-[44px] flex flex-wrap items-center justify-between gap-x-3">
+                    <span className="min-w-0">« {p.libelle} »</span>
+                    <BoutonVoirPlat plat={p} onOuvrirPlat={onOuvrirPlat} />
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       )}
@@ -146,6 +153,18 @@ const FormulairePlat: React.FC<FormulairePlatProps> = ({
 };
 
 /** Feuille d'enregistrement ou de modification d'une fiche de plat. */
+/** « Voir ce plat » : lien d'un plat proposé ; zone tactile de 44 px par un pseudo-élément invisible. */
+const BoutonVoirPlat: React.FC<{ plat: PlatConnu; onOuvrirPlat: (cle: string) => void }> = ({ plat, onOuvrirPlat }) => (
+  <button
+    type="button"
+    onClick={() => onOuvrirPlat(plat.cle)}
+    aria-label={`Voir ce plat : ${plat.libelle}`}
+    className="relative min-h-[36px] font-semibold text-[var(--primary-ink)] underline underline-offset-2 after:absolute after:-inset-y-1 after:inset-x-0 after:content-['']"
+  >
+    Voir ce plat
+  </button>
+);
+
 export const FeuillePlat: React.FC<
   FormulairePlatProps & { ouverte: boolean; titre: string; onFermer: () => void }
 > = ({ ouverte, titre, onFermer, ...formulaire }) => (
