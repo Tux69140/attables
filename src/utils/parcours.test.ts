@@ -59,12 +59,12 @@ test('resumeProches : un foyer et une personne', () => {
   const martin = foyer('foyer-martin', 'Famille Martin');
   assert.equal(
     resumeProches({ foyers: [martin], convives: [convive('conv-marc', 'Marc', martin.id), nadia] }),
-    'Famille Martin et Nadia sont dans le carnet.'
+    'Famille Martin et Nadia sont parmi vos convives.'
   );
 });
 
 test('resumeProches : une seule personne', () => {
-  assert.equal(resumeProches({ foyers: [], convives: [nadia] }), 'Nadia est dans le carnet.');
+  assert.equal(resumeProches({ foyers: [], convives: [nadia] }), 'Nadia est parmi vos convives.');
 });
 
 test('resumeProches : au-delà de deux', () => {
@@ -73,6 +73,6 @@ test('resumeProches : au-delà de deux', () => {
   const convives = [convive('c1', 'Marc', martin.id), convive('c2', 'Paul', pj.id), nadia, convive('c3', 'Tom')];
   assert.equal(
     resumeProches({ foyers: [martin, pj], convives }),
-    'Famille Martin, Paul & Julie et 2 autres sont dans le carnet.'
+    'Famille Martin, Paul & Julie et 2 autres sont parmi vos convives.'
   );
 });

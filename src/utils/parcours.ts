@@ -28,7 +28,7 @@ export function etatParcours(data: Pick<AppData, 'convives' | 'invitations'>): E
   return { proches, invitation, realisee, etapeCourante, affichage };
 }
 
-/** « Famille Martin et Nadia sont dans le carnet. » : foyers habités, puis personnes sans foyer. */
+/** « Famille Martin et Nadia sont parmi vos convives. » : foyers habités, puis personnes sans foyer. */
 export function resumeProches(data: Pick<AppData, 'foyers' | 'convives'>): string {
   const foyersHabites = data.foyers.filter((f) => data.convives.some((c) => c.foyerId === f.id));
   const idsFoyers = new Set(data.foyers.map((f) => f.id));
@@ -42,5 +42,5 @@ export function resumeProches(data: Pick<AppData, 'foyers' | 'convives'>): strin
     const reste = noms.length - 2;
     liste = `${noms[0]}, ${noms[1]} et ${reste} autre${reste > 1 ? 's' : ''}`;
   }
-  return `${liste} ${verbe} dans le carnet.`;
+  return `${liste} ${verbe} parmi vos convives.`;
 }

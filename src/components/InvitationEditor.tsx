@@ -626,7 +626,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       {(foyers.length > 0 || convives.length > 0) && (
                         <div className="flex flex-col gap-2">
                           <span className="text-[13px] font-semibold text-[var(--ink-muted)]">
-                            Choisir dans l’annuaire (ajoute automatiquement aux présents) :
+                            Choisir parmi les convives (ajoute automatiquement aux présents) :
                           </span>
                           <div className="flex flex-wrap gap-2">
                             {foyers.map((f) => {
@@ -785,7 +785,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                     </span>
                     {filteredGuests.length === 0 ? (
                       <p className="text-[14px] text-[var(--ink-muted)] py-1">
-                        {convives.length === 0 ? 'Personne dans le carnet pour l’instant.' : 'Aucun convive trouvé.'}
+                        {convives.length === 0 ? 'Aucun convive pour l’instant.' : 'Aucun convive trouvé.'}
                       </p>
                     ) : (
                       <div className="flex flex-wrap gap-2">

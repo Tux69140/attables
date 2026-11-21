@@ -229,7 +229,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher un foyer ou un convive…"
-          aria-label="Rechercher dans l’annuaire"
+          aria-label="Rechercher un foyer ou un convive"
           className="w-full min-h-[46px] pl-10 pr-4 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[15px] text-[var(--ink)] placeholder:text-[var(--ink-muted)] focus:outline-none focus:border-[var(--primary-ink)]"
         />
       </div>
@@ -254,7 +254,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
           </div>
           <h2 className="font-display text-xl text-[var(--ink)]">
             {foyers.length === 0 && convives.length === 0
-              ? 'Annuaire vide'
+              ? 'Aucun convive pour l’instant'
               : filtre === 'allergies' && !queryNorm
                 ? 'Aucune allergie stricte'
                 : 'Aucun convive trouvé'}
@@ -263,7 +263,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
             {foyers.length === 0 && convives.length === 0
               ? 'Ajoutez vos proches et regroupez-les par foyer pour cocher toute une famille en un seul geste.'
               : filtre === 'allergies' && !queryNorm
-                ? 'Personne dans le carnet n’a d’allergie stricte.'
+                ? 'Aucun convive n’a d’allergie stricte.'
                 : 'Aucun foyer ni convive ne correspond à cette recherche.'}
           </p>
         </div>

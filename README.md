@@ -12,7 +12,7 @@
 ## Fonctionnalités principales
 
 - **Suivi des invitations** : distinction entre invitations *À venir* et *Réalisées*, filtres par hôte (*Chez moi / Chez des proches*) et par statut, passage rapide en *Réalisée*, action **Réinviter ce groupe** en un geste.
-- **Annuaire par foyers & convives** : regroupement par foyer avec pavés couleur/pictogramme pour cocher toute une famille en un clic, fiches détaillées avec historique complet des repas et plats déjà servis.
+- **Convives regroupés par foyers** : regroupement par foyer avec pavés couleur/pictogramme pour cocher toute une famille en un clic, fiches détaillées avec historique complet des invitations et plats déjà servis.
 - **Allergies & aliments évités, personne par personne** : la fiche de chaque convive porte ses propres allergies (alertes visuelles dédiées) et ce qu’il évite (intolérances, régimes, goûts), avec des aliments libres au besoin ; rappel automatique des allergies de la tablée au-dessus de la saisie du menu, et signalement d’un plat dont les allergènes ne sont pas renseignés.
 - **Mémoire anti-doublon intelligente** :
   - Seules les invitations *Réalisées* alimentent la mémoire.
