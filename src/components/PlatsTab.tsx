@@ -5,7 +5,7 @@
  *
  * Onglet « Plats » : vérifier une idée de menu, enregistrer un plat, faire la rétrospective.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ICONE_SERVICE } from '../icones/services';
 import {
   COURSE_KEYS,
@@ -108,6 +108,11 @@ export const PlatsTab: React.FC<{
   const { resultats, proposerEnregistrement } = rechercherPlats(liste, saisie);
   const visibles = resultats.filter((p) => garder(p, filtre));
   const platOuvert = liste.find((p) => p.cle === cleOuverte) ?? null;
+  // Plat disparu (« Annuler » d'un renommage ou d'un enregistrement) : la fiche est fermée pour de bon,
+  // elle ne doit pas se rouvrir d'elle-même si la clé revient plus tard.
+  useEffect(() => {
+    if (cleOuverte !== null && !platOuvert) setCleOuverte(null);
+  }, [cleOuverte, platOuvert]);
   const platFeuille = feuille && feuille.mode !== 'nouveau' ? liste.find((p) => p.cle === feuille.cle) : undefined;
 
   const fermerFeuille = () => {
@@ -142,11 +147,12 @@ export const PlatsTab: React.FC<{
         allergenes: v.allergenes,
         ...(v.sansAllergene && v.allergenes.length === 0 ? { sansAllergene: true } : {}),
       });
+      // Retour à la fiche du plat, à jour, sous le bandeau « Annuler » : un renommage change sa clé.
+      // « Annuler » qui rend l'ancien nom la ferme (clé introuvable), sans dommage.
+      if (cleOuverte === platFeuille.cle) setCleOuverte(cleDePlat(nouveauNom));
     } else {
       onEnregistrerFiche({ ...v, libelle: platFeuille.libelle });
     }
-    // Bandeau « Annuler » à suivre : la fiche du plat se ferme aussi, sinon son voile le cacherait.
-    setCleOuverte(null);
     fermerFeuille();
     return true;
   };

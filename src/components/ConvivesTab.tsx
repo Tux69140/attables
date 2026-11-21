@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useHauteurMesuree } from '../hooks/useHauteurMesuree';
 import {
   COURSE_LABELS,
@@ -79,8 +79,13 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
   const [feuilleConvive, setFeuilleConvive] = useState<null | { convive?: Convive; foyerId?: string }>(null);
   const [feuilleFoyer, setFeuilleFoyer] = useState<Foyer | null>(null);
 
-  // Guest profile sheet
-  const [viewedConvive, setViewedConvive] = useState<Convive | null>(null);
+  // Fiche détaillée d'une personne : lue par id dans `convives`, donc toujours à jour (enregistrement, « Annuler »).
+  const [viewedConviveId, setViewedConviveId] = useState<string | null>(null);
+  const viewedConvive = convives.find((c) => c.id === viewedConviveId) ?? null;
+  // Personne disparue (supprimée, « Annuler » de sa création) : la fiche se ferme et ne se rouvrira pas d'elle-même.
+  useEffect(() => {
+    if (viewedConviveId !== null && !viewedConvive) setViewedConviveId(null);
+  }, [viewedConviveId, viewedConvive]);
 
   // Confirm delete states
   const [confirmDeleteConvive, setConfirmDeleteConvive] = useState<Convive | null>(null);
@@ -92,8 +97,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
 
   const enregistrerConvive = (saved: Convive) => {
     onSaveConvive(saved);
-    // Bandeau « Annuler » à suivre : la fiche détaillée se ferme aussi, sinon son voile le cacherait.
-    setViewedConvive(null);
+    // Seule la feuille de modification se ferme : retour à la fiche détaillée (si ouverte), à jour, sous le bandeau « Annuler ».
     setFeuilleConvive(null);
   };
 
@@ -166,7 +170,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
       <button
         key={guest.id}
         type="button"
-        onClick={() => setViewedConvive(guest)}
+        onClick={() => setViewedConviveId(guest.id)}
         className="w-full min-h-[56px] pl-3 pr-4 py-2.5 text-left flex items-center gap-3 active:bg-[var(--surface-active)]/50 transition-colors"
       >
         <span
@@ -389,7 +393,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         open={Boolean(viewedConvive)}
         title={viewedConvive?.nomAffiche ?? ''}
         zClass="z-50"
-        onClose={() => setViewedConvive(null)}
+        onClose={() => setViewedConviveId(null)}
       >
         {viewedConvive && (
           <div className="flex flex-col gap-5">
@@ -567,8 +571,8 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         onConfirm={() => {
           if (confirmDeleteConvive) {
             onDeleteConvive(confirmDeleteConvive.id);
-            if (viewedConvive?.id === confirmDeleteConvive.id) {
-              setViewedConvive(null);
+            if (viewedConviveId === confirmDeleteConvive.id) {
+              setViewedConviveId(null);
             }
           }
           setConfirmDeleteConvive(null);

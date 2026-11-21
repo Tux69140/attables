@@ -20,6 +20,7 @@ import { useAndroidBack } from './hooks/useAndroidBack';
 import { useAutoHideChrome } from './hooks/useAutoHideChrome';
 import { useHauteurMesuree } from './hooks/useHauteurMesuree';
 import { focaliserTitreVue, focusPerdu, memoriserCleFocus, rendreFocus } from './hooks/focusVues';
+import { focaliserFeuilleDuDessus } from './hooks/usePiegeFocus';
 import {
   createEmptyData,
   createSampleData,
@@ -216,11 +217,12 @@ export default function App() {
     if (undoState) armerMinuteurUndo();
   }, [undoState, armerMinuteurUndo]);
 
-  // « Annuler » ou « Fermer » au clavier : le bandeau disparaît avec le focus, qui revient au titre de la vue.
+  // « Annuler » ou « Fermer » au clavier : le bandeau disparaît avec le focus, qui revient à la feuille encore
+  // ouverte (fiche d'où l'on vient d'enregistrer), sinon au titre de la vue.
   const quitterBandeau = useCallback(() => {
     if (!document.activeElement?.closest('[data-bandeau-annuler]')) return;
     window.requestAnimationFrame(() => {
-      if (focusPerdu()) focaliserTitreVue();
+      if (focusPerdu() && !focaliserFeuilleDuDessus()) focaliserTitreVue();
     });
   }, []);
 

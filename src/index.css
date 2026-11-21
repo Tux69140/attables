@@ -131,7 +131,7 @@ body {
 
 /* Nappe : bande fixe sous la barre d'état, jamais masquée au défilement.
    Vichy safran ; reste discret pour garder les icônes lisibles.
-   Au-dessus de tout (feuilles et voiles z-50 à 60, présentation z-70) : identique sur tous les
+   Au-dessus de tout (feuilles et voiles z-50 à 60, bandeau « Annuler » z-65, présentation z-70) : identique sur tous les
    écrans, jamais assombrie par le voile d'une feuille. */
 .nappe {
   position: fixed;
@@ -256,6 +256,13 @@ body {
 
 /* Bandeau « Annuler » quand les barres sont masquées par le défilement : il ne dépend d'aucune hauteur de barre. */
 .bottom-safe-gap {
+  bottom: calc(1.25rem + env(safe-area-inset-bottom));
+}
+
+/* Bandeau « Annuler » sur une feuille ouverte (retour à la fiche après un enregistrement) : en bas, comme
+   .bottom-safe-gap, il recouvre le bas de la fiche plutôt que son milieu. Sans :has (vieille WebView), il
+   garde sa place habituelle, toujours au-dessus de la feuille. */
+body:has(.voile-feuille) .bandeau-annuler-place {
   bottom: calc(1.25rem + env(safe-area-inset-bottom));
 }
 

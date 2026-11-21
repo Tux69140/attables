@@ -13,10 +13,37 @@ const pile = creerPileFocus();
 const FOCALISABLES =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-function focalisablesVisibles(conteneur: HTMLElement): HTMLElement[] {
+/**
+ * Attribut des éléments qui restent lisibles et atteignables par-dessus une feuille ouverte : la zone
+ * d'annonce et le bandeau « Annuler » (montés par App, frères de la vue). Le bandeau d'un enregistrement
+ * fait depuis une sous-feuille s'affiche au-dessus de la fiche d'où elle était ouverte.
+ */
+export const RESTE_LISIBLE = 'data-reste-lisible';
+
+function focalisablesVisibles(conteneur: ParentNode): HTMLElement[] {
   return Array.from(conteneur.querySelectorAll<HTMLElement>(FOCALISABLES)).filter(
     (el) => el.getClientRects().length > 0,
   );
+}
+
+/** Focalisables visibles des éléments toujours lisibles (bandeau « Annuler »), après ceux de la feuille. */
+function focalisablesToujoursLisibles(): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>(`[${RESTE_LISIBLE}]`)).flatMap(focalisablesVisibles);
+}
+
+/** Titre de chaque feuille ouverte, par identifiant de la pile. */
+const titres = new Map<number, RefObject<HTMLElement | null>>();
+
+/**
+ * Focalise le titre de la feuille du dessus ; faux si aucune n'est ouverte. Sert quand le focus se perd
+ * hors de la feuille (bandeau « Annuler » disparu) : il revient dans la feuille, pas sur la vue derrière.
+ */
+export function focaliserFeuilleDuDessus(): boolean {
+  const id = pile.sommet();
+  const titre = id === null ? null : titres.get(id)?.current;
+  if (!titre || !titre.isConnected) return false;
+  titre.focus({ preventScroll: true });
+  return true;
 }
 
 /**
@@ -27,15 +54,15 @@ const masques = new Map<Element, { nb: number; avant: string | null }>();
 
 /**
  * Masque aux lecteurs d'écran (TalkBack lisait la liste derrière la feuille) tout ce qui n'est pas la
- * feuille : les frères du conteneur et de chacun de ses ancêtres. Un élément déjà caché (aria-hidden
- * « true ») n'est pas touché. React ne doit piloter aria-hidden sur aucun de ces frères : le poser sur
+ * feuille : les frères du conteneur et de chacun de ses ancêtres, sauf ceux marqués `RESTE_LISIBLE`
+ * (bandeau « Annuler » et sa zone d'annonce). Un élément déjà caché (aria-hidden « true ») n'est pas touché. React ne doit piloter aria-hidden sur aucun de ces frères : le poser sur
  * un conteneur intérieur (voir les boutons flottants). Renvoie de quoi tout rendre comme avant.
  */
 function masquerLeReste(conteneur: HTMLElement): () => void {
   const pris: Element[] = [];
   for (let n: Element = conteneur; n.parentElement && n !== document.body; n = n.parentElement) {
     for (const frere of Array.from(n.parentElement.children)) {
-      if (frere === n || frere.tagName === 'SCRIPT') continue;
+      if (frere === n || frere.tagName === 'SCRIPT' || frere.hasAttribute(RESTE_LISIBLE)) continue;
       const deja = masques.get(frere);
       if (deja) deja.nb += 1;
       else if (frere.getAttribute('aria-hidden') === 'true') continue;
@@ -76,14 +103,18 @@ export function usePiegeFocus(
     if (!ouvert || typeof document === 'undefined') return;
     const origine = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const id = pile.empiler();
+    titres.set(id, titre);
     titre.current?.focus({ preventScroll: true });
     // Après le focus : Chrome refuse aria-hidden sur un élément qui contient le focus (le bouton d'origine).
     const rendreVisible = conteneur.current ? masquerLeReste(conteneur.current) : () => {};
 
     const surTouche = (e: KeyboardEvent) => {
       if (e.key !== 'Tab' || !pile.estAuSommet(id) || !conteneur.current) return;
-      const liste = focalisablesVisibles(conteneur.current);
-      const cible = cibleTabulation(liste.length, liste.indexOf(document.activeElement as HTMLElement), e.shiftKey);
+      // Le bandeau « Annuler », s'il est là, entre dans la boucle après la feuille.
+      const enPlus = focalisablesToujoursLisibles();
+      const liste = [...focalisablesVisibles(conteneur.current), ...enPlus];
+      const index = liste.indexOf(document.activeElement as HTMLElement);
+      const cible = cibleTabulation(liste.length, index, e.shiftKey, enPlus.length > 0);
       if (cible !== null) {
         e.preventDefault();
         liste[cible].focus();
@@ -96,6 +127,7 @@ export function usePiegeFocus(
     return () => {
       document.removeEventListener('keydown', surTouche);
       pile.retirer(id);
+      titres.delete(id);
       rendreVisible(); // avant de rendre le focus : l'élément d'origine doit être de nouveau lisible
       if (origine && origine.isConnected && origine.getClientRects().length > 0) {
         origine.focus({ preventScroll: true });

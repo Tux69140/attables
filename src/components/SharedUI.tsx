@@ -206,13 +206,17 @@ export const UndoBanner: React.FC<{
   return (
     <>
       {/* Toujours dans le DOM : une zone vivante n'est annoncée que si elle existe avant son contenu.
-          La clé recrée le message, donc deux messages identiques sont annoncés deux fois. */}
-      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          La clé recrée le message, donc deux messages identiques sont annoncés deux fois.
+          data-reste-lisible (voir usePiegeFocus) : ni l'annonce ni le bandeau ne sont masqués aux lecteurs
+          d'écran par une feuille ouverte (la fiche d'où l'on vient d'enregistrer). Le bandeau passe
+          au-dessus des feuilles (z-60), sous la présentation (z-70) et la nappe (z-80). */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only" data-reste-lisible>
         {annonce && <span key={annonce.id}>{annonce.message}</span>}
       </div>
       {annonce && (
         <div
-          className={`fixed ${bottomOffsetClass} left-4 right-4 z-40 flex justify-center pointer-events-none chrome-mouvement`}
+          className={`fixed ${bottomOffsetClass} bandeau-annuler-place left-4 right-4 z-[65] flex justify-center pointer-events-none chrome-mouvement`}
+          data-reste-lisible
         >
           <div
             ref={bandeau}

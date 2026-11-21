@@ -38,3 +38,24 @@ test('cibleTabulation boucle aux extrémités seulement', () => {
   assert.equal(cibleTabulation(3, -1, true), 2);
   assert.equal(cibleTabulation(0, -1, false), null);
 });
+
+test('cibleTabulation donne chaque pas quand la liste ne suit pas le document', () => {
+  assert.equal(cibleTabulation(3, 1, false, true), 2);
+  assert.equal(cibleTabulation(3, 1, true, true), 0);
+  assert.equal(cibleTabulation(3, 2, false, true), 0);
+  assert.equal(cibleTabulation(3, 0, true, true), 2);
+  assert.equal(cibleTabulation(3, -1, false, true), 0);
+  assert.equal(cibleTabulation(0, -1, false, true), null);
+});
+
+test('sommet donne la couche du dessus, null sans couche', () => {
+  const pile = creerPileFocus();
+  assert.equal(pile.sommet(), null);
+  const a = pile.empiler();
+  const b = pile.empiler();
+  assert.equal(pile.sommet(), b);
+  pile.retirer(b);
+  assert.equal(pile.sommet(), a);
+  pile.retirer(a);
+  assert.equal(pile.sommet(), null);
+});
