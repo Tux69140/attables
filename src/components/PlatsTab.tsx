@@ -23,8 +23,11 @@ import {
   compterFiltres,
   type EtatPlat,
   type PlatConnu,
+  type PlatSuivi,
   rechercherPlats,
   repertoirePlats,
+  retrouverPlat,
+  suivrePlat,
 } from '../utils/plats';
 import { Puces } from './Controles';
 import { FeuillePlat, type ValeursPlat } from './FeuillePlat';
@@ -95,7 +98,7 @@ export const PlatsTab: React.FC<{
   const aujourdHui = getTodayIso();
   const [saisie, setSaisie] = useState('');
   const [filtre, setFiltre] = useState<Filtre>('tous');
-  const [cleOuverte, setCleOuverte] = useState<string | null>(null);
+  const [suivi, setSuivi] = useState<PlatSuivi | null>(null);
   const [feuille, setFeuille] = useState<Feuille>(null);
   const [erreur, setErreur] = useState<string | undefined>();
 
@@ -107,12 +110,13 @@ export const PlatsTab: React.FC<{
   const compteurs = compterFiltres(liste);
   const { resultats, proposerEnregistrement } = rechercherPlats(liste, saisie);
   const visibles = resultats.filter((p) => garder(p, filtre));
-  const platOuvert = liste.find((p) => p.cle === cleOuverte) ?? null;
-  // Plat disparu (« Annuler » d'un renommage ou d'un enregistrement) : la fiche est fermée pour de bon,
-  // elle ne doit pas se rouvrir d'elle-même si la clé revient plus tard.
+  // Suivi par sa fiche : « Annuler » d'un renommage la laisse ouverte, sous l'ancien nom.
+  const platOuvert = retrouverPlat(liste, suivi);
+  // Plat disparu (« Annuler » de l'enregistrement qui l'avait créé) : la fiche est fermée pour de bon,
+  // elle ne doit pas se rouvrir d'elle-même si le plat revient plus tard.
   useEffect(() => {
-    if (cleOuverte !== null && !platOuvert) setCleOuverte(null);
-  }, [cleOuverte, platOuvert]);
+    if (suivi !== null && !platOuvert) setSuivi(null);
+  }, [suivi, platOuvert]);
   const platFeuille = feuille && feuille.mode !== 'nouveau' ? liste.find((p) => p.cle === feuille.cle) : undefined;
 
   const fermerFeuille = () => {
@@ -147,9 +151,9 @@ export const PlatsTab: React.FC<{
         allergenes: v.allergenes,
         ...(v.sansAllergene && v.allergenes.length === 0 ? { sansAllergene: true } : {}),
       });
-      // Retour à la fiche du plat, à jour, sous le bandeau « Annuler » : un renommage change sa clé.
-      // « Annuler » qui rend l'ancien nom la ferme (clé introuvable), sans dommage.
-      if (cleOuverte === platFeuille.cle) setCleOuverte(cleDePlat(nouveauNom));
+      // Retour à la fiche du plat, à jour, sous le bandeau « Annuler » : un renommage change sa clé,
+      // pas sa fiche, que « Annuler » retrouve sous l'ancien nom.
+      if (platOuvert?.cle === platFeuille.cle) setSuivi({ cle: cleDePlat(nouveauNom), ficheId: platFeuille.fiche.id });
     } else {
       onEnregistrerFiche({ ...v, libelle: platFeuille.libelle });
     }
@@ -168,7 +172,7 @@ export const PlatsTab: React.FC<{
     return (
       <button
         type="button"
-        onClick={() => setCleOuverte(plat.cle)}
+        onClick={() => setSuivi(suivrePlat(plat))}
         className="w-full min-h-[56px] px-4 py-2.5 text-left flex items-center justify-between gap-3 active:bg-[var(--surface-active)]/50 transition-colors"
       >
         <span className="min-w-0 flex flex-col gap-0.5">
@@ -299,13 +303,13 @@ export const PlatsTab: React.FC<{
         plat={platOuvert}
         aujourdHui={aujourdHui}
         prescriptionMois={prescriptionMois}
-        onFermer={() => setCleOuverte(null)}
+        onFermer={() => setSuivi(null)}
         onAllergenes={() => platOuvert && setFeuille({ mode: 'allergenes', cle: platOuvert.cle })}
         onModifier={() => platOuvert && setFeuille({ mode: 'modifier', cle: platOuvert.cle })}
         onPreparer={() => platOuvert && onPreparerAvecPlat(platOuvert.libelle, platOuvert.services[0] ?? 'plat')}
         onSupprimer={() => {
           if (platOuvert?.fiche) {
-            setCleOuverte(null);
+            setSuivi(null);
             onSupprimerFiche(platOuvert.fiche.id);
           }
         }}
@@ -340,7 +344,8 @@ export const PlatsTab: React.FC<{
         onEnregistrer={enregistrer}
         onOuvrirPlat={(cle) => {
           fermerFeuille();
-          setCleOuverte(cle);
+          const plat = liste.find((p) => p.cle === cle);
+          if (plat) setSuivi(suivrePlat(plat));
         }}
         onFermer={fermerFeuille}
       />

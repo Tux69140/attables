@@ -16,6 +16,8 @@ import {
   rechercherPlats,
   renommerIdee,
   repertoirePlats,
+  retrouverPlat,
+  suivrePlat,
   trouverFiche,
 } from './plats';
 
@@ -272,4 +274,29 @@ test('renommerIdee', () => {
   const res = renommerIdee(plats, 'plat-Blanquette', 'blanquette de veau');
   assert.notEqual(res, 'existe');
   assert.equal((res as PlatFiche[])[1].libelle, 'Blanquette de veau');
+});
+
+test('retrouverPlat suit une idée par sa fiche : renommage et « Annuler »', () => {
+  const avant = repertoire([], [fiche('Cervelle de canut')]);
+  const suivi = suivrePlat(avant[0]);
+  assert.deepEqual(suivi, { cle: cleDePlat('Cervelle de canut'), ficheId: 'plat-Cervelle de canut' });
+  const renommee = { ...fiche('Cervelle de canut'), libelle: 'Cervelle des canuts' };
+  // Après le renommage, la clé d'avant n'existe plus : la fiche est retrouvée par son identifiant.
+  assert.equal(retrouverPlat(repertoire([], [renommee]), suivi)?.libelle, 'Cervelle des canuts');
+  // Deuxième renommage, puis « Annuler » qui rend l'ancien nom : toujours la même fiche.
+  const suiviRenomme = { cle: cleDePlat('Cervelle des canuts'), ficheId: suivi.ficheId };
+  assert.equal(retrouverPlat(repertoire([], [{ ...renommee, libelle: 'Cervelle' }]), suiviRenomme)?.libelle, 'Cervelle');
+  assert.equal(retrouverPlat(avant, suiviRenomme)?.libelle, 'Cervelle de canut');
+});
+
+test('retrouverPlat : plat sans fiche suivi par sa clé, null quand il a disparu', () => {
+  const menus = [inv('2026-10-18', 'plat', 'Risotto')];
+  const suivi = suivrePlat(repertoire(menus)[0]);
+  assert.deepEqual(suivi, { cle: cleDePlat('Risotto') });
+  // Fiche ajoutée (allergènes), puis retirée par « Annuler » : le plat reste celui des menus.
+  assert.equal(retrouverPlat(repertoire(menus, [fiche('Risotto')]), suivi)?.cle, cleDePlat('Risotto'));
+  assert.equal(retrouverPlat(repertoire(menus), { ...suivi, ficheId: 'plat-Risotto' })?.cle, cleDePlat('Risotto'));
+  // Idée supprimée : plus rien à afficher.
+  assert.equal(retrouverPlat(repertoire([]), { cle: cleDePlat('Flan'), ficheId: 'plat-Flan' }), null);
+  assert.equal(retrouverPlat(repertoire(menus), null), null);
 });

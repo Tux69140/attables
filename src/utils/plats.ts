@@ -143,6 +143,29 @@ export function repertoirePlats(
   });
 }
 
+/**
+ * Plat dont la fiche est ouverte : suivi par l'identifiant de sa fiche quand il en a une (un renommage,
+ * ou son « Annuler », change sa clé mais pas sa fiche), sinon par sa clé de nom.
+ */
+export interface PlatSuivi {
+  cle: string;
+  ficheId?: string;
+}
+
+export function suivrePlat(plat: PlatConnu): PlatSuivi {
+  return plat.fiche ? { cle: plat.cle, ficheId: plat.fiche.id } : { cle: plat.cle };
+}
+
+/** Le plat suivi dans le répertoire : par sa fiche, sinon par sa clé ; null s'il a disparu. */
+export function retrouverPlat(liste: PlatConnu[], suivi: PlatSuivi | null): PlatConnu | null {
+  if (!suivi) return null;
+  return (
+    (suivi.ficheId !== undefined ? liste.find((p) => p.fiche?.id === suivi.ficheId) : undefined) ??
+    liste.find((p) => p.cle === suivi.cle) ??
+    null
+  );
+}
+
 /** Compteurs des puces de filtre. */
 export function compterFiltres(liste: PlatConnu[]): {
   tous: number;
