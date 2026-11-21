@@ -967,11 +967,11 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           </>
         )}
 
-        {/* 4. SAISIE DU MENU & DÉTAILS (ou Menu & Appréciations si figé) */}
+        {/* 4. MENU (saisie, ou appréciations par plat si figé) */}
         <section className="carte p-4 flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-display text-[19px] text-[var(--ink)]">
-              {isFrozen ? 'Menu & Appréciations' : 'Menu & Détails'}
+              Menu
             </h2>
             {!isRealisee && (
               <button
