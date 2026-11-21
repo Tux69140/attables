@@ -108,7 +108,7 @@ export const ElementsPersonne: React.FC<{
         {annonce}
       </p>
       {lignes.length === 0 ? (
-        <p className="text-[14px] text-[var(--ink-muted)]">Rien de noté pour l’instant.</p>
+        <p className="text-[14px] text-[var(--ink-muted)]">Rien à signaler.</p>
       ) : (
         <ul className="rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] divide-y divide-[var(--border)]">
           {lignes.map(({ element: c, retrait }) => {

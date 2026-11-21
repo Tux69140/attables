@@ -626,7 +626,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                       {(foyers.length > 0 || convives.length > 0) && (
                         <div className="flex flex-col gap-2">
                           <span className="text-[13px] font-semibold text-[var(--ink-muted)]">
-                            Choisir parmi les convives (ajoute automatiquement aux présents) :
+                            Choisir un foyer ou un convive (ajoute automatiquement aux présents) :
                           </span>
                           <div className="flex flex-wrap gap-2">
                             {foyers.map((f) => {
