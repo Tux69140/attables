@@ -26,6 +26,7 @@ import {
 } from './Icons';
 import { getFoyerColorHex } from '../types/models';
 import { teinteFoyer } from '../utils/teinte';
+import { ceQueNeMangePas } from '../utils/elision';
 import { PastilleContrainte } from './Allergies';
 import { Puces } from './Controles';
 import { FeuilleConvive } from './FeuilleConvive';
@@ -188,7 +189,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
         <span className="min-w-0 flex-1 flex flex-col gap-1">
           <span className="text-[16px] font-bold text-[var(--ink)] break-words min-w-0">{guest.nomAffiche}</span>
           {tags.length === 0 && !note ? (
-            <span className="text-[14px] text-[var(--ink-muted)]">Aucune contrainte</span>
+            <span className="text-[14px] text-[var(--ink-muted)]">Rien à signaler</span>
           ) : (
             <span className="flex flex-wrap items-center gap-1.5">
               {tags.map((t) => (
@@ -417,15 +418,15 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
               </button>
             </div>
 
-            {/* Contraintes du convive */}
+            {/* « Ce que Léa ne mange pas » : titre de la feuille de modification */}
             <div className="flex flex-col gap-2">
               <h3 className="font-display text-[18px] text-[var(--ink)]">
-                Régime & allergies
+                {ceQueNeMangePas(viewedConvive.nomAffiche)}
               </h3>
               {viewedConvive.contraintes.length === 0 &&
               !viewedConvive.contrainteLibre.trim() ? (
                 <p className="text-[14px] text-[var(--ink-muted)]">
-                  Aucune contrainte enregistrée.
+                  Rien à signaler.
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
