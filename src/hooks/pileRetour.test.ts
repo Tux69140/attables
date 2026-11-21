@@ -12,6 +12,9 @@ function fauxHistorique() {
   const entrees: unknown[] = [null];
   let index = 0;
   let surPopState: () => void = () => {};
+  // Reculs dont le popstate n'est pas encore émis : `attendre` les laisse tous aboutir,
+  // y compris ceux qu'un popstate relance (purge des entrées orphelines).
+  let enCours = 0;
   const historique: HistoriqueMinimal = {
     get state() {
       return entrees[index];
@@ -22,7 +25,9 @@ function fauxHistorique() {
       index += 1;
     },
     back() {
+      enCours += 1;
       setTimeout(() => {
+        enCours -= 1;
         if (index === 0) return;
         index -= 1;
         surPopState();
@@ -32,7 +37,10 @@ function fauxHistorique() {
   return {
     historique,
     brancher: (f: () => void) => (surPopState = f),
-    attendre: () => new Promise((r) => setTimeout(r, 5)),
+    attendre: async () => {
+      do await new Promise((r) => setTimeout(r, 0));
+      while (enCours > 0);
+    },
     /** Rang de l'entrée courante (0 = l'entrée d'origine). */
     profondeur: () => index,
   };
