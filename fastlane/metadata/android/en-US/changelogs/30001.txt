@@ -1,5 +1,6 @@
 Version 0.3.0:
-• Guided welcome: three screens, then “Start with my people” or “Visit with examples”.
-• New saffron palette, in light and dark, and new icons.
-• Strict allergies stay visible at the top of the invitation; a dish containing a guest’s allergen is flagged.
-• New Dishes tab: check a menu idea, note dishes you’d like to serve, look back at what was served.
+• Guided welcome, new saffron palette (light and dark) and new icons.
+• Each guest has their own sheet of what they don’t eat: allergies and foods they avoid.
+• Allergies stay visible in the invitation; a risky dish, or one whose allergens aren’t filled in, is flagged.
+• New “Plats” (Dishes) tab: check an idea, note dishes, look back at what was served.
+• Back saves, “Annuler” (Undo) recovers; better screen reader and large text support.
