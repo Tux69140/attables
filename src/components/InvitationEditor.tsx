@@ -447,7 +447,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           </button>
           <h1 tabIndex={-1} data-titre-vue className="focus:outline-none font-display text-[20px] text-[var(--ink)] text-center break-words min-w-0 px-1">
             {isRealisee
-              ? 'Repas réalisé'
+              ? 'Invitation réalisée'
               : existing
               ? 'Modifier l’invitation'
               : 'Préparer une invitation'}
@@ -537,7 +537,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             {isRealisee && unlockedEdit && (
               <div className="px-3.5 py-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-[14px]">
                 <span className="flex-1 basis-0 text-[var(--ink-muted)]">
-                  Mode correction activé pour ce repas réalisé.
+                  Mode correction activé pour cette invitation réalisée.
                 </span>
                 <button
                   type="button"
@@ -898,7 +898,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                   <div className="px-4 pb-4 pt-3 border-t border-[var(--border)]/70">
                         {servedDishes.length === 0 ? (
                           <p className="text-[14px] text-[var(--ink-muted)]">
-                            Aucun repas réalisé enregistré jusqu’ici avec ces convives.
+                            Aucune invitation réalisée enregistrée jusqu’ici avec ces convives.
                           </p>
                         ) : (
                           <div className="flex flex-col divide-y divide-[var(--border)]/70">
@@ -1237,7 +1237,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             <div className="flex flex-col gap-3">
               {COURSE_KEYS.filter((k) => Boolean(menu[k]?.trim())).length === 0 ? (
                 <p className="text-[14px] text-[var(--ink-muted)]">
-                  Aucun plat enregistré pour ce repas.
+                  Aucun plat enregistré pour cette invitation.
                 </p>
               ) : (
                 COURSE_KEYS.map((courseKey) => {
@@ -1407,7 +1407,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => handleSubmit('realisee', 'Repas enregistré comme réalisé')}
+              onClick={() => handleSubmit('realisee', 'Invitation enregistrée, réalisée')}
               className={`flex-1 basis-0 min-w-fit min-h-[48px] px-3 py-2 text-center rounded-xl font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform ${
                 jourArrive ? 'bg-[var(--success)] text-[var(--card)]' : 'border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)]'
               }`}
@@ -1464,7 +1464,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           <div className="flex flex-col gap-3">
             {guestDetailDishes.length === 0 ? (
               <p className="text-[15px] text-[var(--ink-muted)]">
-                Aucun plat enregistré dans les repas réalisés avec{' '}
+                Aucun plat enregistré dans les invitations réalisées avec{' '}
                 {selectedGuestDetail.nomAffiche}.
               </p>
             ) : (

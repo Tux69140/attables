@@ -10,7 +10,7 @@ Un public large : toute personne qui reçoit famille et amis, y compris des pers
 
 Le travail à accomplir : savoir qui vient, ne jamais oublier une allergie stricte, ne pas resservir trop vite le même plat aux mêmes personnes, et garder une mémoire des repas réussis. Sur chaque écran, la tâche principale est unique : voir ce qui arrive (Invitations), qui est qui (Convives), ce qu'on a déjà servi ou aimerait servir (Plats), ou préparer un repas précis (éditeur).
 
-Constat qui a guidé la version 0.3.0 : un testeur placé devant l'écran d'accueil n'a pas su par où commencer. Toute personne doit comprendre la boucle (proches → invitation → repas réalisé → mémoire des plats) sans aide.
+Constat qui a guidé la version 0.3.0 : un testeur placé devant l'écran d'accueil n'a pas su par où commencer. Toute personne doit comprendre la boucle (proches → invitation à venir → invitation réalisée → mémoire des plats) sans aide.
 
 ## Product Purpose
 

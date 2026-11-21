@@ -11,13 +11,13 @@
 
 ## Fonctionnalités principales
 
-- **Suivi des invitations** : distinction entre repas *À venir* et *Réalisés*, filtres par hôte (*Chez moi / Chez les autres*) et par statut, passage rapide en *Réalisée*, action **Réinviter ce groupe** en un geste.
+- **Suivi des invitations** : distinction entre invitations *À venir* et *Réalisées*, filtres par hôte (*Chez moi / Chez les autres*) et par statut, passage rapide en *Réalisée*, action **Réinviter ce groupe** en un geste.
 - **Annuaire par foyers & convives** : regroupement par foyer avec pavés couleur/pictogramme pour cocher toute une famille en un clic, fiches détaillées avec historique complet des repas et plats déjà servis.
 - **Allergies & aliments évités, personne par personne** : la fiche de chaque convive porte ses propres allergies (alertes visuelles dédiées) et ce qu’il évite (intolérances, régimes, goûts), avec des aliments libres au besoin ; rappel automatique des allergies de la tablée au-dessus de la saisie du menu, et signalement d’un plat dont les allergènes ne sont pas renseignés.
 - **Mémoire anti-doublon intelligente** :
-  - Seuls les repas *Réalisés* alimentent la mémoire.
+  - Seules les invitations *Réalisées* alimentent la mémoire.
   - **Prescription temporelle** paramétrable dans les réglages (6 mois par défaut) : alerte forte *« Servi récemment »* vs mention douce *« peut revenir »*.
-  - **Appréciations rapides** sur les repas réalisés (*Coup de cœur*, *Bien*, *À éviter*), par plat et sur le repas global.
+  - **Appréciations rapides** sur les invitations réalisées (*Coup de cœur*, *Bien*, *À éviter*), par plat et sur le repas global.
 - **Export Markdown pour une IA externe** : génération d’un prompt structuré **anonymisé par défaut**, s’appuyant sur les coups de cœur passés et les plats à éviter. Les prénoms et le nom d’hôte n’y figurent pas ; vos notes libres sont reprises telles quelles : relisez-les avant de coller.
 - **100 % privé & local** : aucune collecte, aucune télémétrie, aucun SDK tiers ; sauvegarde et restauration par fichier `.json`.
 - **Thèmes clair & sombre** : *Sable* et *Nuit marine*, avec suivi automatique du mode système Android.

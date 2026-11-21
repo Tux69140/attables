@@ -23,14 +23,14 @@ export function delaiRelatif(dateIso: string, aujourdHui: string): string {
   return n > 0 ? `dans ${n} jours` : `il y a ${-n} jours`;
 }
 
-/** Repas à venir dont le jour est arrivé : on propose de le passer en réalisé. */
+/** Invitation à venir dont le jour est arrivé : on propose de la passer en réalisée. */
 export function estAMarquer(inv: Invitation, aujourdHui: string): boolean {
   return inv.statut === 'prevue' && inv.date <= aujourdHui;
 }
 
 /**
- * Éditeur : « Enregistrer réalisée » mis en avant plutôt qu'« Enregistrer à venir » ? Pour un repas déjà
- * enregistré, dès que son jour est arrivé ; pour une nouvelle invitation (date proposée : aujourd'hui),
+ * Éditeur : « Enregistrer réalisée » mis en avant plutôt qu'« Enregistrer à venir » ? Pour une invitation déjà
+ * enregistrée, dès que son jour est arrivé ; pour une nouvelle invitation (date proposée : aujourd'hui),
  * seulement si la date est passée. Date vide : celle du jour, que prend l'enregistrement.
  */
 export function realiseeMiseEnAvant(dateIso: string, aujourdHui: string, nouvelle: boolean): boolean {

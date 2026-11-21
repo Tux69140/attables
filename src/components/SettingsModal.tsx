@@ -448,7 +448,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     Recharger les données d’exemple
                   </div>
                   <div className="text-[13px] text-[var(--ink-muted)]">
-                    Remet les foyers, convives et repas de démonstration
+                    Remet les foyers, convives et invitations de démonstration
                   </div>
                 </div>
                 <IconChevronRight size={18} className="text-[var(--ink-muted)] shrink-0" />
@@ -666,7 +666,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <ConfirmModal
         open={showEffacerExemplesConfirm}
         title="Effacer les exemples ?"
-        description="Les foyers, convives et repas d’exemple seront retirés ; vos propres données restent. Vous pourrez annuler juste après."
+        description="Les foyers, convives et invitations d’exemple seront retirés ; vos propres données restent. Vous pourrez annuler juste après."
         confirmLabel="Effacer"
         onConfirm={() => {
           setShowEffacerExemplesConfirm(false);

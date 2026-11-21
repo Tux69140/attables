@@ -15,7 +15,7 @@ ZÉRO OUBLI D’ALLERGIE
 MÉMOIRE ANTI-DOUBLON & APPRÉCIATIONS
 • Ne resservez plus involontairement le même plat aux mêmes invités.
 • Prescription temporelle réglable (6 mois par défaut) : rappel « Servi récemment » si un plat a été servi il y a peu, mention douce « peut revenir » lorsqu’il est plus ancien.
-• Notez vos retours sur les repas réalisés (Coup de cœur, Bien, À éviter) pour garder le meilleur et écarter les ratés.
+• Notez vos retours sur les invitations réalisées (Coup de cœur, Bien, À éviter) pour garder le meilleur et écarter les ratés.
 
 EXPORT IA ANONYMISÉ EN OPTION
 • Générez d’un clic un résumé structuré au format Markdown à coller dans l’outil de votre choix.

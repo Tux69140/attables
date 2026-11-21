@@ -494,14 +494,14 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
               )}
             </div>
 
-            {/* Historique des repas */}
+            {/* Historique des invitations */}
             <div className="flex flex-col gap-2">
               <div className="flex items-baseline justify-between">
                 <h3 className="font-display text-[18px] text-[var(--ink)]">
                   Historique des invitations
                 </h3>
                 <span className="text-[13px] text-[var(--ink-muted)] tabular-nums">
-                  {viewedHistory.meals.length} repas
+                  {viewedHistory.meals.length} {viewedHistory.meals.length > 1 ? 'invitations' : 'invitation'}
                 </span>
               </div>
               {viewedHistory.meals.length === 0 ? (

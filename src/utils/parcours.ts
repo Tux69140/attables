@@ -15,7 +15,7 @@ export interface EtatParcours {
   realisee: boolean;
   /** Première étape non faite, ou null quand tout est fait. */
   etapeCourante: 1 | 2 | 3 | null;
-  /** Carte complète tant qu'il n'y a aucune invitation, puis une ligne jusqu'au premier repas réalisé. */
+  /** Carte complète tant qu'il n'y a aucune invitation, puis une ligne jusqu'à la première invitation réalisée. */
   affichage: 'complet' | 'ligne' | 'aucun';
 }
 
