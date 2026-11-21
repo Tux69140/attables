@@ -91,7 +91,7 @@ test('variantes d’un même plat', () => {
   assert.equal(liste[0].apparitions.length, 2);
 });
 
-test('plats mangés chez les autres', () => {
+test('plats mangés chez des proches', () => {
   const plat = etat([inv('2026-09-12', 'plat', 'Risotto', { hote: 'Paul & Julie' })]);
   assert.equal(plat.apparitions[0].hoteLabel, 'Chez Paul & Julie');
   assert.deepEqual(plat.apparitions[0].convives, ['Paul']);

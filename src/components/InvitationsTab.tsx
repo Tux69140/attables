@@ -42,7 +42,7 @@ interface InvitationsTabProps {
   onFermerLigneParcours: () => void;
 }
 
-const SUFFIXE_HOTE: Record<Hote, string> = { tous: '', moi: ' chez vous', autres: ' chez les autres' };
+const SUFFIXE_HOTE: Record<Hote, string> = { tous: '', moi: ' chez vous', autres: ' chez des proches' };
 
 export const InvitationsTab: React.FC<InvitationsTabProps> = ({
   invitations,
@@ -189,7 +189,7 @@ export const InvitationsTab: React.FC<InvitationsTabProps> = ({
         options={[
           { id: 'tous', label: 'Tous' },
           { id: 'moi', label: 'Chez moi', icone: 'house' },
-          { id: 'autres', label: 'Chez les autres' },
+          { id: 'autres', label: 'Chez des proches' },
         ]}
       />
 
