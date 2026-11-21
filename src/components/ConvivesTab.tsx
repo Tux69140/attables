@@ -514,7 +514,7 @@ export const ConvivesTab: React.FC<ConvivesTabProps> = ({
                       <div className="flex items-center justify-between text-[13px] text-[var(--ink-muted)] tabular-nums">
                         <span>
                           {formatDateFr(inv.date)} ·{' '}
-                          {inv.statut === 'prevue' ? 'Prévue' : 'Réalisée'}
+                          {inv.statut === 'prevue' ? 'À venir' : 'Réalisée'}
                         </span>
                         {inv.hoteType === 'autre' && (
                           <span className="inline-flex items-center gap-1 font-semibold text-[var(--ink)]">
