@@ -90,7 +90,9 @@ function masquerLeReste(conteneur: HTMLElement): () => void {
  * Garde le focus dans une feuille ou une modale ouverte (WCAG 2.4.3) : le titre le reçoit à
  * l'ouverture, Tab boucle dans le conteneur (seule la couche du dessus), et la fermeture rend le
  * focus à l'élément qui l'avait avant ; le reste de la page est masqué aux lecteurs d'écran
- * (aria-hidden) tant qu'elle est ouverte. Sans `inert` ni `<dialog>` (anciennes WebView Android).
+ * (aria-hidden) tant qu'elle est ouverte. Sans `inert` ni `<dialog>` (anciennes WebView Android), et
+ * sans `aria-modal` : Chrome retirerait de l'arbre d'accessibilité tout ce qui est hors de la feuille,
+ * bandeau « Annuler » compris, que TalkBack ne pourrait plus atteindre.
  * React exécute le nettoyage de la feuille qui se ferme avant l'effet de celle qui s'ouvre dans le
  * même rendu : la nouvelle mémorise alors l'élément que l'ancienne vient de retrouver.
  */

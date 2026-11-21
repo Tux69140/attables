@@ -61,7 +61,6 @@ export const ConfirmModal: React.FC<{
     <div
       className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-[#0D1624]/60 voile-feuille"
       role="dialog"
-      aria-modal="true"
       aria-labelledby="confirm-modal-title"
       onClick={onCancel}
     >
@@ -135,7 +134,6 @@ export const BottomSheet: React.FC<{
     <div
       className={`fixed inset-0 ${zClass} flex items-end sm:items-center justify-center bg-[#0D1624]/60 voile-feuille`}
       role="dialog"
-      aria-modal="true"
       aria-label={title}
       onClick={onClose}
     >
