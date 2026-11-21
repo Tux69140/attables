@@ -43,7 +43,7 @@ test('convives sans invitation', () => {
   assert.equal(e.affichage, 'complet');
 });
 
-test('une invitation prévue', () => {
+test('une invitation à venir', () => {
   const e = etatParcours({ convives: [nadia], invitations: [invitation('prevue')] });
   assert.equal(e.etapeCourante, 3);
   assert.equal(e.affichage, 'ligne');

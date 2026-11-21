@@ -33,7 +33,7 @@ test('delaiRelatif traverse un changement d’heure', () => {
   assert.equal(delaiRelatif('2027-03-29', '2027-03-27'), 'dans 2 jours');
 });
 
-test('estAMarquer : prévue et date atteinte', () => {
+test('estAMarquer : à venir et date atteinte', () => {
   assert.equal(estAMarquer(inv('2026-11-17'), AUJ), true);
   assert.equal(estAMarquer(inv('2026-11-15'), AUJ), true);
   assert.equal(estAMarquer(inv('2026-11-18'), AUJ), false);
@@ -70,7 +70,7 @@ test('moisAvantRetour : jusqu’à la fin du délai de prescription', () => {
 
 test('realiseeMiseEnAvant : jour arrivé pour un repas existant, date passée seulement pour une nouvelle invitation', () => {
   const AUJ = '2026-11-19';
-  // Invitation existante (prévue) : « Valider réalisée » dès le jour du repas.
+  // Invitation existante (à venir) : « Enregistrer réalisée » dès le jour du repas.
   assert.equal(realiseeMiseEnAvant('2026-11-18', AUJ, false), true);
   assert.equal(realiseeMiseEnAvant('2026-11-19', AUJ, false), true);
   assert.equal(realiseeMiseEnAvant('2026-11-20', AUJ, false), false);

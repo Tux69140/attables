@@ -501,7 +501,7 @@ export function buildAiPromptMarkdown(params: {
   const filledMenu = COURSE_KEYS.filter((k) => currentMenu[k]?.trim());
   if (filledMenu.length > 0) {
     lines.push('');
-    lines.push(`## Déjà prévu au menu`);
+    lines.push(`## Déjà au menu de ce repas`);
     for (const k of filledMenu) {
       lines.push(`- **${COURSE_LABELS[k]}** : ${formatDishInput(currentMenu[k] || '')}`);
     }

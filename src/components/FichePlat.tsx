@@ -38,7 +38,7 @@ const EncadreEtat: React.FC<{ plat: PlatConnu; aujourdHui: string; prescriptionM
       case 'prevu':
         return [
           'bg-[var(--surface-elevated)] text-[var(--ink)]',
-          `Prévu le ${plat.prevuLe ? formatJourMois(plat.prevuLe, aujourdHui) : ''} — jamais servi.`,
+          `Au menu du ${plat.prevuLe ? formatJourMois(plat.prevuLe, aujourdHui) : ''} — jamais servi.`,
         ];
       default:
         return ['bg-[var(--indic)] text-[var(--primary-ink)]', 'Idée : jamais servi.'];
@@ -122,7 +122,7 @@ export const FichePlat: React.FC<{
                     <span className="min-w-0">
                       <span className="block font-semibold text-[var(--ink)]">
                         {formatJourMois(a.date, aujourdHui)}
-                        {a.statut === 'prevue' && <span className="ml-2 text-[var(--ink-muted)] font-normal">prévu</span>}
+                        {a.statut === 'prevue' && <span className="ml-2 text-[var(--ink-muted)] font-normal">à venir</span>}
                         <span className="font-normal text-[var(--ink-muted)]"> · {a.hoteLabel}</span>
                       </span>
                       <span className="block text-[var(--ink-muted)]">{a.convives.join(', ') || 'Aucun convive'}</span>

@@ -1395,7 +1395,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
           </div>
         ) : (
           <div className="max-w-[1080px] mx-auto px-safe py-3 flex flex-wrap items-center gap-2.5">
-            {/* Mise en avant selon la date : à venir → « Enregistrer prévue » ; jour arrivé ou passé → « Valider réalisée ». */}
+            {/* Mise en avant selon la date : à venir → « Enregistrer à venir » ; jour arrivé ou passé → « Enregistrer réalisée ». */}
             <button
               type="button"
               onClick={() => handleSubmit('prevue', 'Invitation enregistrée')}
@@ -1403,7 +1403,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
                 jourArrive ? 'border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--ink)]' : 'bg-[var(--primary)] text-[var(--on-primary)]'
               }`}
             >
-              Enregistrer prévue
+              Enregistrer à venir
             </button>
             <button
               type="button"
@@ -1413,7 +1413,7 @@ export const InvitationEditor: React.FC<InvitationEditorProps> = ({
               }`}
             >
               <IconCheck size={17} />
-              <span>Valider réalisée</span>
+              <span>Enregistrer réalisée</span>
             </button>
           </div>
         )}

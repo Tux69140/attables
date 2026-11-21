@@ -17,7 +17,7 @@ export type { ValeursPlat };
 
 interface FormulairePlatProps {
   initial: ValeursPlat;
-  /** Faux pour un plat servi ou prévu : son nom vient des menus. */
+  /** Faux pour un plat servi ou au menu d'une invitation à venir : son nom vient des menus. */
   nomModifiable: boolean;
   allergenesOuverts: boolean;
   /** Clé du plat modifié (absente pour un nouveau plat). */

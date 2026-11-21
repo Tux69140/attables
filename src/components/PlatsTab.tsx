@@ -63,7 +63,7 @@ const PastilleEtat: React.FC<{ plat: PlatConnu; aujourdHui: string }> = ({ plat,
         : plat.etat === 'peut_revenir'
           ? 'peut revenir'
           : plat.etat === 'prevu'
-            ? 'prévu'
+            ? 'à venir'
             : 'idée';
   return (
     <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[13px] font-bold ${styles[plat.etat]}`}>
@@ -165,7 +165,7 @@ export const PlatsTab: React.FC<{
     const der = plat.derniereServie ?? plat.apparitions[0];
     const sousLigne = [
       plat.derniereServie ? `${der!.hoteLabel} · ${formatJourMois(der!.date, aujourdHui)}` : plat.etat === 'idee' ? 'jamais servi' : '',
-      plat.prevuLe ? `prévu le ${formatJourMois(plat.prevuLe, aujourdHui)}` : '',
+      plat.prevuLe ? `au menu du ${formatJourMois(plat.prevuLe, aujourdHui)}` : '',
     ]
       .filter(Boolean)
       .join(' · ');

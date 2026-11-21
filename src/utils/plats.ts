@@ -53,7 +53,7 @@ export interface PlatConnu {
   /** Plus récentes d'abord. */
   apparitions: ApparitionPlat[];
   derniereServie?: ApparitionPlat;
-  /** Date de la plus proche invitation prévue qui le contient. */
+  /** Date de la plus proche invitation à venir qui le contient. */
   prevuLe?: string;
   fiche?: PlatFiche;
   allergenes: string[];
@@ -61,7 +61,7 @@ export interface PlatConnu {
 
 /**
  * Répertoire des plats : union, par nom normalisé, des menus de toutes les invitations
- * (prévues et réalisées, tous hôtes) et des fiches. Les menus sont lus, jamais recopiés.
+ * (à venir et réalisées, tous hôtes) et des fiches. Les menus sont lus, jamais recopiés.
  * Tri : dernière apparition la plus récente d'abord, idées en dernier par ordre alphabétique.
  */
 export function repertoirePlats(
